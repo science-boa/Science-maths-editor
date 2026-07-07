@@ -6,13 +6,11 @@ import google.generativeai as genai
 st.set_page_config(page_title="Physics Question Generator", layout="wide")
 
 # Configure Google Generative AI
-# Ensure you have GEMINI_API_KEY set in Streamlit Cloud Secrets
 genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-model = genai.GenerativeModel('gemini-1.5-flash')
+model = genai.GenerativeModel('gemini-3.5-flash')
 
 # --- Utilities ---
 def format_superscripts(text):
-    """Replaces caret notation (e.g., ^2) with Unicode (e.g., ²)."""
     mapping = {
         "^0": "⁰", "^1": "¹", "^2": "²", "^3": "³", "^4": "⁴",
         "^5": "⁵", "^6": "⁶", "^7": "⁷", "^8": "⁸", "^9": "⁹"
@@ -43,22 +41,23 @@ if uploaded_file:
 
 # --- UI: Main Generation ---
 st.title("Physics Question Generator")
-prompt = st.text_area("Question Prompt", height=100, 
-                     help="Ask for a question, e.g., 'Calculate the kinetic energy of a 5kg mass moving at 10m/s.'")
+prompt = st.text_area("Question Prompt", height=100)
 
 if st.button("Generate Question"):
     with st.spinner("Generating with Gemini..."):
-        # Contextual prompt
-        query = (f"Generate a physics question based on: {prompt}. "
-                 "Output strictly in valid YAML matching this exact schema: "
-                 f"{st.session_state.data}. Return ONLY the YAML.")
+        # INJECTED SYSTEM INSTRUCTIONS
+        system_instr = ("For all physics equations and mathematical expressions, use LaTeX syntax "
+                        "(e.g., use \\frac{a}{b} for fractions). Ensure all backslashes are escaped "
+                        "properly for YAML.")
+        
+        query = (f"Generate a physics question based on: {prompt}. {system_instr} "
+                 f"Output strictly in valid YAML matching this exact schema: {st.session_state.data}. "
+                 "Return ONLY the YAML.")
         
         response = model.generate_content(query)
         
-        # Clean response and format superscripts
         raw_yaml = response.text.replace('```yaml', '').replace('```', '')
         formatted_yaml = format_superscripts(raw_yaml)
-        
         st.session_state.data = yaml.safe_load(formatted_yaml)
         st.success("Generation complete!")
 
@@ -73,16 +72,16 @@ with st.expander("Editor Fields", expanded=True):
         st.session_state.data['metadata']['marks'] = st.number_input("Marks", st.session_state.data['metadata']['marks'])
     
     st.session_state.data['question']['text'] = st.text_area("Question Text", st.session_state.data['question']['text'])
-    st.session_state.data['solution']['final_answer'] = st.text_input("Final Answer", st.session_state.data['solution']['final_answer'])
+    st.session_state.data['solution']['final_answer'] = st.text_input("Final Answer (LaTeX)", st.session_state.data['solution']['final_answer'])
+    
+    # LIVE LATEX PREVIEW
+    st.markdown("---")
+    st.markdown("#### Live Preview of Equation:")
+    st.latex(st.session_state.data['solution']['final_answer'])
 
 # --- UI: Export ---
 st.subheader("YAML Output")
 yaml_output = yaml.dump(st.session_state.data, sort_keys=False)
 st.code(yaml_output, language='yaml')
 
-st.download_button(
-    label="Download YAML",
-    data=yaml_output,
-    file_name=f"{st.session_state.data['id']}.yaml",
-    mime="text/yaml"
-)
+st.download_button("Download YAML", yaml_output, f"{st.session_state.data['id']}.yaml")
