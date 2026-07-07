@@ -22,7 +22,7 @@ def format_superscripts(text):
 
 def clean_latex(text):
     """
-    Correctly reduces double backslashes to single backslashes.
+    Correctly reduces double backslashes to single backslashes for LaTeX rendering.
     """
     return text.replace('\\\\', '\\')
 
@@ -90,15 +90,15 @@ with st.expander("Editor Fields", expanded=True):
     col_q, col_a = st.columns(2)
     with col_q:
         st.markdown("**Question Preview:**")
-        # Use st.markdown instead of st.latex to handle mixed text and LaTeX
         st.markdown(st.session_state.data['question']['text'])
     with col_a:
         st.markdown("**Answer Preview:**")
-        # Wrap final answer in $ if it isn't already to ensure it renders as math
-        ans = st.session_state.data['solution']['final_answer']
-        if ans and not (ans.startswith('$') and ans.endswith('$')):
-            ans = f"${ans}$"
-        st.latex(ans)
+        # Ensure the string passed to st.latex is clean and wrapped in delimiters
+        ans = clean_latex(st.session_state.data['solution']['final_answer'])
+        if ans:
+            # Strip existing delimiters before wrapping to avoid double-delimiters
+            ans = ans.strip('$')
+            st.latex(ans)
 
 # --- UI: Export ---
 st.subheader("YAML Output")
