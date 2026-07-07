@@ -7,7 +7,7 @@ st.set_page_config(page_title="Physics Question Generator", layout="wide")
 
 # Configure Google Generative AI
 genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-model = genai.GenerativeModel('gemini-3.1-flash-lite')
+model = genai.GenerativeModel('gemini-3.5-flash')
 
 # --- Utilities ---
 def format_superscripts(text):
@@ -23,7 +23,6 @@ def format_superscripts(text):
 def clean_latex(text):
     """
     Correctly reduces double backslashes to single backslashes.
-    In Python, the literal '\\\\' represents two backslashes in the string data.
     """
     return text.replace('\\\\', '\\')
 
@@ -54,7 +53,7 @@ prompt = st.text_area("Question Prompt", height=100)
 if st.button("Generate Question"):
     with st.spinner("Generating with Gemini 3.5 Flash..."):
         system_instr = ("For all physics equations and mathematical expressions, use LaTeX syntax "
-                        "(e.g., use \\frac{a}{b} for fractions, \\times or \\cdot for multiplication). "
+                        "enclosed in dollar signs (e.g., $E = mc^2$ or $\\frac{a}{b}$). "
                         "Ensure all backslashes are output as single backslashes.")
         
         query = (f"Generate a physics question based on: {prompt}. {system_instr} "
@@ -66,7 +65,6 @@ if st.button("Generate Question"):
         raw_yaml = response.text.replace('```yaml', '').replace('```', '')
         
         # Apply formatting fixes
-        # Note: clean_latex must run before yaml.safe_load so the parser sees single backslashes
         cleaned_yaml = clean_latex(raw_yaml)
         formatted_yaml = format_superscripts(cleaned_yaml)
         
@@ -92,10 +90,15 @@ with st.expander("Editor Fields", expanded=True):
     col_q, col_a = st.columns(2)
     with col_q:
         st.markdown("**Question Preview:**")
-        st.latex(st.session_state.data['question']['text'])
+        # Use st.markdown instead of st.latex to handle mixed text and LaTeX
+        st.markdown(st.session_state.data['question']['text'])
     with col_a:
         st.markdown("**Answer Preview:**")
-        st.latex(st.session_state.data['solution']['final_answer'])
+        # Wrap final answer in $ if it isn't already to ensure it renders as math
+        ans = st.session_state.data['solution']['final_answer']
+        if ans and not (ans.startswith('$') and ans.endswith('$')):
+            ans = f"${ans}$"
+        st.latex(ans)
 
 # --- UI: Export ---
 st.subheader("YAML Output")
