@@ -3,13 +3,11 @@ import yaml
 import google.generativeai as genai
 
 # --- Configuration ---
-# Streamlit page layout
 st.set_page_config(page_title="Physics Question Generator", layout="wide")
 
 # Configure Google Generative AI
-# Note: Ensure GEMINI_API_KEY is set in your Streamlit Cloud secrets
 genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-model = genai.GenerativeModel('gemini-3.1-flash-lite')
+model = genai.GenerativeModel('gemini-3.5-flash')
 
 # --- Utilities ---
 def format_superscripts(text):
@@ -22,8 +20,14 @@ def format_superscripts(text):
         text = text.replace(code, unicode_char)
     return text
 
+def clean_latex(text):
+    """
+    Correctly reduces double backslashes to single backslashes.
+    In Python, the literal '\\\\' represents two backslashes in the string data.
+    """
+    return text.replace('\\\\', '\\')
+
 def get_empty_schema():
-    """Returns the base schema structure."""
     return {
         "id": "PHYS-2026-001",
         "metadata": {"topic": "", "marks": 4, "difficulty_level": 0.5},
@@ -45,15 +49,13 @@ if uploaded_file:
 
 # --- UI: Main Generation ---
 st.title("Physics Question Generator")
-prompt = st.text_area("Question Prompt", height=100, 
-                     help="Ask for a physics question, e.g., 'Calculate the kinetic energy of a 5kg mass moving at 10m/s.'")
+prompt = st.text_area("Question Prompt", height=100)
 
 if st.button("Generate Question"):
     with st.spinner("Generating with Gemini 3.5 Flash..."):
-        # INJECTED SYSTEM INSTRUCTIONS
         system_instr = ("For all physics equations and mathematical expressions, use LaTeX syntax "
-                        "(e.g., use \\frac{a}{b} for fractions). Ensure all backslashes are escaped "
-                        "properly for YAML.")
+                        "(e.g., use \\frac{a}{b} for fractions, \\times or \\cdot for multiplication). "
+                        "Ensure all backslashes are output as single backslashes.")
         
         query = (f"Generate a physics question based on: {prompt}. {system_instr} "
                  f"Output strictly in valid YAML matching this exact schema: {st.session_state.data}. "
@@ -61,9 +63,12 @@ if st.button("Generate Question"):
         
         response = model.generate_content(query)
         
-        # Clean response and format superscripts
         raw_yaml = response.text.replace('```yaml', '').replace('```', '')
-        formatted_yaml = format_superscripts(raw_yaml)
+        
+        # Apply formatting fixes
+        # Note: clean_latex must run before yaml.safe_load so the parser sees single backslashes
+        cleaned_yaml = clean_latex(raw_yaml)
+        formatted_yaml = format_superscripts(cleaned_yaml)
         
         st.session_state.data = yaml.safe_load(formatted_yaml)
         st.success("Generation complete!")
@@ -81,10 +86,16 @@ with st.expander("Editor Fields", expanded=True):
     st.session_state.data['question']['text'] = st.text_area("Question Text", st.session_state.data['question']['text'])
     st.session_state.data['solution']['final_answer'] = st.text_input("Final Answer (LaTeX)", st.session_state.data['solution']['final_answer'])
     
-    # LIVE LATEX PREVIEW
+    # LIVE PREVIEWS
     st.markdown("---")
-    st.markdown("#### Live Preview of Final Answer:")
-    st.latex(st.session_state.data['solution']['final_answer'])
+    st.markdown("#### Live Previews:")
+    col_q, col_a = st.columns(2)
+    with col_q:
+        st.markdown("**Question Preview:**")
+        st.latex(st.session_state.data['question']['text'])
+    with col_a:
+        st.markdown("**Answer Preview:**")
+        st.latex(st.session_state.data['solution']['final_answer'])
 
 # --- UI: Export ---
 st.subheader("YAML Output")
