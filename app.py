@@ -7,7 +7,7 @@ st.set_page_config(page_title="Physics Question Generator", layout="wide")
 
 # Configure your latest authorized model
 genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-model = genai.GenerativeModel('gemini-3.5-flash') 
+model = genai.GenerativeModel('gemini-3.1-flash-lite') 
 
 # Define your exact schema
 def get_empty_schema():
