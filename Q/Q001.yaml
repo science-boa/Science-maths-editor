@@ -1,49 +1,62 @@
 id: Q001
 metadata:
-  topic: Elastic Potential Energy
+  topic: Thermodynamics
   marks: 4
   difficulty_level: 0.5
 question:
-  text: A pinball launcher uses a spring mechanism to project a ball. The spring has
-    a spring constant of $1200\text{ N/m}$ and is compressed by $5\text{ cm}$. Calculate
-    the elastic potential energy stored in the compressed spring. State the unit in
-    your final answer.
-  variables: []
+  text: "A cup contains $250 \\text{ ml}$ of coffee, which has a density of $1000\
+    \ \\text{ kg/m}\xB3$ and a specific heat capacity of $4180 \\text{ J/(kg}\\cdot\\\
+    text{K)}$. If the internal energy of the coffee increases by $15,000 \\text{ J}$\
+    \ starting from an initial temperature of $20^\\circ\\text{C}$, calculate the\
+    \ final temperature of the coffee in degrees Celsius. Assume the density of coffee\
+    \ is approximately that of water."
+  variables:
+  - name: volume
+    value: 0.00025
+  - name: density
+    value: 1000
+  - name: c
+    value: 4180
+  - name: delta_U
+    value: 15000
+  - name: T_initial
+    value: 20
 solution:
-  final_answer: 1.5
+  final_answer: 34.358
   marks_available: 4
   steps:
   - step_number: 1
-    text: 'Convert the compression from centimeters to meters: $e = \frac{5}{100}
-      = 0.05\text{ m}$.'
+    text: "Calculate the mass of the coffee using $m = \\rho \\times V = 1000 \\text{\
+      \ kg/m}\xB3 \\times 0.00025 \\text{ m}\xB3 = 0.25 \\text{ kg}$."
     marks_assigned: 1
     check_type: numeric
-    milestone_value: 0.05
+    milestone_value: 0.25
     tolerance: 0.001
   - step_number: 2
-    text: "Substitute the values into the formula $E_e = 0.5 \\times k \\times e\xB2\
-      $ to square the compression: $0.05\xB2 = 0.0025\\text{ m}\xB2$."
+    text: 'Rearrange the heat equation $\Delta U = mc\Delta T$ to solve for the change
+      in temperature: $\Delta T = \frac{\Delta U}{mc}$.'
     marks_assigned: 1
     check_type: numeric
-    milestone_value: 0.0025
-    tolerance: 0.0001
+    milestone_value: 14.358
+    tolerance: 0.01
   - step_number: 3
-    text: 'Calculate the final numerical value of the energy: $E_e = 0.5 \times 1200
-      \times 0.0025 = 1.5$.'
+    text: Substitute the values to find $\Delta T = \frac{15000}{0.25 \times 4180}
+      \approx 14.358^\circ\text{C}$.
     marks_assigned: 1
     check_type: numeric
-    milestone_value: 1.5
+    milestone_value: 14.358
     tolerance: 0.01
   - step_number: 4
-    text: 'State the correct unit for energy: Joules ($\text{J}$).'
+    text: 'Add the change in temperature to the initial temperature: $T_f = T_i +
+      \Delta T = 20 + 14.358 = 34.358^\circ\text{C}$.'
     marks_assigned: 1
     check_type: numeric
-    milestone_value: 1.5
-    tolerance: 0.0
+    milestone_value: 34.358
+    tolerance: 0.01
 media:
-  diagram_url: null
-  video_explainer_url: null
+  diagram_url: None
+  video_explainer_url: None
 tags:
-- energy
-- mechanics
-- gcse
+- Thermodynamics
+- Specific Heat
+- Energy Change
