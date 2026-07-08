@@ -14,6 +14,20 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+
+  <style>
+    /* Chrome, Safari, Edge, Opera */
+    input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    /* Firefox */
+    input[type=number] {
+      -moz-appearance: textfield;
+    }
+  </style>
 </head>
 <body class="bg-gray-50 min-h-screen text-gray-800 antialiased font-sans">
 
@@ -203,14 +217,14 @@
           </div>`;
       }
 
-      // Render Question text only
+      // Render Question text section
       questionArea.innerHTML = `
         <div class="text-xs font-bold text-blue-600 tracking-wider uppercase mb-1">${q.metadata?.topic || 'General Science'}</div>
         <h2 class="text-xl font-bold text-gray-900 mb-4">Question ID: ${q.id}</h2>
         ${diagramHtml}
         <div id="math-text" class="text-base leading-relaxed text-gray-800 font-normal">${q.question.text}</div>`;
 
-      // Render KaTeX equations
+      // Render KaTeX equations inline
       renderMathInElement(document.getElementById('math-text'), {
         delimiters: [
           { left: "$$", right: "$$", display: true },
@@ -218,13 +232,13 @@
         ]
       });
 
-      // Show and refresh the Working area block
+      // Show and refresh the Working section
       workingArea.classList.remove('hidden');
-      document.getElementById('scratchpad').value = localStorage.getItem(`scratchpad-${q.id}`) || '';
+      document.getElementById('scratchpad').value = localStorage.getItem(`scratchpad-slot-${currentIndex}`) || '';
 
-      // Show and refresh the Answer box block
+      // Show and refresh the Answer box block explicitly
       answerArea.classList.remove('hidden');
-      document.getElementById('answer-input').value = studentAnswers[q.id] || '';
+      document.getElementById('answer-input').value = studentAnswers[currentIndex] || '';
 
       // Pagination sync
       document.getElementById('btn-prev').disabled = (currentIndex === 0);
@@ -237,16 +251,14 @@
       }
     }
 
-    // 4. Data Sync Bindings
+    // 4. Data State Sync Bindings
     function captureAnswer(val) {
-      const q = questions[currentIndex];
-      studentAnswers[q.id] = val;
+      studentAnswers[currentIndex] = val;
     }
 
     function saveScratchpad() {
-      const q = questions[currentIndex];
       const val = document.getElementById('scratchpad').value;
-      localStorage.setItem(`scratchpad-${q.id}`, val);
+      localStorage.setItem(`scratchpad-slot-${currentIndex}`, val);
     }
 
     function changeQuestion(dir) {
@@ -254,17 +266,18 @@
       renderCurrentQuestion();
     }
 
-    // 5. Native Built-In Math Grader Logic
+    // 5. Quiz Evaluator Engine
     function submitQuiz() {
       let score = 0;
       let breakdown = "";
 
       questions.forEach((q, idx) => {
         if (q.error) return;
-        const studentRaw = studentAnswers[q.id];
+        
+        const studentRaw = studentAnswers[idx];
         const correctRaw = q.solution.final_answer;
 
-        const correctNum = parseFloat(correctRaw.replace(/[^0-9.-]/g, ''));
+        const correctNum = parseFloat(correctRaw.toString().replace(/[^0-9.-]/g, ''));
         const studentNum = parseFloat(studentRaw);
 
         let pass = false;
@@ -284,7 +297,7 @@
       alert(`Quiz Results Evaluated!\n\nScore: ${score} / ${questions.length}\n\n${breakdown}`);
     }
 
-    // 6. Advanced Scientific Calculator Engine (GCSE Specifications / Degree Mode Default)
+    // 6. Advanced Scientific Calculator Engine
     function pressCalc(token) {
       const display = document.getElementById('calc-display');
       const history = document.getElementById('calc-history');
