@@ -1,424 +1,49 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Maths for Science</title>
-  
-  <script src="https://cdn.tailwindcss.com"></script>
-  
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js"></script>
-  
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/12.4.1/math.js"></script>
-  
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
-
-  <style>
-    /* Chrome, Safari, Edge, Opera */
-    input::-webkit-outer-spin-button,
-    input::-webkit-inner-spin-button {
-      -webkit-appearance: none;
-      margin: 0;
-    }
-
-    /* Firefox */
-    input[type=number] {
-      -moz-appearance: textfield;
-    }
-  </style>
-</head>
-<body class="bg-gray-50 min-h-screen text-gray-800 antialiased font-sans">
-
-  <div class="max-w-7xl mx-auto px-4 py-8">
-    <header class="mb-8 border-b border-gray-200 pb-4 flex justify-between items-center">
-      <h1 class="text-3xl font-bold text-gray-900 tracking-tight">Maths for Science</h1>
-      <span id="loading-badge" class="bg-amber-100 text-amber-800 text-xs font-semibold px-3 py-1 rounded-full animate-pulse">Loading Questions...</span>
-    </header>
-
-    <div id="dashboard" class="flex gap-2 mb-6 overflow-x-auto pb-2"></div>
-
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-      
-      <div class="lg:col-span-2 space-y-6">
-        
-        <div class="bg-white p-6 rounded-xl shadow-xs border border-gray-200 space-y-6">
-          
-          <div id="question-area">
-            <div class="text-gray-400 text-center py-16">Awaiting URL parameters...</div>
-          </div>
-
-          <div id="working-area" class="pt-4 border-t border-gray-100 hidden">
-            <h3 class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">Working</h3>
-            <textarea id="scratchpad" oninput="saveScratchpad()" placeholder="Type your equations, formulas, and numeric calculations here..." class="w-full h-44 p-3 font-mono text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-none bg-amber-50/30"></textarea>
-          </div>
-
-          <div id="answer-area" class="pt-4 border-t border-gray-100 hidden">
-            <div class="flex items-center gap-4">
-              <label class="font-semibold text-gray-700 shrink-0">Your Answer:</label>
-              <input type="number" id="answer-input" step="any" oninput="captureAnswer(this.value)" placeholder="Enter numeric value" class="border border-gray-300 rounded-lg px-3 py-2 w-48 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none font-mono">
-            </div>
-          </div>
-
-        </div>
-
-        <div class="flex justify-between items-center pt-2">
-          <button id="btn-prev" onclick="changeQuestion(-1)" class="px-5 py-2 bg-gray-200 hover:bg-gray-300 disabled:opacity-40 font-medium rounded-lg transition-colors cursor-pointer" disabled>
-            ← Previous
-          </button>
-          <button id="btn-next" onclick="changeQuestion(1)" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors cursor-pointer">
-            Next →
-          </button>
-          <button id="btn-submit" onclick="submitQuiz()" class="px-6 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg transition-colors hidden cursor-pointer">
-            Submit Quiz
-          </button>
-        </div>
-      </div>
-
-      <div class="space-y-6">
-        
-        <div class="bg-slate-900 text-white p-4 rounded-2xl shadow-xl border border-slate-800 w-full max-w-sm mx-auto">
-          <div class="flex justify-between items-center mb-1 text-[10px] uppercase font-bold tracking-wider text-slate-400 px-1">
-            <span>GCSE Scientific</span>
-            <span class="text-emerald-400 font-mono">DEG MODE</span>
-          </div>
-          
-          <div class="bg-slate-950 border border-slate-800 rounded-xl p-3 mb-4 text-right font-mono min-h-[72px] flex flex-col justify-between">
-            <div id="calc-history" class="text-xs text-slate-500 overflow-hidden text-ellipsis whitespace-nowrap"></div>
-            <div id="calc-display" class="text-xl text-emerald-400 font-semibold overflow-x-auto whitespace-nowrap">0</div>
-          </div>
-          
-          <div class="grid grid-cols-5 gap-1.5 text-xs font-bold">
-            <button onclick="pressCalc('sin(')" class="bg-slate-800 hover:bg-slate-700 p-2.5 rounded-lg text-slate-300 cursor-pointer">sin</button>
-            <button onclick="pressCalc('cos(')" class="bg-slate-800 hover:bg-slate-700 p-2.5 rounded-lg text-slate-300 cursor-pointer">cos</button>
-            <button onclick="pressCalc('tan(')" class="bg-slate-800 hover:bg-slate-700 p-2.5 rounded-lg text-slate-300 cursor-pointer">tan</button>
-            <button onclick="pressCalc('(')" class="bg-slate-700 hover:bg-slate-600 p-2.5 rounded-lg text-slate-200 cursor-pointer">(</button>
-            <button onclick="pressCalc(')')" class="bg-slate-700 hover:bg-slate-600 p-2.5 rounded-lg text-slate-200 cursor-pointer">)</button>
-
-            <button onclick="pressCalc('sqrt(')" class="bg-slate-800 hover:bg-slate-700 p-2.5 rounded-lg text-slate-300 cursor-pointer">√</button>
-            <button onclick="pressCalc('^2')" class="bg-slate-800 hover:bg-slate-700 p-2.5 rounded-lg text-slate-300 cursor-pointer">x²</button>
-            <button onclick="pressCalc('^')" class="bg-slate-800 hover:bg-slate-700 p-2.5 rounded-lg text-slate-300 cursor-pointer">xʸ</button>
-            <button onclick="pressCalc('pi')" class="bg-slate-800 hover:bg-slate-700 p-2.5 rounded-lg text-slate-300 cursor-pointer">π</button>
-            <button onclick="pressCalc('*10^')" class="bg-slate-800 hover:bg-slate-700 p-2.5 rounded-lg text-slate-300 cursor-pointer">EXP</button>
-
-            <button onclick="pressCalc('7')" class="bg-slate-700 hover:bg-slate-600 p-3 rounded-lg text-lg cursor-pointer">7</button>
-            <button onclick="pressCalc('8')" class="bg-slate-700 hover:bg-slate-600 p-3 rounded-lg text-lg cursor-pointer">8</button>
-            <button onclick="pressCalc('9')" class="bg-slate-700 hover:bg-slate-600 p-3 rounded-lg text-lg cursor-pointer">9</button>
-            <button onclick="pressCalc('DEL')" class="bg-amber-600 hover:bg-amber-500 p-3 rounded-lg text-white font-extrabold cursor-pointer">DEL</button>
-            <button onclick="pressCalc('AC')" class="bg-rose-700 hover:bg-rose-600 p-3 rounded-lg text-white font-extrabold cursor-pointer">AC</button>
-
-            <button onclick="pressCalc('4')" class="bg-slate-700 hover:bg-slate-600 p-3 rounded-lg text-lg cursor-pointer">4</button>
-            <button onclick="pressCalc('5')" class="bg-slate-700 hover:bg-slate-600 p-3 rounded-lg text-lg cursor-pointer">5</button>
-            <button onclick="pressCalc('6')" class="bg-slate-700 hover:bg-slate-600 p-3 rounded-lg text-lg cursor-pointer">6</button>
-            <button onclick="pressCalc('*')" class="bg-slate-800 hover:bg-slate-700 p-3 rounded-lg text-base text-slate-300 cursor-pointer">×</button>
-            <button onclick="pressCalc('/')" class="bg-slate-800 hover:bg-slate-700 p-3 rounded-lg text-base text-slate-300 cursor-pointer">÷</button>
-
-            <button onclick="pressCalc('1')" class="bg-slate-700 hover:bg-slate-600 p-3 rounded-lg text-lg cursor-pointer">1</button>
-            <button onclick="pressCalc('2')" class="bg-slate-700 hover:bg-slate-600 p-3 rounded-lg text-lg cursor-pointer">2</button>
-            <button onclick="pressCalc('3')" class="bg-slate-700 hover:bg-slate-600 p-3 rounded-lg text-lg cursor-pointer">3</button>
-            <button onclick="pressCalc('+')" class="bg-slate-800 hover:bg-slate-700 p-3 rounded-lg text-base text-slate-300 cursor-pointer">+</button>
-            <button onclick="pressCalc('-')" class="bg-slate-800 hover:bg-slate-700 p-3 rounded-lg text-base text-slate-300 cursor-pointer">-</button>
-
-            <button onclick="pressCalc('0')" class="bg-slate-700 hover:bg-slate-600 p-3 rounded-lg text-lg cursor-pointer">0</button>
-            <button onclick="pressCalc('.')" class="bg-slate-700 hover:bg-slate-600 p-3 rounded-lg text-lg cursor-pointer">.</button>
-            <button onclick="pressCalc('Ans')" class="bg-slate-800 hover:bg-slate-700 p-3 rounded-lg text-slate-300 cursor-pointer">Ans</button>
-            <button onclick="pressCalc('=')" class="bg-emerald-600 hover:bg-emerald-500 p-3 rounded-lg text-white font-bold col-span-2 text-base shadow-lg cursor-pointer">=</button>
-          </div>
-        </div>
-
-      </div>
-
-    </div>
-  </div>
-
-  <script>
-    const BASE_RAW_URL = "https://raw.githubusercontent.com/science-boa/Science-maths-editor/main/Q/";
-    let questions = [];
-    let currentIndex = 0;
-    let studentAnswers = {};
-    
-    // Calculator memory trackers
-    let calcExpression = "";
-    let lastAnswer = 0;
-
-    // 1. App initialization: Parse URLs and Fetch YAML sequences
-    window.addEventListener('DOMContentLoaded', async () => {
-      const params = new URLSearchParams(window.location.search);
-      const qKeys = Array.from(params.keys()).filter(k => k.startsWith('q')).sort();
-
-      if (qKeys.length === 0) {
-        document.getElementById('question-area').innerHTML = `
-          <div class="text-center py-12">
-            <p class="text-red-500 font-semibold text-lg">No configuration payload detected.</p>
-            <p class="text-sm text-gray-500 mt-2">Append target files to your browser window address bar string: <code class="bg-gray-100 p-1 rounded font-mono text-xs">?q1=PHYS-2026-001</code></p>
-          </div>`;
-        document.getElementById('loading-badge').classList.add('hidden');
-        return;
-      }
-
-      for (const key of qKeys) {
-        const fileId = params.get(key);
-        if (!fileId) continue;
-        try {
-          const response = await fetch(`${BASE_RAW_URL}${fileId}.yaml`);
-          if (!response.ok) throw new Error(`Status ${response.status}`);
-          const text = await response.text();
-          const parsed = jsyaml.load(text);
-          questions.push({ ...parsed, id: fileId });
-        } catch (err) {
-          questions.push({ id: fileId, error: true, message: `Failed fetching asset details: ${err.message}` });
-        }
-      }
-
-      document.getElementById('loading-badge').classList.add('hidden');
-      buildDashboard();
-      renderCurrentQuestion();
-    });
-
-    // 2. Dashboard UI Generator
-    function buildDashboard() {
-      const container = document.getElementById('dashboard');
-      container.innerHTML = '';
-      questions.forEach((q, idx) => {
-        const btn = document.createElement('button');
-        btn.innerText = `Q${idx + 1}`;
-        btn.className = `px-4 py-2 text-sm font-semibold rounded-lg border transition-all cursor-pointer ${
-          idx === currentIndex 
-            ? 'bg-blue-600 border-blue-600 text-white shadow-xs' 
-            : 'bg-white border-gray-200 hover:bg-gray-50 text-gray-700'
-        }`;
-        btn.onclick = () => { currentIndex = idx; renderCurrentQuestion(); };
-        container.appendChild(btn);
-      });
-    }
-
-    // 3. Main State Content Renderer
-    function renderCurrentQuestion() {
-      buildDashboard();
-      const questionArea = document.getElementById('question-area');
-      const workingArea = document.getElementById('working-area');
-      const answerArea = document.getElementById('answer-area');
-      const q = questions[currentIndex];
-
-      if (!q) return;
-      if (q.error) {
-        questionArea.innerHTML = `<div class="text-red-500 font-medium">⚠️ ${q.message} (${q.id})</div>`;
-        workingArea.classList.add('hidden');
-        answerArea.classList.add('hidden');
-        return;
-      }
-
-      let diagramHtml = '';
-      if (q.media && q.media.diagram_url) {
-        diagramHtml = `
-          <div class="mb-6 border border-gray-200 bg-gray-100 rounded-lg w-full h-48 flex items-center justify-center overflow-hidden">
-            <img src="${BASE_RAW_URL}${q.media.diagram_url}" alt="Question Diagram" class="object-contain h-full w-full" onerror="this.parentElement.innerHTML='<span class=\'text-xs text-gray-400\'>Diagram Image Reference Broken: ${q.media.diagram_url}</span>'">
-          </div>`;
-      }
-
-      // Render Question text section
-      questionArea.innerHTML = `
-        <div class="text-xs font-bold text-blue-600 tracking-wider uppercase mb-1">${q.metadata?.topic || 'General Science'}</div>
-        <h2 class="text-xl font-bold text-gray-900 mb-4">Question ID: ${q.id}</h2>
-        ${diagramHtml}
-        <div id="math-text" class="text-base leading-relaxed text-gray-800 font-normal">${q.question.text}</div>`;
-
-      // Render KaTeX equations inline
-      renderMathInElement(document.getElementById('math-text'), {
-        delimiters: [
-          { left: "$$", right: "$$", display: true },
-          { left: "$", right: "$", display: false }
-        ]
-      });
-
-      // Show and refresh the Working section
-      workingArea.classList.remove('hidden');
-      document.getElementById('scratchpad').value = localStorage.getItem(`scratchpad-slot-${currentIndex}`) || '';
-
-      // Show and refresh the Answer box block explicitly
-      answerArea.classList.remove('hidden');
-      document.getElementById('answer-input').value = studentAnswers[currentIndex] || '';
-
-      // Pagination sync
-      document.getElementById('btn-prev').disabled = (currentIndex === 0);
-      if (currentIndex === questions.length - 1) {
-        document.getElementById('btn-next').classList.add('hidden');
-        document.getElementById('btn-submit').classList.remove('hidden');
-      } else {
-        document.getElementById('btn-next').classList.remove('hidden');
-        document.getElementById('btn-submit').classList.add('hidden');
-      }
-    }
-
-    // 4. Data State Sync Bindings
-    function captureAnswer(val) {
-      studentAnswers[currentIndex] = val;
-    }
-
-    // Fixed internal working tracking hooks
-    function saveScratchpad() {
-      const val = document.getElementById('scratchpad').value;
-      localStorage.setItem(`scratchpad-slot-${currentIndex}`, val);
-    }
-
-    function changeQuestion(dir) {
-      currentIndex += dir;
-      renderCurrentQuestion();
-    }
-
-    // 5. Quiz Evaluator Engine (Updated for Dynamic Working & Milestone Grading)
-    function submitQuiz() {
-      let grandTotalEarned = 0;
-      let grandTotalPossible = 0;
-      let reportBreakdown = "";
-
-      questions.forEach((q, idx) => {
-        if (q.error) return;
-        
-        let questionEarnedMarks = 0;
-        let questionMaxMarks = 0;
-        let questionFeedback = [];
-
-        // --- PART A: Final Answer Grading ---
-        const studentRawAnswer = studentAnswers[idx];
-        const correctRawAnswer = q.solution.final_answer;
-
-        const targetFinalNum = parseFloat(correctRawAnswer.toString().replace(/[^0-9.-]/g, ''));
-        const studentFinalNum = parseFloat(studentRawAnswer);
-
-        let finalAnswerCorrect = false;
-        if (!isNaN(targetFinalNum) && !isNaN(studentFinalNum)) {
-          if (studentFinalNum === targetFinalNum) {
-            finalAnswerCorrect = true;
-          } else {
-            // Standard 0.5% fallback margin protection matching previous builds
-            const deviation = Math.abs((studentFinalNum - targetFinalNum) / targetFinalNum);
-            if (deviation <= 0.005) finalAnswerCorrect = true;
-          }
-        }
-
-        // Add final answer value status report strings
-        questionFeedback.push(`Final Answer Box: ${finalAnswerCorrect ? '✓ Match' : '✗ Misaligned'} (Entered: ${studentRawAnswer || 'None'}, Target: ${correctRawAnswer})`);
-
-        // --- PART B: Working/Scratchpad Partial Marks Grading ---
-        const scratchpadText = localStorage.getItem(`scratchpad-slot-${idx}`) || "";
-        
-        // Extract all whole or decimal numbers from working space safely using regex strings
-        const studentNumbersInWorking = (scratchpadText.match(/[+-]?\d+(\.\d+)?/g) || []).map(Number);
-
-        // Safely pull structural processing items down from schema if structured arrays exist
-        const structuredSteps = (q.solution && Array.isArray(q.solution.steps)) ? q.solution.steps : [];
-
-        if (structuredSteps.length > 0) {
-          structuredSteps.forEach((step) => {
-            const stepWeight = parseInt(step.marks_assigned || 1);
-            questionMaxMarks += stepWeight;
-
-            if (step.check_type === "numeric" && step.milestone_value !== undefined) {
-              const targetVal = parseFloat(step.milestone_value);
-              const tolerancePercent = parseFloat(step.tolerance || 0.005);
-              
-              // Scan student array numbers for step alignment matches
-              let milestoneMatched = false;
-              for (let num of studentNumbersInWorking) {
-                if (num === targetVal) {
-                  milestoneMatched = true;
-                  break;
-                }
-                const numDeviation = Math.abs((num - targetVal) / targetVal);
-                if (numDeviation <= tolerancePercent) {
-                  milestoneMatched = true;
-                  break;
-                }
-              }
-
-              if (milestoneMatched) {
-                questionEarnedMarks += stepWeight;
-                questionFeedback.push(`  -> Step ${step.step_number}: ✓ Milestone ${targetVal} located (+${stepWeight} Mark)`);
-              } else {
-                questionFeedback.push(`  -> Step ${step.step_number}: ✗ Milestone ${targetVal} missing (0/${stepWeight} Marks)`);
-              }
-            } else {
-              // Graceful textual fallback logger if check layout structure properties vary
-              questionFeedback.push(`  -> Step ${step.step_number}: Skipped (Non-numeric criteria format)`);
-            }
-          });
-        } else {
-          // Fallback configuration profile scaling boundary rules logic:
-          // If no structured step arrays are supplied by the file, default back completely to a clean single point baseline
-          questionMaxMarks += 1;
-          if (finalAnswerCorrect) questionEarnedMarks += 1;
-        }
-
-        // Accumulate running total values
-        grandTotalEarned += questionEarnedMarks;
-        grandTotalPossible += questionMaxMarks;
-
-        reportBreakdown += `\n--- Q${idx + 1} (${q.id}) Total Marks: ${questionEarnedMarks}/${questionMaxMarks} ---\n` + questionFeedback.join('\n') + `\n`;
-      });
-
-      alert(`Quiz Results Evaluated!\n\nOverall Aggregate Score: ${grandTotalEarned} / ${grandTotalPossible} Marks\n${reportBreakdown}`);
-    }
-
-    // 6. Advanced Scientific Calculator Engine
-    function pressCalc(token) {
-      const display = document.getElementById('calc-display');
-      const history = document.getElementById('calc-history');
-
-      if (token === 'AC') {
-        calcExpression = "";
-        display.innerText = "0";
-        history.innerText = "";
-      } 
-      else if (token === 'DEL') {
-        if (calcExpression.length > 0) {
-          if (calcExpression.endsWith('sin(') || calcExpression.endsWith('cos(') || calcExpression.endsWith('tan(')) {
-            calcExpression = calcExpression.slice(0, -4);
-          } else if (calcExpression.endsWith('sqrt(')) {
-            calcExpression = calcExpression.slice(0, -5);
-          } else if (calcExpression.endsWith('*10^')) {
-            calcExpression = calcExpression.slice(0, -4);
-          } else if (calcExpression.endsWith('Ans')) {
-            calcExpression = calcExpression.slice(0, -3);
-          } else {
-            calcExpression = calcExpression.slice(0, -1);
-          }
-        }
-        display.innerText = calcExpression || "0";
-      } 
-      else if (token === '=') {
-        try {
-          if (calcExpression === "") return;
-
-          const degreeScope = {
-            sin: (x) => Math.sin(x * Math.PI / 180),
-            cos: (x) => Math.cos(x * Math.PI / 180),
-            tan: (x) => Math.tan(x * Math.PI / 180),
-            sqrt: (x) => Math.sqrt(x),
-            pi: Math.PI,
-            Ans: lastAnswer
-          };
-
-          let result = math.evaluate(calcExpression, degreeScope);
-          
-          if (typeof result === 'number') {
-            if (result % 1 !== 0) result = parseFloat(result.toFixed(6));
-            history.innerText = calcExpression.replace(/\*/g, '×').replace(/\//g, '÷') + " =";
-            display.innerText = result;
-            lastAnswer = result;
-            calcExpression = result.toString();
-          }
-        } catch (e) {
-          display.innerText = "Syntax Error";
-          calcExpression = "";
-        }
-      } 
-      else {
-        calcExpression += token;
-        display.innerText = calcExpression.replace(/\*/g, '×').replace(/\//g, '÷');
-      }
-    }
-  </script>
-</body>
-</html>
+id: Q001
+metadata:
+  topic: Elastic Potential Energy
+  marks: 4
+  difficulty_level: 0.5
+question:
+  text: A pinball launcher uses a spring mechanism to project a ball. The spring has
+    a spring constant of $1200\text{ N/m}$ and is compressed by $5\text{ cm}$. Calculate
+    the elastic potential energy stored in the compressed spring. State the unit in
+    your final answer.
+  variables: []
+solution:
+  final_answer: 1.5
+  marks_available: 4
+  steps:
+  - step_number: 1
+    text: 'Convert the compression from centimeters to meters: $e = \frac{5}{100}
+      = 0.05\text{ m}$.'
+    marks_assigned: 1
+    check_type: numeric
+    milestone_value: 0.05
+    tolerance: 0.001
+  - step_number: 2
+    text: "Substitute the values into the formula $E_e = 0.5 \\times k \\times e\xB2\
+      $ to square the compression: $0.05\xB2 = 0.0025\\text{ m}\xB2$."
+    marks_assigned: 1
+    check_type: numeric
+    milestone_value: 0.0025
+    tolerance: 0.0001
+  - step_number: 3
+    text: 'Calculate the final numerical value of the energy: $E_e = 0.5 \times 1200
+      \times 0.0025 = 1.5$.'
+    marks_assigned: 1
+    check_type: numeric
+    milestone_value: 1.5
+    tolerance: 0.01
+  - step_number: 4
+    text: 'State the correct unit for energy: Joules ($\text{J}$).'
+    marks_assigned: 1
+    check_type: numeric
+    milestone_value: 1.5
+    tolerance: 0.0
+media:
+  diagram_url: null
+  video_explainer_url: null
+tags:
+- energy
+- mechanics
+- gcse
