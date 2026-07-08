@@ -23,7 +23,11 @@ def clean_latex(text):
     return text.replace('\\\\', '\\')
 
 def push_to_github(filename, content):
-    """Pushes the YAML content to the configured GitHub repository."""
+    """Pushes the YAML content to the /Q directory of the configured repository."""
+    # Ensure filename starts with /Q/
+    if not filename.startswith("Q/"):
+        filename = f"Q/{filename}"
+        
     try:
         g = Github(st.secrets["GITHUB_TOKEN"])
         repo = g.get_repo(st.secrets["GITHUB_REPO"])
@@ -96,6 +100,9 @@ if st.button("Generate Question"):
 
 # --- UI: Editor ---
 st.subheader("Edit Question Data")
+# Make ID editable
+st.session_state.data['id'] = st.text_input("Question ID", st.session_state.data['id'])
+
 st.write("Current Data Loaded (Preview):")
 st.code(yaml.dump(st.session_state.data, sort_keys=False), language='yaml')
 
