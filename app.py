@@ -1,6 +1,7 @@
 import streamlit as st
 import yaml
 import google.generativeai as genai
+from github import Github
 
 # --- Configuration ---
 st.set_page_config(page_title="Physics Question Generator", layout="wide")
@@ -20,6 +21,21 @@ def format_superscripts(text):
 
 def clean_latex(text):
     return text.replace('\\\\', '\\')
+
+def push_to_github(filename, content):
+    """Pushes the YAML content to the configured GitHub repository."""
+    try:
+        g = Github(st.secrets["GITHUB_TOKEN"])
+        repo = g.get_repo(st.secrets["GITHUB_REPO"])
+        try:
+            contents = repo.get_contents(filename)
+            repo.update_file(contents.path, f"Update {filename}", content, contents.sha)
+            st.success(f"Updated {filename} on GitHub!")
+        except:
+            repo.create_file(filename, f"Add {filename}", content)
+            st.success(f"Created {filename} on GitHub!")
+    except Exception as e:
+        st.error(f"GitHub push failed: {e}")
 
 def get_empty_schema():
     return {
@@ -58,7 +74,6 @@ prompt = st.text_area("Question Prompt", height=100)
 
 if st.button("Generate Question"):
     with st.spinner("Generating with Gemini 3.5 Flash..."):
-        # UPDATED PROMPT: Now requires explicit milestone_value and tolerance fields
         system_instr = (
             "For physics questions, use LaTeX (e.g., $\\frac{a}{b}$, $\\times$). "
             "Ensure solution steps contain: step_number, text, marks_assigned, "
@@ -81,9 +96,14 @@ if st.button("Generate Question"):
 
 # --- UI: Editor ---
 st.subheader("Edit Question Data")
-# Note: Expanded editor logic here would map to the new 'steps' array...
 st.write("Current Data Loaded (Preview):")
 st.code(yaml.dump(st.session_state.data, sort_keys=False), language='yaml')
 
-st.download_button("Download YAML", yaml.dump(st.session_state.data, sort_keys=False), 
-                   file_name=f"{st.session_state.data['id']}.yaml", mime="text/yaml")
+col1, col2 = st.columns(2)
+with col1:
+    st.download_button("Download YAML", yaml.dump(st.session_state.data, sort_keys=False), 
+                       file_name=f"{st.session_state.data['id']}.yaml", mime="text/yaml")
+with col2:
+    if st.button("Push to GitHub"):
+        yaml_output = yaml.dump(st.session_state.data, sort_keys=False)
+        push_to_github(f"{st.session_state.data['id']}.yaml", yaml_output)
