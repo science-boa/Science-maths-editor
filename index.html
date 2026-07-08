@@ -232,9 +232,9 @@
         ]
       });
 
-      // Show and refresh the Working section
+      // Show and refresh the Working section (FIXED: Tied directly to q.id unique key namespace)
       workingArea.classList.remove('hidden');
-      document.getElementById('scratchpad').value = localStorage.getItem(`scratchpad-slot-${currentIndex}`) || '';
+      document.getElementById('scratchpad').value = localStorage.getItem(`scratchpad-id-${q.id}`) || '';
 
       // Show and refresh the Answer box block explicitly
       answerArea.classList.remove('hidden');
@@ -256,9 +256,13 @@
       studentAnswers[currentIndex] = val;
     }
 
+    // FIXED: Writes local storage entries under the exact question asset configuration filename string wrapper
     function saveScratchpad() {
-      const val = document.getElementById('scratchpad').value;
-      localStorage.setItem(`scratchpad-slot-${currentIndex}`, val);
+      const q = questions[currentIndex];
+      if (q && q.id) {
+        const val = document.getElementById('scratchpad').value;
+        localStorage.setItem(`scratchpad-id-${q.id}`, val);
+      }
     }
 
     function changeQuestion(dir) {
@@ -268,33 +272,85 @@
 
     // 5. Quiz Evaluator Engine
     function submitQuiz() {
-      let score = 0;
-      let breakdown = "";
+      let grandTotalEarned = 0;
+      let grandTotalPossible = 0;
+      let reportBreakdown = "";
 
       questions.forEach((q, idx) => {
         if (q.error) return;
         
-        const studentRaw = studentAnswers[idx];
-        const correctRaw = q.solution.final_answer;
+        let questionEarnedMarks = 0;
+        let questionMaxMarks = 0;
+        let questionFeedback = [];
 
-        const correctNum = parseFloat(correctRaw.toString().replace(/[^0-9.-]/g, ''));
-        const studentNum = parseFloat(studentRaw);
+        // --- PART A: Final Answer Grading ---
+        const studentRawAnswer = studentAnswers[idx];
+        const correctRawAnswer = q.solution.final_answer;
 
-        let pass = false;
-        if (!isNaN(correctNum) && !isNaN(studentNum)) {
-          if (studentNum === correctNum) {
-            pass = true;
+        const targetFinalNum = parseFloat(correctRawAnswer.toString().replace(/[^0-9.-]/g, ''));
+        const studentFinalNum = parseFloat(studentRawAnswer);
+
+        let finalAnswerCorrect = false;
+        if (!isNaN(targetFinalNum) && !isNaN(studentFinalNum)) {
+          if (studentFinalNum === targetFinalNum) {
+            finalAnswerCorrect = true;
           } else {
-            const deviation = Math.abs((studentNum - correctNum) / correctNum);
-            if (deviation <= 0.005) pass = true;
+            const deviation = Math.abs((studentFinalNum - targetFinalNum) / targetFinalNum);
+            if (deviation <= 0.005) finalAnswerCorrect = true;
           }
         }
 
-        if (pass) score++;
-        breakdown += `Q${idx + 1} (${q.id}): ${pass ? '✓ Correct' : '✗ Incorrect'} (Entered: ${studentRaw || 'None'}, Target: ${correctRaw})\n`;
+        questionFeedback.push(`Final Answer Box: ${finalAnswerCorrect ? '✓ Match' : '✗ Misaligned'} (Entered: ${studentRawAnswer || 'None'}, Target: ${correctRawAnswer})`);
+
+        // --- PART B: Working/Scratchpad Partial Marks Grading (FIXED: Pulls strictly from the explicit q.id localStorage bucket context) ---
+        const scratchpadText = localStorage.getItem(`scratchpad-id-${q.id}`) || "";
+        const studentNumbersInWorking = (scratchpadText.match(/[+-]?\d+(\.\d+)?/g) || []).map(Number);
+        const structuredSteps = (q.solution && Array.isArray(q.solution.steps)) ? q.solution.steps : [];
+
+        if (structuredSteps.length > 0) {
+          structuredSteps.forEach((step) => {
+            const stepWeight = parseInt(step.marks_assigned || 1);
+            questionMaxMarks += stepWeight;
+
+            if (step.check_type === "numeric" && step.milestone_value !== undefined) {
+              const targetVal = parseFloat(step.milestone_value);
+              const tolerancePercent = parseFloat(step.tolerance || 0.005);
+              
+              let milestoneMatched = false;
+              for (let num of studentNumbersInWorking) {
+                if (num === targetVal) {
+                  milestoneMatched = true;
+                  break;
+                }
+                const numDeviation = Math.abs((num - targetVal) / targetVal);
+                if (numDeviation <= tolerancePercent) {
+                  milestoneMatched = true;
+                  break;
+                }
+              }
+
+              if (milestoneMatched) {
+                questionEarnedMarks += stepWeight;
+                questionFeedback.push(`  -> Step ${step.step_number}: ✓ Milestone ${targetVal} located (+${stepWeight} Mark)`);
+              } else {
+                questionFeedback.push(`  -> Step ${step.step_number}: ✗ Milestone ${targetVal} missing (0/${stepWeight} Marks)`);
+              }
+            } else {
+              questionFeedback.push(`  -> Step ${step.step_number}: Skipped (Non-numeric criteria format)`);
+            }
+          });
+        } else {
+          questionMaxMarks += 1;
+          if (finalAnswerCorrect) questionEarnedMarks += 1;
+        }
+
+        grandTotalEarned += questionEarnedMarks;
+        grandTotalPossible += questionMaxMarks;
+
+        reportBreakdown += `\n--- Q${idx + 1} (${q.id}) Total Marks: ${questionEarnedMarks}/${questionMaxMarks} ---\n` + questionFeedback.join('\n') + `\n`;
       });
 
-      alert(`Quiz Results Evaluated!\n\nScore: ${score} / ${questions.length}\n\n${breakdown}`);
+      alert(`Quiz Results Evaluated!\n\nOverall Aggregate Score: ${grandTotalEarned} / ${grandTotalPossible} Marks\n${reportBreakdown}`);
     }
 
     // 6. Advanced Scientific Calculator Engine
