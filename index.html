@@ -16,11 +16,14 @@
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
 
   <style>
+    /* Chrome, Safari, Edge, Opera */
     input::-webkit-outer-spin-button,
     input::-webkit-inner-spin-button {
       -webkit-appearance: none;
       margin: 0;
     }
+
+    /* Firefox */
     input[type=number] {
       -moz-appearance: textfield;
     }
@@ -40,7 +43,8 @@
       
       <div class="lg:col-span-2 space-y-6">
         
-        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 space-y-6">
+        <div class="bg-white p-6 rounded-xl shadow-xs border border-gray-200 space-y-6">
+          
           <div id="question-area">
             <div class="text-gray-400 text-center py-16">Awaiting URL parameters...</div>
           </div>
@@ -56,6 +60,7 @@
               <input type="number" id="answer-input" step="any" oninput="captureAnswer(this.value)" placeholder="Enter numeric value" class="border border-gray-300 rounded-lg px-3 py-2 w-48 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none font-mono">
             </div>
           </div>
+
         </div>
 
         <div class="flex justify-between items-center pt-2">
@@ -123,22 +128,16 @@
       </div>
     </div>
 
-    <div id="quiz-results-screen" class="hidden max-w-4xl mx-auto space-y-8 pb-12">
+    <div id="quiz-results-screen" class="hidden max-w-4xl mx-auto space-y-8">
       <div class="bg-gradient-to-r from-emerald-600 to-teal-700 text-white p-8 rounded-2xl shadow-md text-center">
-        <h2 class="text-3xl font-extrabold tracking-tight">Quiz Complete!</h2>
-        <p class="text-emerald-100 mt-2 text-lg font-medium">Here is your step-by-step breakdown.</p>
+        <h2 class="text-3xl font-extrabold tracking-tight">Quiz Assessment Completed</h2>
+        <p class="text-emerald-100 mt-2 text-lg font-medium">Review your step-by-step breakdown marks below</p>
         <div class="mt-4 inline-block bg-white/20 backdrop-blur-md px-6 py-2 rounded-full font-mono text-2xl font-bold">
           Total Score: <span id="results-score-badge">0 / 0</span>
         </div>
       </div>
       
       <div id="results-cards-container" class="space-y-6"></div>
-      
-      <div class="text-center">
-        <button onclick="location.reload()" class="px-6 py-3 bg-gray-800 hover:bg-gray-900 text-white font-bold rounded-lg transition-colors">
-          Start Over
-        </button>
-      </div>
     </div>
 
   </div>
@@ -152,7 +151,7 @@
     let calcExpression = "";
     let lastAnswer = 0;
 
-    // 1. App initialization
+    // 1. App initialization: Parse URLs and Fetch YAML sequences
     window.addEventListener('DOMContentLoaded', async () => {
       const params = new URLSearchParams(window.location.search);
       const qKeys = Array.from(params.keys()).filter(k => k.startsWith('q')).sort();
@@ -195,7 +194,7 @@
         btn.innerText = `Q${idx + 1}`;
         btn.className = `px-4 py-2 text-sm font-semibold rounded-lg border transition-all cursor-pointer ${
           idx === currentIndex 
-            ? 'bg-blue-600 border-blue-600 text-white shadow-sm' 
+            ? 'bg-blue-600 border-blue-600 text-white shadow-xs' 
             : 'bg-white border-gray-200 hover:bg-gray-50 text-gray-700'
         }`;
         btn.onclick = () => { currentIndex = idx; renderCurrentQuestion(); };
@@ -223,7 +222,7 @@
       if (q.media && q.media.diagram_url) {
         diagramHtml = `
           <div class="mb-6 border border-gray-200 bg-gray-100 rounded-lg w-full h-48 flex items-center justify-center overflow-hidden">
-            <img src="${BASE_RAW_URL}${q.media.diagram_url}" alt="Question Diagram" class="object-contain h-full w-full">
+            <img src="${BASE_RAW_URL}${q.media.diagram_url}" alt="Question Diagram" class="object-contain h-full w-full" onerror="this.parentElement.innerHTML='<span class=\'text-xs text-gray-400\'>Diagram Image Reference Broken: ${q.media.diagram_url}</span>'">
           </div>`;
       }
 
@@ -273,7 +272,7 @@
       renderCurrentQuestion();
     }
 
-    // 5. Quiz Evaluator Engine - Strictly NO ALERTS
+    // 5. Quiz Evaluator Engine & Rich Reporting Page Builder
     function submitQuiz() {
       let grandTotalEarned = 0;
       let grandTotalPossible = 0;
@@ -287,20 +286,18 @@
         
         const studentRawAnswer = studentAnswers[idx] || "";
         const correctRawAnswer = q.solution.final_answer;
-        
-        // Use a safe fallback if final_answer is missing in YAML
-        const targetFinalNum = correctRawAnswer !== undefined ? parseFloat(correctRawAnswer.toString().replace(/[^0-9.-]/g, '')) : NaN;
+        const targetFinalNum = parseFloat(correctRawAnswer.toString().replace(/[^0-9.-]/g, ''));
         const studentFinalNum = parseFloat(studentRawAnswer);
 
-        // Calculate max marks from yaml structure
+        // Calculate maximum possible marks for this question from steps
         const structuredSteps = (q.solution && Array.isArray(q.solution.steps)) ? q.solution.steps : [];
         if (structuredSteps.length > 0) {
           structuredSteps.forEach(s => questionMaxMarks += parseInt(s.marks_assigned || 1));
         } else {
-          questionMaxMarks = 1; 
+          questionMaxMarks = 1; // Default fallback point
         }
 
-        // Check final answer tolerance
+        // Check if final answer is fundamentally correct
         let finalAnswerCorrect = false;
         if (!isNaN(targetFinalNum) && !isNaN(studentFinalNum)) {
           if (studentFinalNum === targetFinalNum) {
@@ -311,27 +308,30 @@
           }
         }
 
+        // Build Step-by-Step Step Elements array for the display layout review
         let dynamicStepsHtml = "";
-        const scratchpadCapturedText = localStorage.getItem(`scratchpad-id-${q.id}`) || "";
-        const studentNumbersInWorking = (scratchpadCapturedText.match(/[+-]?\d+(\.\d+)?/g) || []).map(Number);
 
         if (finalAnswerCorrect) {
-          // Rule 1: Correct Final Answer = Full Marks
+          // Rule 1 Override: If final answer is correct, award maximum marks automatically
           questionEarnedMarks = questionMaxMarks;
+          
           if (structuredSteps.length > 0) {
             structuredSteps.forEach(step => {
               dynamicStepsHtml += `
                 <div class="flex items-start gap-3 text-sm border-l-2 border-emerald-500 pl-3 py-1 bg-emerald-50/50 rounded-r">
-                  <span class="text-emerald-600 font-bold shrink-0">Step ${step.step_number}:</span>
+                  <span class="text-emerald-600 font-bold">Step ${step.step_number}:</span>
                   <div class="flex-1 text-gray-700">${step.text}</div>
                   <span class="text-xs font-semibold px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-full shrink-0">Earned: ${step.marks_assigned}/${step.marks_assigned}</span>
                 </div>`;
             });
           } else {
-            dynamicStepsHtml = `<p class="text-sm text-emerald-600 font-medium">✓ Direct final answer correct. Full marks awarded.</p>`;
+            dynamicStepsHtml = `<p class="text-sm text-emerald-600 font-medium">✓ Direct final answer processed successfully.</p>`;
           }
         } else {
-          // Rule 2: Incorrect Final Answer = Check milestones for partial marks
+          // Rule 2 Fallback: Final answer wrong or missing, parse scratchpad line milestones
+          const scratchpadText = localStorage.getItem(`scratchpad-id-${q.id}`) || "";
+          const studentNumbersInWorking = (scratchpadText.match(/[+-]?\d+(\.\d+)?/g) || []).map(Number);
+
           if (structuredSteps.length > 0) {
             structuredSteps.forEach((step) => {
               const stepWeight = parseInt(step.marks_assigned || 1);
@@ -342,10 +342,8 @@
                 const tolerancePercent = parseFloat(step.tolerance || 0.005);
                 
                 for (let num of studentNumbersInWorking) {
-                  if (num === targetVal || Math.abs((num - targetVal) / targetVal) <= tolerancePercent) { 
-                    milestoneMatched = true; 
-                    break; 
-                  }
+                  if (num === targetVal) { milestoneMatched = true; break; }
+                  if (Math.abs((num - targetVal) / targetVal) <= tolerancePercent) { milestoneMatched = true; break; }
                 }
               }
 
@@ -353,30 +351,32 @@
                 questionEarnedMarks += stepWeight;
                 dynamicStepsHtml += `
                   <div class="flex items-start gap-3 text-sm border-l-2 border-emerald-500 pl-3 py-1 bg-emerald-50/50 rounded-r">
-                    <span class="text-emerald-600 font-bold shrink-0">Step ${step.step_number}:</span>
+                    <span class="text-emerald-600 font-bold">Step ${step.step_number}:</span>
                     <div class="flex-1 text-gray-700">${step.text}</div>
                     <span class="text-xs font-semibold px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-full shrink-0">Earned: ${stepWeight}/${stepWeight}</span>
                   </div>`;
               } else {
                 dynamicStepsHtml += `
                   <div class="flex items-start gap-3 text-sm border-l-2 border-rose-300 pl-3 py-1 bg-rose-50/30 rounded-r">
-                    <span class="text-gray-400 font-bold shrink-0">Step ${step.step_number}:</span>
+                    <span class="text-gray-400 font-bold">Step ${step.step_number}:</span>
                     <div class="flex-1 text-gray-500 line-through decoration-gray-300">${step.text}</div>
                     <span class="text-xs font-semibold px-2 py-0.5 bg-gray-100 text-gray-500 rounded-full shrink-0">Earned: 0/${stepWeight}</span>
                   </div>`;
               }
             });
           } else {
-            dynamicStepsHtml = `<p class="text-sm text-rose-500 font-medium">✗ Final answer incorrect. No intermediate steps available for partial credit.</p>`;
+            dynamicStepsHtml = `<p class="text-sm text-rose-500 font-medium">✗ Final answer box mismatch. No partial markings available.</p>`;
           }
         }
 
         grandTotalEarned += questionEarnedMarks;
         grandTotalPossible += questionMaxMarks;
 
-        // Build the HTML card for this question
+        // Render full un-editable snapshot card block for this specific entry
+        const scratchpadCapturedText = localStorage.getItem(`scratchpad-id-${q.id}`) || "No working text provided.";
+        
         resultsContainerHtml += `
-          <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div class="bg-white rounded-xl shadow-xs border border-gray-200 overflow-hidden">
             <div class="bg-gray-50 border-b border-gray-200 px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
               <div>
                 <span class="text-xs font-bold text-blue-600 tracking-wider uppercase">${q.metadata?.topic || 'General Science'}</span>
@@ -395,33 +395,34 @@
 
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-100">
                 <div>
-                  <h4 class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">Your Answer Box</h4>
-                  <div class="font-mono text-sm px-3 py-2 border rounded-lg bg-gray-50 inline-block min-w-[12rem] ${finalAnswerCorrect ? 'border-emerald-300 text-emerald-700 bg-emerald-50/20' : 'border-rose-300 text-rose-700 bg-rose-50/20'}">
+                  <h4 class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">Student Answer Box</h4>
+                  <div class="font-mono text-sm px-3 py-2 border rounded-lg bg-gray-50 inline-block min-w-[12rem] ${finalAnswerCorrect ? 'border-emerald-300 text-emerald-700 bg-emerald-50/20' : 'border-gray-200 text-gray-700'}">
                     ${studentRawAnswer || '<i>Empty</i>'}
                   </div>
                 </div>
                 <div>
-                  <h4 class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">Target Answer</h4>
+                  <h4 class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">Expected Target Answer</h4>
                   <div class="font-mono text-sm px-3 py-2 border border-blue-200 bg-blue-50/20 text-blue-800 rounded-lg inline-block min-w-[12rem]">
-                    ${correctRawAnswer !== undefined ? correctRawAnswer : 'N/A'}
+                    ${correctRawAnswer}
                   </div>
                 </div>
               </div>
 
               <div class="pt-4 border-t border-gray-100">
-                <h4 class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">Your Working (Read Only)</h4>
-                <pre class="w-full bg-slate-50 border border-gray-200 p-3 rounded-lg text-xs font-mono whitespace-pre-wrap text-gray-600 block leading-relaxed">${scratchpadCapturedText || 'No working recorded.'}</pre>
+                <h4 class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">Student Scratchpad Canvas (Read Only)</h4>
+                <pre class="w-full bg-slate-50 border border-gray-200 p-3 rounded-lg text-xs font-mono whitespace-pre-wrap text-gray-600 block leading-relaxed">${scratchpadCapturedText}</pre>
               </div>
 
               <div class="pt-4 border-t border-gray-100 space-y-2">
-                <h4 class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">Marking Scheme Breakdown</h4>
+                <h4 class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">Marking Scheme Evaluation & Resolution Paths</h4>
                 <div class="space-y-2">${dynamicStepsHtml}</div>
               </div>
+
             </div>
           </div>`;
       });
 
-      // Swap out the interface - HIDE workspace, SHOW results
+      // Swap Workspace page screens out smoothly 
       document.getElementById('quiz-workspace').classList.add('hidden');
       document.getElementById('dashboard').classList.add('hidden');
       
@@ -431,7 +432,7 @@
       document.getElementById('results-score-badge').innerText = `${grandTotalEarned} / ${grandTotalPossible}`;
       document.getElementById('results-cards-container').innerHTML = resultsContainerHtml;
 
-      // Re-render Math formatting on the results page
+      // Re-run Math rendering over the newly injected results page
       renderMathInElement(document.getElementById('results-cards-container'), {
         delimiters: [
           { left: "$$", right: "$$", display: true },
@@ -439,7 +440,7 @@
         ]
       });
 
-      // Scroll to top
+      // Scroll to the top of the screen to view the performance dashboard
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
