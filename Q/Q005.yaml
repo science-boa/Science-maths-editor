@@ -1,37 +1,49 @@
-id: PHYS-2026-001
+id: Q005
 metadata:
-  topic: Thermal Energy and Density
+  topic: Elastic Potential Energy
   marks: 4
   difficulty_level: 0.5
 question:
-  text: "A block of copper is heated by transferring $150\\text{ kJ}$ of energy to\
-    \ it. The block has a volume of $0.002\\text{ m}\xB3$ and a density of $8900\\\
-    text{ kg/m}\xB3$. Given that the specific heat capacity of copper is $390\\text{\
-    \ J/kg}^{\\circ}\\text{C}$ and the initial temperature is $20^{\\circ}\\text{C}$,\
-    \ calculate the final temperature of the copper block."
-  variables:
-  - substance: copper
-  - initial_temperature: "20\xB0C"
-  - energy_change: 150 kJ
-  - density: "8900 kg/m\xB3"
-  - volume: "0.002 m\xB3"
-  - specific_heat_capacity: "390 J/kg\xB0C"
+  text: A pinball launcher uses a spring mechanism to project a ball. The spring has
+    a spring constant of $1200\text{ N/m}$ and is compressed by $5\text{ cm}$. Calculate
+    the elastic potential energy stored in the compressed spring. State the unit in
+    your final answer.
+  variables: []
 solution:
-  step_by_step:
-  - 'Step 1: Calculate mass using $m = \rho \times V$. $m = 8900 \times 0.002 = 17.8\text{
-    kg}$.'
-  - 'Step 2: Rearrange $\Delta E = mc\Delta\theta$ to solve for $\Delta\theta$: $\Delta\theta
-    = \frac{\Delta E}{mc}$.'
-  - 'Step 3: Calculate $\Delta\theta$. Convert $150\text{ kJ}$ to $150,000\text{ J}$.
-    $\Delta\theta = \frac{150,000}{17.8 \times 390} \approx 21.6^{\circ}\text{C}$.'
-  - 'Step 4: Determine final temperature: $T_{final} = T_{initial} + \Delta\theta
-    = 20 + 21.6 = 41.6^{\circ}\text{C}$.'
-  final_answer: "41.6\xB0C"
+  final_answer: 1.5
+  marks_available: 4
+  steps:
+  - step_number: 1
+    text: 'Convert the compression from centimeters to meters: $e = \frac{5}{100}
+      = 0.05\text{ m}$.'
+    marks_assigned: 1
+    check_type: numeric
+    milestone_value: 0.05
+    tolerance: 0.001
+  - step_number: 2
+    text: "Substitute the values into the formula $E_e = 0.5 \\times k \\times e\xB2\
+      $ to square the compression: $0.05\xB2 = 0.0025\\text{ m}\xB2$."
+    marks_assigned: 1
+    check_type: numeric
+    milestone_value: 0.0025
+    tolerance: 0.0001
+  - step_number: 3
+    text: 'Calculate the final numerical value of the energy: $E_e = 0.5 \times 1200
+      \times 0.0025 = 1.5$.'
+    marks_assigned: 1
+    check_type: numeric
+    milestone_value: 1.5
+    tolerance: 0.01
+  - step_number: 4
+    text: 'State the correct unit for energy: Joules ($\text{J}$).'
+    marks_assigned: 1
+    check_type: numeric
+    milestone_value: 1.5
+    tolerance: 0.0
 media:
   diagram_url: null
   video_explainer_url: null
 tags:
-- GCSE
-- Physics
-- Calculations
-- Thermal Energy
+- energy
+- mechanics
+- gcse
