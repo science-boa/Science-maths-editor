@@ -7,7 +7,7 @@ from github import Github
 st.set_page_config(page_title="Physics Question Generator", layout="wide")
 
 genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-model = genai.GenerativeModel('gemini-3.5-flash')
+model = genai.GenerativeModel('gemini-2.5-flash-lite')
 
 # --- Utilities ---
 def format_superscripts(text):
