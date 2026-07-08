@@ -1,4 +1,4 @@
 streamlit
 pyyaml
 google-generativeai
-github
+PyGithub
