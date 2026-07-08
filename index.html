@@ -96,4 +96,237 @@
           </div>
         </div>
 
-        <div class="
+        <div class="bg-white p-4 rounded-xl shadow-xs border border-gray-200">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">Persistent Working Area</h3>
+          <textarea id="scratchpad" oninput="saveScratchpad()" placeholder="Type your equations, formulas, and numeric calculations here..." class="w-full h-44 p-3 font-mono text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-none bg-amber-50/30"></textarea>
+          <span class="text-[10px] text-gray-400 block mt-1">✓ Instantly saved to local storage for this question.</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    const BASE_RAW_URL = "https://raw.githubusercontent.com/science-boa/Science-maths-editor/main/Q/";
+    let questions = [];
+    let currentIndex = 0;
+    let studentAnswers = {};
+    
+    // Calculator memory trackers
+    let calcExpression = "";
+    let lastAnswer = 0;
+
+    // 1. App initialization: Parse URLs and Fetch YAML sequences
+    window.addEventListener('DOMContentLoaded', async () => {
+      const params = new URLSearchParams(window.location.search);
+      const qKeys = Array.from(params.keys()).filter(k => k.startsWith('q')).sort();
+
+      if (qKeys.length === 0) {
+        document.getElementById('question-card').innerHTML = `
+          <div class="text-center py-12">
+            <p class="text-red-500 font-semibold text-lg">No configuration payload detected.</p>
+            <p class="text-sm text-gray-500 mt-2">Append target files to your browser window address bar string: <code class="bg-gray-100 p-1 rounded font-mono text-xs">?q1=PHYS-2026-001</code></p>
+          </div>`;
+        document.getElementById('loading-badge').classList.add('hidden');
+        return;
+      }
+
+      for (const key of qKeys) {
+        const fileId = params.get(key);
+        if (!fileId) continue;
+        try {
+          const response = await fetch(`${BASE_RAW_URL}${fileId}.yaml`);
+          if (!response.ok) throw new Error(`Status ${response.status}`);
+          const text = await response.text();
+          const parsed = jsyaml.load(text);
+          questions.push({ ...parsed, id: fileId });
+        } catch (err) {
+          questions.push({ id: fileId, error: true, message: `Failed fetching asset details: ${err.message}` });
+        }
+      }
+
+      document.getElementById('loading-badge').classList.add('hidden');
+      buildDashboard();
+      renderCurrentQuestion();
+    });
+
+    // 2. Dashboard UI Generator
+    function buildDashboard() {
+      const container = document.getElementById('dashboard');
+      container.innerHTML = '';
+      questions.forEach((q, idx) => {
+        const btn = document.createElement('button');
+        btn.innerText = `Q${idx + 1}`;
+        btn.className = `px-4 py-2 text-sm font-semibold rounded-lg border transition-all cursor-pointer ${
+          idx === currentIndex 
+            ? 'bg-blue-600 border-blue-600 text-white shadow-xs' 
+            : 'bg-white border-gray-200 hover:bg-gray-50 text-gray-700'
+        }`;
+        btn.onclick = () => { currentIndex = idx; renderCurrentQuestion(); };
+        container.appendChild(btn);
+      });
+    }
+
+    // 3. Main State Content Renderer
+    function renderCurrentQuestion() {
+      buildDashboard();
+      const card = document.getElementById('question-card');
+      const q = questions[currentIndex];
+
+      if (!q) return;
+      if (q.error) {
+        card.innerHTML = `<div class="text-red-500 font-medium">⚠️ ${q.message} (${q.id})</div>`;
+        return;
+      }
+
+      let diagramHtml = '';
+      if (q.media && q.media.diagram_url) {
+        diagramHtml = `
+          <div class="mb-6 border border-gray-200 bg-gray-100 rounded-lg w-full h-48 flex items-center justify-center overflow-hidden">
+            <img src="${BASE_RAW_URL}${q.media.diagram_url}" alt="Question Diagram" class="object-contain h-full w-full" onerror="this.parentElement.innerHTML='<span class=\'text-xs text-gray-400\'>Diagram Image Reference Broken: ${q.media.diagram_url}</span>'">
+          </div>`;
+      }
+
+      card.innerHTML = `
+        <div class="text-xs font-bold text-blue-600 tracking-wider uppercase mb-1">${q.metadata?.topic || 'General Science'}</div>
+        <h2 class="text-xl font-bold text-gray-900 mb-4">Question ID: ${q.id}</h2>
+        ${diagramHtml}
+        <div id="math-text" class="text-base leading-relaxed text-gray-800 mb-6 font-normal">${q.question.text}</div>
+        
+        <div class="mt-6 pt-4 border-t border-gray-100 flex items-center gap-4">
+          <label class="font-semibold text-gray-700 shrink-0">Your Answer:</label>
+          <input type="number" id="answer-input" step="any" value="${studentAnswers[q.id] || ''}" oninput="captureAnswer(this.value)" placeholder="Enter numeric value" class="border border-gray-300 rounded-lg px-3 py-2 w-48 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none font-mono">
+          <span class="text-xs text-gray-400 italic">Do not include trailing system unit metrics</span>
+        </div>`;
+
+      renderMathInElement(document.getElementById('math-text'), {
+        delimiters: [
+          { left: "$$", right: "$$", display: true },
+          { left: "$", right: "$", display: false }
+        ]
+      });
+
+      document.getElementById('btn-prev').disabled = (currentIndex === 0);
+      if (currentIndex === questions.length - 1) {
+        document.getElementById('btn-next').classList.add('hidden');
+        document.getElementById('btn-submit').classList.remove('hidden');
+      } else {
+        document.getElementById('btn-next').classList.remove('hidden');
+        document.getElementById('btn-submit').classList.add('hidden');
+      }
+
+      document.getElementById('scratchpad').value = localStorage.getItem(`scratchpad-${q.id}`) || '';
+    }
+
+    // 4. Data Sync Bindings
+    function captureAnswer(val) {
+      const q = questions[currentIndex];
+      studentAnswers[q.id] = val;
+    }
+
+    function saveScratchpad() {
+      const q = questions[currentIndex];
+      const val = document.getElementById('scratchpad').value;
+      localStorage.setItem(`scratchpad-${q.id}`, val);
+    }
+
+    function changeQuestion(dir) {
+      currentIndex += dir;
+      renderCurrentQuestion();
+    }
+
+    // 5. Native Built-In Math Grader Logic
+    function submitQuiz() {
+      let score = 0;
+      let breakdown = "";
+
+      questions.forEach((q, idx) => {
+        if (q.error) return;
+        const studentRaw = studentAnswers[q.id];
+        const correctRaw = q.solution.final_answer;
+
+        const correctNum = parseFloat(correctRaw.replace(/[^0-9.-]/g, ''));
+        const studentNum = parseFloat(studentRaw);
+
+        let pass = false;
+        if (!isNaN(correctNum) && !isNaN(studentNum)) {
+          if (studentNum === correctNum) {
+            pass = true;
+          } else {
+            const deviation = Math.abs((studentNum - correctNum) / correctNum);
+            if (deviation <= 0.005) pass = true;
+          }
+        }
+
+        if (pass) score++;
+        breakdown += `Q${idx + 1} (${q.id}): ${pass ? '✓ Correct' : '✗ Incorrect'} (Entered: ${studentRaw || 'None'}, Target: ${correctRaw})\n`;
+      });
+
+      alert(`Quiz Results Evaluated!\n\nScore: ${score} / ${questions.length}\n\n${breakdown}`);
+    }
+
+    // 6. Advanced Scientific Calculator Engine (GCSE Specifications / Degree Mode Default)
+    function pressCalc(token) {
+      const display = document.getElementById('calc-display');
+      const history = document.getElementById('calc-history');
+
+      if (token === 'AC') {
+        calcExpression = "";
+        display.innerText = "0";
+        history.innerText = "";
+      } 
+      else if (token === 'DEL') {
+        if (calcExpression.length > 0) {
+          // If deleting functional groups, clear cleanly
+          if (calcExpression.endsWith('sin(') || calcExpression.endsWith('cos(') || calcExpression.endsWith('tan(')) {
+            calcExpression = calcExpression.slice(0, -4);
+          } else if (calcExpression.endsWith('sqrt(')) {
+            calcExpression = calcExpression.slice(0, -5);
+          } else if (calcExpression.endsWith('*10^')) {
+            calcExpression = calcExpression.slice(0, -4);
+          } else if (calcExpression.endsWith('Ans')) {
+            calcExpression = calcExpression.slice(0, -3);
+          } else {
+            calcExpression = calcExpression.slice(0, -1);
+          }
+        }
+        display.innerText = calcExpression || "0";
+      } 
+      else if (token === '=') {
+        try {
+          if (calcExpression === "") return;
+
+          // Configure standard math.js evaluation rules to force GCSE Degree Mode calculations
+          const degreeScope = {
+            sin: (x) => Math.sin(x * Math.PI / 180),
+            cos: (x) => Math.cos(x * Math.PI / 180),
+            tan: (x) => Math.tan(x * Math.PI / 180),
+            sqrt: (x) => Math.sqrt(x),
+            pi: Math.PI,
+            Ans: lastAnswer
+          };
+
+          let result = math.evaluate(calcExpression, degreeScope);
+          
+          // Format structural display configurations
+          if (typeof result === 'number') {
+            if (result % 1 !== 0) result = parseFloat(result.toFixed(6)); // Cap floating points gracefully
+            history.innerText = calcExpression.replace(/\*/g, '×').replace(/\//g, '÷') + " =";
+            display.innerText = result;
+            lastAnswer = result; // Write value directly to memory latch
+            calcExpression = result.toString();
+          }
+        } catch (e) {
+          display.innerText = "Syntax Error";
+          calcExpression = "";
+        }
+      } 
+      else {
+        calcExpression += token;
+        // Keep screen looking like a real calculator (using multiplication/division signs for visuals)
+        display.innerText = calcExpression.replace(/\*/g, '×').replace(/\//g, '÷');
+      }
+    }
+  </script>
+</body>
+</html>
