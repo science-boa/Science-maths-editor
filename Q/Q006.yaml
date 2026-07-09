@@ -1,0 +1,34 @@
+id: Q006
+metadata:
+  topic: Thermal Physics
+  marks: 2
+  difficulty_level: 0.5
+question:
+  text: "A block of aluminum cools from an initial temperature of 84.5 \xB0C to a\
+    \ final temperature of 62.1 \xB0C over a time interval of 4.0 minutes. Using the\
+    \ equation: average rate of change of temperature = $\\frac{\\text{change in temperature}}{\\\
+    text{time taken}}$, calculate the average rate of cooling in \xB0C/min."
+  variables: []
+solution:
+  final_answer: 5.6
+  marks_available: 2
+  steps:
+  - step_number: 1
+    text: "Calculate the change in temperature: $84.5 - 62.1 = 22.4$ \xB0C"
+    marks_assigned: 1
+    check_type: numeric
+    milestone_value: 22.4
+    tolerance: 0.01
+  - step_number: 2
+    text: "Calculate the rate: $\\frac{22.4}{4.0} = 5.6$ \xB0C/min"
+    marks_assigned: 1
+    check_type: numeric
+    milestone_value: 5.6
+    tolerance: 0.1
+media:
+  diagram_url: null
+  video_explainer_url: null
+tags:
+- cooling
+- rate calculation
+- GCSE Physics
