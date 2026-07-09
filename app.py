@@ -102,6 +102,9 @@ if st.button("Generate Question"):
             "For physics questions, use LaTeX (e.g., $\\frac{a}{b}$, $\\times$). "
             "Ensure solution steps contain: step_number, text, marks_assigned, "
             "check_type (e.g., 'numeric'), milestone_value (as a float), and tolerance (as a float). "
+            "For the 'diagram_url' field, instead of a URL, provide a detailed text description "
+            "of the image/diagram that should accompany this question. "
+            "If no diagram is needed, set 'diagram_url' to null. "
             "Ensure all backslashes are output as single backslashes."
         )
         
