@@ -1,4 +1,6 @@
 streamlit
 pyyaml
-google-generativeai
 PyGithub
+pandas
+Pillow
+google-genai
