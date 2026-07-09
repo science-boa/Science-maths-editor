@@ -143,7 +143,7 @@ if st.session_state.data.get('media', {}).get('diagram_url'):
             
             # New SDK image generation call
             result = client.models.generate_images(
-                model='imagen-3.0-generate-01',
+                model='imagen-4.0-generate-01',
                 prompt=img_prompt,
                 config=types.GenerateImagesConfig(number_of_images=1)
             )
