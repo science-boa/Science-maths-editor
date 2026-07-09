@@ -81,7 +81,7 @@ if st.button("Generate Question"):
         query = f"Generate physics question: {prompt}. Output strictly in YAML. Schema: {st.session_state.data}"
         
         response = client.models.generate_content(
-            model='gemini-3.1-flash-lite',
+            model='gemini-3.5-flash',
             contents=query
         )
         
