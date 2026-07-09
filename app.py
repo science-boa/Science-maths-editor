@@ -1,7 +1,6 @@
 import streamlit as st
 import yaml
-from google import genai
-from google.genai import types
+import google.generativeai as genai
 from github import Github
 import os
 import pandas as pd
@@ -12,8 +11,8 @@ from PIL import Image
 # --- Configuration ---
 st.set_page_config(page_title="Physics Question Generator", layout="wide")
 
-# Initialize the new Google GenAI client
-client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
+genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
+model = genai.GenerativeModel('gemini-3.1-flash-lite')
 
 # --- Utilities ---
 def format_superscripts(text):
@@ -29,6 +28,7 @@ def clean_latex(text):
     return text.replace('\\\\', '\\')
 
 def load_prompt_library():
+    """Loads all prompts from prompts.csv if it exists."""
     if os.path.exists("prompts.csv"):
         try:
             df = pd.read_csv("prompts.csv", header=None, quotechar='"')
@@ -36,11 +36,14 @@ def load_prompt_library():
             return {f"{i+1}: {p[:40]}...": p for i, p in enumerate(prompts)}
         except Exception as e:
             st.error(f"Error loading CSV: {e}")
+    
     return {"Default Prompt": "Act as an expert GCSE Physics examiner. Generate a calculation question..."}
 
 def push_to_github(filename, content):
+    """Pushes the YAML content to the /Q directory of the configured repository."""
     if not filename.startswith("Q/"):
         filename = f"Q/{filename}"
+        
     try:
         g = Github(st.secrets["GITHUB_TOKEN"])
         repo = g.get_repo(st.secrets["GITHUB_REPO"])
@@ -62,7 +65,16 @@ def get_empty_schema():
         "solution": {
             "final_answer": 0.0,
             "marks_available": 4,
-            "steps": [{"step_number": 1, "text": "", "marks_assigned": 1, "check_type": "numeric", "milestone_value": 0.0, "tolerance": 0.001}]
+            "steps": [
+                {
+                    "step_number": 1,
+                    "text": "",
+                    "marks_assigned": 1,
+                    "check_type": "numeric",
+                    "milestone_value": 0.0,
+                    "tolerance": 0.001
+                }
+            ]
         },
         "media": {"diagram_url": None, "video_explainer_url": None},
         "tags": []
@@ -72,39 +84,79 @@ if 'data' not in st.session_state:
     st.session_state.data = get_empty_schema()
 
 # --- UI ---
-st.title("Physics Question Generator")
+st.sidebar.title("Data Management")
+uploaded_file = st.sidebar.file_uploader("Load Schema YAML", type=["yaml"])
+if uploaded_file:
+    st.session_state.data = yaml.safe_load(uploaded_file)
+
+st.sidebar.title("Prompt Library")
 PROMPT_LIBRARY = load_prompt_library()
-prompt = st.text_area("Question Prompt", value=PROMPT_LIBRARY[list(PROMPT_LIBRARY.keys())[0]], height=100)
+selected_key = st.sidebar.selectbox("Select a Prompt Type", list(PROMPT_LIBRARY.keys()))
+
+st.title("Physics Question Generator")
+prompt = st.text_area("Question Prompt", value=PROMPT_LIBRARY[selected_key], height=100)
 
 if st.button("Generate Question"):
-    with st.spinner("Generating with Gemini 3.1..."):
-        query = f"Generate physics question: {prompt}. Output strictly in YAML. Schema: {st.session_state.data}"
-        
-        response = client.models.generate_content(
-            model='gemini-3.1-flash-lite',
-            contents=query
+    with st.spinner("Generating with Gemini 3.5 Flash..."):
+        system_instr = (
+            "For physics questions, use LaTeX (e.g., $\\frac{a}{b}$, $\\times$). "
+            "Ensure solution steps contain: step_number, text, marks_assigned, "
+            "check_type (e.g., 'numeric'), milestone_value (as a float), and tolerance (as a float). "
+            "For the 'diagram_url' field, instead of a URL, provide a detailed text description "
+            "of the image/diagram that should accompany this question. "
+            "If no diagram is needed, set 'diagram_url' to null. "
+            "Ensure all backslashes are output as single backslashes."
         )
         
-        cleaned_yaml = clean_latex(response.text.replace('```yaml', '').replace('```', ''))
-        st.session_state.data = yaml.safe_load(format_superscripts(cleaned_yaml))
+        query = (f"Generate a physics question based on: {prompt}. {system_instr} "
+                 f"Output strictly in valid YAML matching this schema: {st.session_state.data}. "
+                 "Return ONLY the YAML.")
+        
+        response = model.generate_content(query)
+        
+        raw_yaml = response.text.replace('```yaml', '').replace('```', '')
+        cleaned_yaml = clean_latex(raw_yaml)
+        formatted_yaml = format_superscripts(cleaned_yaml)
+        
+        st.session_state.data = yaml.safe_load(formatted_yaml)
+        st.session_state.generated_image = None
         st.success("Generation complete!")
 
-# Image Generation
+# --- UI: Editor ---
+st.subheader("Edit Question Data")
+st.session_state.data['id'] = st.text_input("Question ID", st.session_state.data['id'])
+
+st.write("Current Data Loaded (Preview):")
+st.code(yaml.dump(st.session_state.data, sort_keys=False), language='yaml')
+
+# Image Generation Section
 if st.session_state.data.get('media', {}).get('diagram_url'):
     if st.button("Generate Image"):
         with st.spinner("Generating image..."):
             desc = st.session_state.data['media']['diagram_url']
+            img_prompt = f"A simple black and white physics textbook style diagram of {desc}"
             
-            # Using the new SDK's image generation interface
-            result = client.models.generate_images(
+            # Using Imagen 4.0 via the Generative AI API
+            result = genai.generate_images(
                 model='imagen-4.0-generate-001',
-                prompt=f"Physics textbook diagram: {desc}",
-                config=types.GenerateImagesConfig(number_of_images=1)
+                prompt=img_prompt,
+                number_of_images=1
             )
             
             if result.generated_images:
+                # Extract the base64 string
                 img_data = result.generated_images[0].image.image_bytes
-                st.session_state.generated_image = Image.open(io.BytesIO(img_data)).resize((1024, 1024))
+                image = Image.open(io.BytesIO(base64.b64decode(img_data))).resize((1024, 1024))
+                st.session_state.generated_image = image
 
 if st.session_state.get('generated_image'):
     st.image(st.session_state.generated_image, caption="Generated Diagram")
+
+col1, col2 = st.columns(2)
+with col1:
+    st.download_button("Download YAML", yaml.dump(st.session_state.data, sort_keys=False), 
+                       file_name=f"{st.session_state.data['id']}.yaml", mime="text/yaml")
+with col2:
+    if st.button("Push to GitHub"):
+        yaml_output = yaml.dump(st.session_state.data, sort_keys=False)
+        push_to_github(f"{st.session_state.data['id']}.yaml", yaml_output)
