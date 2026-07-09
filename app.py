@@ -2,6 +2,8 @@ import streamlit as st
 import yaml
 import google.generativeai as genai
 from github import Github
+import os
+import pandas as pd
 
 # --- Configuration ---
 st.set_page_config(page_title="Physics Question Generator", layout="wide")
@@ -21,6 +23,20 @@ def format_superscripts(text):
 
 def clean_latex(text):
     return text.replace('\\\\', '\\')
+
+def load_prompt_library():
+    """Loads all prompts from prompts.csv if it exists."""
+    if os.path.exists("prompts.csv"):
+        try:
+            # Load the CSV, handling potential quoting issues
+            df = pd.read_csv("prompts.csv", header=None, quotechar='"')
+            # Ensure we get all prompts regardless of column formatting
+            prompts = df.iloc[:, 0].dropna().tolist()
+            return {f"{i+1}: {p[:40]}...": p for i, p in enumerate(prompts)}
+        except Exception as e:
+            st.error(f"Error loading CSV: {e}")
+    
+    return {"Default Prompt": "Act as an expert GCSE Physics examiner. Generate a calculation question..."}
 
 def push_to_github(filename, content):
     """Pushes the YAML content to the /Q directory of the configured repository."""
@@ -73,8 +89,12 @@ uploaded_file = st.sidebar.file_uploader("Load Schema YAML", type=["yaml"])
 if uploaded_file:
     st.session_state.data = yaml.safe_load(uploaded_file)
 
+st.sidebar.title("Prompt Library")
+PROMPT_LIBRARY = load_prompt_library()
+selected_key = st.sidebar.selectbox("Select a Prompt Type", list(PROMPT_LIBRARY.keys()))
+
 st.title("Physics Question Generator")
-prompt = st.text_area("Question Prompt", height=100)
+prompt = st.text_area("Question Prompt", value=PROMPT_LIBRARY[selected_key], height=100)
 
 if st.button("Generate Question"):
     with st.spinner("Generating with Gemini 3.5 Flash..."):
