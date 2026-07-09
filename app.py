@@ -5,13 +5,12 @@ import pandas as pd
 import google.generativeai as genai
 from github import Github
 import os
-import re
 
 # --- Configuration ---
 st.set_page_config(page_title="Physics Question Generator", layout="wide")
 
 genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-model = genai.GenerativeModel('gemini-3.1-flash-lite')
+model = genai.GenerativeModel('gemini-3.5-flash')
 
 # --- Utilities ---
 def load_prompt_library():
@@ -67,26 +66,25 @@ prompt = st.text_area("Question Prompt", value=PROMPT_LIBRARY[selected_key], hei
 if st.button("Generate Question"):
     with st.spinner("Generating..."):
         system_instr = (
+            "Output your entire response as a single, valid JSON object. Do not include any conversational text, explanation or markdown formatting outside of the JSON. "
             "Use LaTeX. Ensure steps contain: step_number, text, marks_assigned, "
             "check_type, milestone_value, and tolerance. "
             "If a diagram is needed, provide a detailed 'diagram_description' prompt in a 'textbook style'. "
             "If no diagram, set diagram_url and diagram_description to null."
         )
         query = f"Generate a physics question based on: {prompt}. {system_instr}"
-        response = model.generate_content(query)
         
-        # Extract YAML code block specifically
-        match = re.search(r'```yaml\s*(.*?)\s*```', response.text, re.DOTALL)
-        if match:
-            clean_yaml_text = match.group(1)
-        else:
-            # Fallback if the model did not wrap it with markdown tags
-            clean_yaml_text = response.text.replace('```yaml', '').replace('```', '')
-            
-        yaml_content = yaml.safe_load(clean_yaml_text)
+        # Enforce application/json output mode for error-free parsing
+        response = model.generate_content(
+            query,
+            generation_config={"response_mime_type": "application/json"}
+        )
+        
+        # Parse the JSON response directly (valid JSON is always valid YAML)
+        yaml_content = yaml.safe_load(response.text)
         st.session_state.data = yaml_content
         
-        desc = yaml_content['media'].get('diagram_description')
+        desc = yaml_content.get('media', {}).get('diagram_description')
         st.session_state.image_bytes = generate_image(desc) if desc else None
 
 # --- Display ---
