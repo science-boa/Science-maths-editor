@@ -5,6 +5,7 @@ from github import Github
 import os
 import pandas as pd
 import io
+import base64
 from PIL import Image
 
 # --- Configuration ---
@@ -12,7 +13,6 @@ st.set_page_config(page_title="Physics Question Generator", layout="wide")
 
 genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
 model = genai.GenerativeModel('gemini-3.1-flash-lite')
-image_model = genai.GenerativeModel('gemini-3.1-flash-lite-image')
 
 # --- Utilities ---
 def format_superscripts(text):
@@ -31,9 +31,7 @@ def load_prompt_library():
     """Loads all prompts from prompts.csv if it exists."""
     if os.path.exists("prompts.csv"):
         try:
-            # Load the CSV, handling potential quoting issues
             df = pd.read_csv("prompts.csv", header=None, quotechar='"')
-            # Ensure we get all prompts regardless of column formatting
             prompts = df.iloc[:, 0].dropna().tolist()
             return {f"{i+1}: {p[:40]}...": p for i, p in enumerate(prompts)}
         except Exception as e:
@@ -43,7 +41,6 @@ def load_prompt_library():
 
 def push_to_github(filename, content):
     """Pushes the YAML content to the /Q directory of the configured repository."""
-    # Ensure filename starts with /Q/
     if not filename.startswith("Q/"):
         filename = f"Q/{filename}"
         
@@ -137,17 +134,20 @@ if st.session_state.data.get('media', {}).get('diagram_url'):
     if st.button("Generate Image"):
         with st.spinner("Generating image..."):
             desc = st.session_state.data['media']['diagram_url']
-            img_prompt = f"Create a simple black and white physics textbook style diagram of {desc}"
+            img_prompt = f"A simple black and white physics textbook style diagram of {desc}"
             
-            response = image_model.generate_content(
-                img_prompt,
-                generation_config={"response_modalities": ["IMAGE"]}
+            # Using Imagen 4.0 via the Generative AI API
+            result = genai.generate_images(
+                model='imagen-4.0-generate-001',
+                prompt=img_prompt,
+                number_of_images=1
             )
             
-            for part in response.candidates[0].content.parts:
-                if part.inline_data:
-                    image_bytes = part.inline_data.data
-                    st.session_state.generated_image = Image.open(io.BytesIO(image_bytes)).resize((480, 480))
+            if result.generated_images:
+                # Extract the base64 string
+                img_data = result.generated_images[0].image.image_bytes
+                image = Image.open(io.BytesIO(base64.b64decode(img_data))).resize((1024, 1024))
+                st.session_state.generated_image = image
 
 if st.session_state.get('generated_image'):
     st.image(st.session_state.generated_image, caption="Generated Diagram")
