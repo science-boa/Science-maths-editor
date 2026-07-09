@@ -1,0 +1,53 @@
+density_kg_m3: 1000.0
+diagram_description: null
+diagram_url: null
+energy_change_kj: 168.0
+id: new-question-01
+initial_temperature_celsius: 15.0
+mark_scheme:
+- check_type: numeric
+  marks_assigned: 1
+  milestone_value: 2.0
+  step_number: 1
+  text: 'Calculate the mass of the water using the density formula: $m = \rho \times
+    V = 1000\text{ kg/m}^3 \times 0.0020\text{ m}^3 = 2.0\text{ kg}$.'
+  tolerance: 0.05
+- check_type: numeric
+  marks_assigned: 1
+  milestone_value: 168000.0
+  step_number: 2
+  text: 'Convert energy to Joules ($168\text{ kJ} = 168,000\text{ J}$) and rearrange
+    the specific heat capacity equation to make temperature change ($\Delta\theta$)
+    the subject: $\Delta\theta = \frac{\Delta E}{m \times c}$.'
+  tolerance: 0.0
+- check_type: numeric
+  marks_assigned: 1
+  milestone_value: 20.0
+  step_number: 3
+  text: 'Substitute the values to calculate the temperature change: $\Delta\theta
+    = \frac{168,000\text{ J}}{2.0\text{ kg} \times 4200\text{ J/kg}^\circ\text{C}}
+    = 20^\circ\text{C}$.'
+  tolerance: 0.5
+- check_type: numeric
+  marks_assigned: 1
+  milestone_value: 35.0
+  step_number: 4
+  text: 'Calculate the final temperature of the water: $T_{\text{final}} = T_{\text{initial}}
+    + \Delta\theta = 15.0^\circ\text{C} + 20^\circ\text{C} = 35.0^\circ\text{C}$.'
+  tolerance: 0.5
+question_text: 'A student heats $0.0020\text{ m}^3$ of water in an electric kettle.
+  The water has an initial temperature of $15.0^\circ\text{C}$. During the heating
+  process, $168\text{ kJ}$ of thermal energy is transferred to the water.
+
+
+  Calculate the final temperature of the water.
+
+
+  Given:
+
+  - Density of water = $1000\text{ kg/m}^3$
+
+  - Specific heat capacity of water = $4200\text{ J/kg}^\circ\text{C}$'
+specific_heat_capacity_j_kg_c: 4200.0
+substance: water
+volume_m3: 0.002
