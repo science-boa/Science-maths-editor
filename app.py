@@ -14,17 +14,17 @@ model = genai.GenerativeModel('gemini-3.5-flash')
 
 # --- Utilities ---
 def load_prompt_library():
-    """Loads prompts from prompts.csv if it exists, otherwise returns a default list."""
+    """Loads all prompts from prompts.csv if it exists."""
     if os.path.exists("prompts.csv"):
         try:
-            df = pd.read_csv("prompts.csv", header=None)
-            # Flatten to a list and filter out empty entries
+            # Load the CSV, handling potential quoting issues
+            df = pd.read_csv("prompts.csv", header=None, quotechar='"')
+            # Ensure we get all prompts regardless of column formatting
             prompts = df.iloc[:, 0].dropna().tolist()
-            return {p[:50] + "...": p for p in prompts}
+            return {f"{i+1}: {p[:40]}...": p for i, p in enumerate(prompts)}
         except Exception as e:
             st.error(f"Error loading CSV: {e}")
     
-    # Fallback to a small default list if file not found
     return {"Default Prompt": "Act as an expert GCSE Physics examiner. Generate a calculation question..."}
 
 def generate_image(prompt):
@@ -59,6 +59,7 @@ st.title("Physics Question Generator")
 PROMPT_LIBRARY = load_prompt_library()
 
 st.sidebar.header("Prompt Library")
+# The selectbox natively supports scrolling for long lists
 selected_key = st.sidebar.selectbox("Select a Prompt Type", list(PROMPT_LIBRARY.keys()))
 prompt = st.text_area("Question Prompt", value=PROMPT_LIBRARY[selected_key], height=150)
 
