@@ -77,11 +77,11 @@ PROMPT_LIBRARY = load_prompt_library()
 prompt = st.text_area("Question Prompt", value=PROMPT_LIBRARY[list(PROMPT_LIBRARY.keys())[0]], height=100)
 
 if st.button("Generate Question"):
-    with st.spinner("Generating with Gemini 3.5..."):
+    with st.spinner("Generating with Gemini 3.1..."):
         query = f"Generate physics question: {prompt}. Output strictly in YAML. Schema: {st.session_state.data}"
         
         response = client.models.generate_content(
-            model='gemini-3.5-flash',
+            model='gemini-3.1-flash-lite',
             contents=query
         )
         
