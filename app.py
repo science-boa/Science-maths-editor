@@ -4,12 +4,15 @@ import google.generativeai as genai
 from github import Github
 import os
 import pandas as pd
+import io
+from PIL import Image
 
 # --- Configuration ---
 st.set_page_config(page_title="Physics Question Generator", layout="wide")
 
 genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
 model = genai.GenerativeModel('gemini-3.1-flash-lite')
+image_model = genai.GenerativeModel('gemini-3.1-flash-lite-image')
 
 # --- Utilities ---
 def format_superscripts(text):
@@ -119,15 +122,35 @@ if st.button("Generate Question"):
         formatted_yaml = format_superscripts(cleaned_yaml)
         
         st.session_state.data = yaml.safe_load(formatted_yaml)
+        st.session_state.generated_image = None
         st.success("Generation complete!")
 
 # --- UI: Editor ---
 st.subheader("Edit Question Data")
-# Make ID editable
 st.session_state.data['id'] = st.text_input("Question ID", st.session_state.data['id'])
 
 st.write("Current Data Loaded (Preview):")
 st.code(yaml.dump(st.session_state.data, sort_keys=False), language='yaml')
+
+# Image Generation Section
+if st.session_state.data.get('media', {}).get('diagram_url'):
+    if st.button("Generate Image"):
+        with st.spinner("Generating image..."):
+            desc = st.session_state.data['media']['diagram_url']
+            img_prompt = f"Create a simple black and white physics textbook style diagram of {desc}"
+            
+            response = image_model.generate_content(
+                img_prompt,
+                generation_config={"response_modalities": ["IMAGE"]}
+            )
+            
+            for part in response.candidates[0].content.parts:
+                if part.inline_data:
+                    image_bytes = part.inline_data.data
+                    st.session_state.generated_image = Image.open(io.BytesIO(image_bytes)).resize((480, 480))
+
+if st.session_state.get('generated_image'):
+    st.image(st.session_state.generated_image, caption="Generated Diagram")
 
 col1, col2 = st.columns(2)
 with col1:
