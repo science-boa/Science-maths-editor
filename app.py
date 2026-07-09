@@ -5,12 +5,13 @@ import pandas as pd
 import google.generativeai as genai
 from github import Github
 import os
+import re
 
 # --- Configuration ---
 st.set_page_config(page_title="Physics Question Generator", layout="wide")
 
 genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-model = genai.GenerativeModel('gemini-3.5-flash')
+model = genai.GenerativeModel('gemini-3.1-flash-lite')
 
 # --- Utilities ---
 def load_prompt_library():
@@ -74,7 +75,15 @@ if st.button("Generate Question"):
         query = f"Generate a physics question based on: {prompt}. {system_instr}"
         response = model.generate_content(query)
         
-        yaml_content = yaml.safe_load(response.text.replace('```yaml', '').replace('```', ''))
+        # Extract YAML code block specifically
+        match = re.search(r'```yaml\s*(.*?)\s*```', response.text, re.DOTALL)
+        if match:
+            clean_yaml_text = match.group(1)
+        else:
+            # Fallback if the model did not wrap it with markdown tags
+            clean_yaml_text = response.text.replace('```yaml', '').replace('```', '')
+            
+        yaml_content = yaml.safe_load(clean_yaml_text)
         st.session_state.data = yaml_content
         
         desc = yaml_content['media'].get('diagram_description')
