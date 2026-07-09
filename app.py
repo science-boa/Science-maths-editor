@@ -12,6 +12,16 @@ st.set_page_config(page_title="Physics Question Generator", layout="wide")
 genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
 model = genai.GenerativeModel('gemini-3.5-flash')
 
+# Initialize session states if they don't exist
+if 'yaml_text' not in st.session_state:
+    st.session_state.yaml_text = ""
+if 'qid' not in st.session_state:
+    st.session_state.qid = ""
+if 'image_bytes' not in st.session_state:
+    st.session_state.image_bytes = None
+if 'data' not in st.session_state:
+    st.session_state.data = {}
+
 # --- Utilities ---
 def load_prompt_library():
     """Loads all prompts from prompts.csv if it exists."""
@@ -82,22 +92,59 @@ if st.button("Generate Question"):
         
         # Parse the JSON response directly (valid JSON is always valid YAML)
         yaml_content = yaml.safe_load(response.text)
+        
+        # Store initial structured values in Session State
         st.session_state.data = yaml_content
+        st.session_state.yaml_text = yaml.dump(yaml_content)
+        st.session_state.qid = yaml_content.get('id', 'new-question-01')
         
         desc = yaml_content.get('media', {}).get('diagram_description')
         st.session_state.image_bytes = generate_image(desc) if desc else None
 
 # --- Display ---
-st.subheader("Output Preview")
-if 'data' in st.session_state:
-    st.code(yaml.dump(st.session_state.data), language='yaml')
+st.subheader("Edit & Preview")
+
+if st.session_state.yaml_text:
+    # 1. Editable Question ID
+    qid_input = st.text_input("Question ID (will be used for the filenames on GitHub)", value=st.session_state.qid)
+    st.session_state.qid = qid_input
+    
+    # 2. Editable YAML block
+    edited_yaml = st.text_area("Edit YAML Data Block", value=st.session_state.yaml_text, height=450)
+    st.session_state.yaml_text = edited_yaml
+    
+    # Try parsing on-the-fly to validate syntax and sync parsed dict state
+    try:
+        parsed_data = yaml.safe_load(edited_yaml)
+        if parsed_data is not None:
+            st.session_state.data = parsed_data
+            st.success("✅ YAML structure is valid!")
+    except Exception as e:
+        st.error(f"❌ Invalid YAML structure: {e}")
+        
+    # Render Generated Diagram Preview
     if st.session_state.image_bytes:
         st.image(base64.b64decode(st.session_state.image_bytes), caption="Generated Diagram")
 
+# --- Push Button Execution ---
 if st.button("Push to GitHub"):
-    qid = st.session_state.data['id']
-    if st.session_state.image_bytes:
-        img_filename = f"{qid}.png"
-        push_to_github(img_filename, None, is_image=True, image_bytes=st.session_state.image_bytes)
-        st.session_state.data['media']['diagram_url'] = f"I/{img_filename}"
-    push_to_github(f"{qid}.yaml", yaml.dump(st.session_state.data), is_image=False)
+    if not st.session_state.yaml_text:
+        st.error("No question data generated yet!")
+    elif not st.session_state.qid:
+        st.error("Please enter a valid Question ID before pushing.")
+    else:
+        # Sync current editable parameters back into the final saved dictionary
+        qid = st.session_state.qid
+        st.session_state.data['id'] = qid
+        
+        if st.session_state.image_bytes:
+            img_filename = f"{qid}.png"
+            push_to_github(img_filename, None, is_image=True, image_bytes=st.session_state.image_bytes)
+            
+            # Safe setup for media key block
+            if 'media' not in st.session_state.data or st.session_state.data['media'] is None:
+                st.session_state.data['media'] = {}
+            st.session_state.data['media']['diagram_url'] = f"I/{img_filename}"
+            
+        # Push completed configuration file
+        push_to_github(f"{qid}.yaml", yaml.dump(st.session_state.data), is_image=False)
