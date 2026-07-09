@@ -1,6 +1,7 @@
 import streamlit as st
 import yaml
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 from github import Github
 import os
 import pandas as pd
@@ -11,8 +12,8 @@ from PIL import Image
 # --- Configuration ---
 st.set_page_config(page_title="Physics Question Generator", layout="wide")
 
-genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-model = genai.GenerativeModel('gemini-3.1-flash-lite')
+# Initialize the new GenAI client
+client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
 
 # --- Utilities ---
 def format_superscripts(text):
@@ -97,7 +98,7 @@ st.title("Physics Question Generator")
 prompt = st.text_area("Question Prompt", value=PROMPT_LIBRARY[selected_key], height=100)
 
 if st.button("Generate Question"):
-    with st.spinner("Generating with Gemini 3.5 Flash..."):
+    with st.spinner("Generating with Gemini 3.1 Flash Lite..."):
         system_instr = (
             "For physics questions, use LaTeX (e.g., $\\frac{a}{b}$, $\\times$). "
             "Ensure solution steps contain: step_number, text, marks_assigned, "
@@ -112,7 +113,11 @@ if st.button("Generate Question"):
                  f"Output strictly in valid YAML matching this schema: {st.session_state.data}. "
                  "Return ONLY the YAML.")
         
-        response = model.generate_content(query)
+        # New SDK model call
+        response = client.models.generate_content(
+            model='gemini-3.1-flash-lite',
+            contents=query
+        )
         
         raw_yaml = response.text.replace('```yaml', '').replace('```', '')
         cleaned_yaml = clean_latex(raw_yaml)
@@ -136,15 +141,15 @@ if st.session_state.data.get('media', {}).get('diagram_url'):
             desc = st.session_state.data['media']['diagram_url']
             img_prompt = f"A simple black and white physics textbook style diagram of {desc}"
             
-            # Using Imagen 4.0 via the Generative AI API
-            result = genai.generate_images(
-                model='imagen-4.0-generate-001',
+            # New SDK image generation call
+            result = client.models.generate_images(
+                model='imagen-3.0-generate-01',
                 prompt=img_prompt,
-                number_of_images=1
+                config=types.GenerateImagesConfig(number_of_images=1)
             )
             
             if result.generated_images:
-                # Extract the base64 string
+                # Extract bytes from the new response object structure
                 img_data = result.generated_images[0].image.image_bytes
                 image = Image.open(io.BytesIO(base64.b64decode(img_data))).resize((1024, 1024))
                 st.session_state.generated_image = image
