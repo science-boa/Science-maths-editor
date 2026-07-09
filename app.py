@@ -10,7 +10,7 @@ import os
 st.set_page_config(page_title="Physics Question Generator", layout="wide")
 
 genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-model = genai.GenerativeModel('gemini-3.5-flash')
+model = genai.GenerativeModel('gemini-3.1-flash-lite')
 
 # Initialize session states if they don't exist
 if 'yaml_text' not in st.session_state:
