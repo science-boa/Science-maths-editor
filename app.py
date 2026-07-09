@@ -10,7 +10,7 @@ import os
 st.set_page_config(page_title="Physics Question Generator", layout="wide")
 
 genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-model = genai.GenerativeModel('gemini-3.1-flash-lite')
+model = genai.GenerativeModel('gemini-3.5-flash')
 
 # Initialize session states if they don't exist
 if 'yaml_text' not in st.session_state:
@@ -75,12 +75,27 @@ prompt = st.text_area("Question Prompt", value=PROMPT_LIBRARY[selected_key], hei
 
 if st.button("Generate Question"):
     with st.spinner("Generating..."):
+        # We explicitly enforce the JSON schema expected by the frontend
         system_instr = (
-            "Output your entire response as a single, valid JSON object. Do not include any conversational text, explanation or markdown formatting outside of the JSON. "
-            "Use LaTeX. Ensure steps contain: step_number, text, marks_assigned, "
-            "check_type, milestone_value, and tolerance. "
-            "If a diagram is needed, provide a detailed 'diagram_description' prompt in a 'textbook style'. "
-            "If no diagram, set diagram_url and diagram_description to null."
+            "Output your entire response as a single, valid JSON object. Do not include any conversational text or markdown. "
+            "Use LaTeX formatting for equations. You MUST strictly follow this exact JSON structure: \n"
+            "{\n"
+            "  \"id\": \"string (e.g., Q005)\",\n"
+            "  \"metadata\": {\"topic\": \"string\", \"marks\": integer, \"difficulty_level\": float (0.0 to 1.0)},\n"
+            "  \"question\": {\n"
+            "    \"text\": \"string (the full question text)\",\n"
+            "    \"variables\": [{\"name\": \"string\", \"value\": float}]\n"
+            "  },\n"
+            "  \"solution\": {\n"
+            "    \"final_answer\": \"string\",\n"
+            "    \"marks_available\": integer,\n"
+            "    \"steps\": [\n"
+            "      {\"step_number\": integer, \"text\": \"string\", \"marks_assigned\": integer, \"check_type\": \"string (e.g. numeric, none)\", \"milestone_value\": float, \"tolerance\": float}\n"
+            "    ]\n"
+            "  },\n"
+            "  \"media\": {\"diagram_url\": \"null\", \"diagram_description\": \"textbook style prompt for diagram or null\", \"video_explainer_url\": \"null\"},\n"
+            "  \"tags\": [\"string\"]\n"
+            "}"
         )
         query = f"Generate a physics question based on: {prompt}. {system_instr}"
         
@@ -95,7 +110,7 @@ if st.button("Generate Question"):
         
         # Store initial structured values in Session State
         st.session_state.data = yaml_content
-        st.session_state.yaml_text = yaml.dump(yaml_content)
+        st.session_state.yaml_text = yaml.dump(yaml_content, sort_keys=False)
         st.session_state.qid = yaml_content.get('id', 'new-question-01')
         
         desc = yaml_content.get('media', {}).get('diagram_description')
@@ -147,4 +162,4 @@ if st.button("Push to GitHub"):
             st.session_state.data['media']['diagram_url'] = f"I/{img_filename}"
             
         # Push completed configuration file
-        push_to_github(f"{qid}.yaml", yaml.dump(st.session_state.data), is_image=False)
+        push_to_github(f"{qid}.yaml", yaml.dump(st.session_state.data, sort_keys=False), is_image=False)
