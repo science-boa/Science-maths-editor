@@ -137,22 +137,34 @@ st.code(yaml.dump(st.session_state.data, sort_keys=False), language='yaml')
 # Image Generation Section
 if st.session_state.data.get('media', {}).get('diagram_url'):
     if st.button("Generate Image"):
-        with st.spinner("Generating image..."):
+        with st.spinner("Generating image via Pollinations..."):
             desc = st.session_state.data['media']['diagram_url']
-            img_prompt = f"A simple black and white physics textbook style diagram of {desc}"
+            # Pollinations prompt (URL-encoded)
+            import urllib.parse
+            prompt_text = f"A simple black and white physics textbook style diagram of {desc}"
+            encoded_prompt = urllib.parse.quote(prompt_text)
             
-            # New SDK image generation call
-            result = client.models.generate_images(
-                model='imagen-4.0-generate-001',
-                prompt=img_prompt,
-                config=types.GenerateImagesConfig(number_of_images=1)
-            )
+            # Using the free Pollinations API (URL-based)
+            # We append the key as a query parameter if you have one
+            base_url = f"https://pollinations.ai/p/{encoded_prompt}"
+            params = {
+                "width": 1024,
+                "height": 1024,
+                "model": "flux", # You can specify flux, turbo, etc.
+                "key": st.secrets.get("IMAGE_KEY") 
+            }
             
-            if result.generated_images:
-                # Extract bytes from the new response object structure
-                img_data = result.generated_images[0].image.image_bytes
-                image = Image.open(io.BytesIO(base64.b64decode(img_data))).resize((1024, 1024))
-                st.session_state.generated_image = image
+            try:
+                import requests
+                response = requests.get(base_url, params=params)
+                
+                if response.status_code == 200:
+                    image = Image.open(io.BytesIO(response.content)).convert("RGB")
+                    st.session_state.generated_image = image
+                else:
+                    st.error(f"Failed to generate image: Status {response.status_code}")
+            except Exception as e:
+                st.error(f"Error during image generation: {e}")
 
 if st.session_state.get('generated_image'):
     st.image(st.session_state.generated_image, caption="Generated Diagram")
