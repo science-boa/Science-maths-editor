@@ -1,11 +1,10 @@
 import streamlit as st
 import yaml
-import google.generativeai as genai
+from google import genai
 from github import Github
 import os
 import pandas as pd
 import io
-import base64
 import requests
 import urllib.parse
 from PIL import Image
@@ -13,8 +12,8 @@ from PIL import Image
 # --- Configuration ---
 st.set_page_config(page_title="Physics Question Generator", layout="wide")
 
-genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-model = genai.GenerativeModel('gemini-3.1-flash-lite')
+# Initialize the new GenAI Interactions API client
+client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
 
 # --- Utilities ---
 def format_superscripts(text):
@@ -114,7 +113,11 @@ if st.button("Generate Question"):
                  f"Output strictly in valid YAML matching this schema: {st.session_state.data}. "
                  "Return ONLY the YAML.")
         
-        response = model.generate_content(query)
+        # Using the new Interactions API
+        response = client.models.generate_content(
+            model='gemini-3.1-flash-lite',
+            contents=query
+        )
         
         raw_yaml = response.text.replace('```yaml', '').replace('```', '')
         cleaned_yaml = clean_latex(raw_yaml)
@@ -131,7 +134,7 @@ st.session_state.data['id'] = st.text_input("Question ID", st.session_state.data
 st.write("Current Data Loaded (Preview):")
 st.code(yaml.dump(st.session_state.data, sort_keys=False), language='yaml')
 
-# Image Generation Section
+# Image Generation Section (Pollinations API)
 if st.session_state.data.get('media', {}).get('diagram_url'):
     if st.button("Generate Image"):
         with st.spinner("Generating image via Pollinations..."):
