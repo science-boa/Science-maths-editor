@@ -1,6 +1,6 @@
 import streamlit as st
 import yaml
-import google.generativeai as genai
+from google import genai
 from github import Github
 import os
 import pandas as pd
@@ -8,8 +8,8 @@ import pandas as pd
 # --- Configuration ---
 st.set_page_config(page_title="Physics Question Generator", layout="wide")
 
-genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-model = genai.GenerativeModel('gemini-3.1-flash-lite')
+# Initialize the Interactions API client
+client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
 
 # --- Utilities ---
 def format_superscripts(text):
@@ -85,7 +85,13 @@ if st.button("Generate Question"):
         query = (f"Generate a physics question based on: {prompt}. "
                  f"Output strictly in valid YAML matching this schema: {st.session_state.data}. "
                  "Return ONLY the YAML.")
-        response = model.generate_content(query)
+        
+        # Using the new Interactions API client
+        response = client.models.generate_content(
+            model='gemini-3.1-flash-lite',
+            contents=query
+        )
+        
         st.session_state.data = yaml.safe_load(clean_latex(response.text.replace('```yaml', '').replace('```', '')))
         st.session_state.image_prompt = None
         st.success("Generation complete!")
@@ -94,7 +100,7 @@ st.subheader("Edit Question Data")
 st.session_state.data['id'] = st.text_input("Question ID", st.session_state.data['id'])
 st.code(yaml.dump(st.session_state.data, sort_keys=False), language='yaml')
 
-# --- New Image Generation Flow ---
+# --- Image Generation Flow ---
 if st.session_state.data.get('media', {}).get('diagram_url'):
     if st.button("Generate Image Prompt"):
         desc = st.session_state.data['media']['diagram_url']
@@ -104,9 +110,6 @@ if st.session_state.get('image_prompt'):
     st.info("Image prompt generated. Click below to copy and open Gemini.")
     st.text_area("Copy this prompt:", value=st.session_state.image_prompt, height=100)
     
-    col1, col2 = st.columns(2)
-    # Clipboard functionality is best handled by the user selecting/copying the text area
-    # but we provide the clear link to the chat interface
     st.link_button("Open Gemini Chat", "https://gemini.google.com")
 
 col1, col2 = st.columns(2)
