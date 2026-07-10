@@ -1,18 +1,18 @@
 import streamlit as st
 import yaml
 from google import genai
+from google.genai import types
 from github import Github
 import os
 import pandas as pd
 import io
-import requests
-import urllib.parse
+import base64
 from PIL import Image
 
 # --- Configuration ---
 st.set_page_config(page_title="Physics Question Generator", layout="wide")
 
-# Initialize the new GenAI Interactions API client
+# Initialize the new GenAI client
 client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
 
 # --- Utilities ---
@@ -113,7 +113,7 @@ if st.button("Generate Question"):
                  f"Output strictly in valid YAML matching this schema: {st.session_state.data}. "
                  "Return ONLY the YAML.")
         
-        # Using the new Interactions API
+        # New SDK model call
         response = client.models.generate_content(
             model='gemini-3.1-flash-lite',
             contents=query
@@ -134,26 +134,35 @@ st.session_state.data['id'] = st.text_input("Question ID", st.session_state.data
 st.write("Current Data Loaded (Preview):")
 st.code(yaml.dump(st.session_state.data, sort_keys=False), language='yaml')
 
-# Image Generation Section (Pollinations API)
+# Image Generation Section
 if st.session_state.data.get('media', {}).get('diagram_url'):
     if st.button("Generate Image"):
         with st.spinner("Generating image via Pollinations..."):
             desc = st.session_state.data['media']['diagram_url']
+            # Pollinations prompt (URL-encoded)
+            import urllib.parse
             prompt_text = f"A simple black and white physics textbook style diagram of {desc}"
             encoded_prompt = urllib.parse.quote(prompt_text)
             
-            url = f"https://pollinations.ai/p/{encoded_prompt}"
-            params = {"width": 1024, "height": 1024, "model": "flux", "seed": 42}
-            if st.secrets.get("IMAGE_KEY"):
-                params["key"] = st.secrets["IMAGE_KEY"]
+            # Using the free Pollinations API (URL-based)
+            # We append the key as a query parameter if you have one
+            base_url = f"https://pollinations.ai/p/{encoded_prompt}"
+            params = {
+                "width": 1024,
+                "height": 1024,
+                "model": "flux", # You can specify flux, turbo, etc.
+                "key": st.secrets.get("IMAGE_KEY") 
+            }
             
             try:
-                response = requests.get(url, params=params)
-                if response.status_code == 200 and 'image' in response.headers.get('Content-Type', ''):
+                import requests
+                response = requests.get(base_url, params=params)
+                
+                if response.status_code == 200:
                     image = Image.open(io.BytesIO(response.content)).convert("RGB")
                     st.session_state.generated_image = image
                 else:
-                    st.error(f"Failed to generate image. Response: {response.status_code}")
+                    st.error(f"Failed to generate image: Status {response.status_code}")
             except Exception as e:
                 st.error(f"Error during image generation: {e}")
 
