@@ -2,12 +2,11 @@ import streamlit as st
 import yaml
 from google import genai
 from google.genai import types
-import requests
-import urllib.parse
 from github import Github
 import os
 import pandas as pd
 import io
+import base64
 from PIL import Image
 
 # --- Configuration ---
@@ -30,6 +29,7 @@ def clean_latex(text):
     return text.replace('\\\\', '\\')
 
 def load_prompt_library():
+    """Loads all prompts from prompts.csv if it exists."""
     if os.path.exists("prompts.csv"):
         try:
             df = pd.read_csv("prompts.csv", header=None, quotechar='"')
@@ -37,11 +37,14 @@ def load_prompt_library():
             return {f"{i+1}: {p[:40]}...": p for i, p in enumerate(prompts)}
         except Exception as e:
             st.error(f"Error loading CSV: {e}")
+    
     return {"Default Prompt": "Act as an expert GCSE Physics examiner. Generate a calculation question..."}
 
 def push_to_github(filename, content):
+    """Pushes the YAML content to the /Q directory of the configured repository."""
     if not filename.startswith("Q/"):
         filename = f"Q/{filename}"
+        
     try:
         g = Github(st.secrets["GITHUB_TOKEN"])
         repo = g.get_repo(st.secrets["GITHUB_REPO"])
@@ -63,7 +66,16 @@ def get_empty_schema():
         "solution": {
             "final_answer": 0.0,
             "marks_available": 4,
-            "steps": [{"step_number": 1, "text": "", "marks_assigned": 1, "check_type": "numeric", "milestone_value": 0.0, "tolerance": 0.001}]
+            "steps": [
+                {
+                    "step_number": 1,
+                    "text": "",
+                    "marks_assigned": 1,
+                    "check_type": "numeric",
+                    "milestone_value": 0.0,
+                    "tolerance": 0.001
+                }
+            ]
         },
         "media": {"diagram_url": None, "video_explainer_url": None},
         "tags": []
@@ -73,41 +85,95 @@ if 'data' not in st.session_state:
     st.session_state.data = get_empty_schema()
 
 # --- UI ---
+st.sidebar.title("Data Management")
+uploaded_file = st.sidebar.file_uploader("Load Schema YAML", type=["yaml"])
+if uploaded_file:
+    st.session_state.data = yaml.safe_load(uploaded_file)
+
+st.sidebar.title("Prompt Library")
+PROMPT_LIBRARY = load_prompt_library()
+selected_key = st.sidebar.selectbox("Select a Prompt Type", list(PROMPT_LIBRARY.keys()))
+
 st.title("Physics Question Generator")
-prompt = st.text_area("Question Prompt", value=load_prompt_library().get("Default Prompt"), height=100)
+prompt = st.text_area("Question Prompt", value=PROMPT_LIBRARY[selected_key], height=100)
 
 if st.button("Generate Question"):
-    with st.spinner("Generating with Gemini 3.1..."):
-        query = f"Generate physics question: {prompt}. Output strictly in YAML. Schema: {st.session_state.data}"
-        response = client.models.generate_content(model='gemini-3.1-flash-lite', contents=query)
-        cleaned_yaml = clean_latex(response.text.replace('```yaml', '').replace('```', ''))
-        st.session_state.data = yaml.safe_load(format_superscripts(cleaned_yaml))
+    with st.spinner("Generating with Gemini 3.1 Flash Lite..."):
+        system_instr = (
+            "For physics questions, use LaTeX (e.g., $\\frac{a}{b}$, $\\times$). "
+            "Ensure solution steps contain: step_number, text, marks_assigned, "
+            "check_type (e.g., 'numeric'), milestone_value (as a float), and tolerance (as a float). "
+            "For the 'diagram_url' field, instead of a URL, provide a detailed text description "
+            "of the image/diagram that should accompany this question. "
+            "If no diagram is needed, set 'diagram_url' to null. "
+            "Ensure all backslashes are output as single backslashes."
+        )
+        
+        query = (f"Generate a physics question based on: {prompt}. {system_instr} "
+                 f"Output strictly in valid YAML matching this schema: {st.session_state.data}. "
+                 "Return ONLY the YAML.")
+        
+        # New SDK model call
+        response = client.models.generate_content(
+            model='gemini-3.1-flash-lite',
+            contents=query
+        )
+        
+        raw_yaml = response.text.replace('```yaml', '').replace('```', '')
+        cleaned_yaml = clean_latex(raw_yaml)
+        formatted_yaml = format_superscripts(cleaned_yaml)
+        
+        st.session_state.data = yaml.safe_load(formatted_yaml)
         st.session_state.generated_image = None
         st.success("Generation complete!")
 
-# Image Generation Section (Pollinations API)
+# --- UI: Editor ---
+st.subheader("Edit Question Data")
+st.session_state.data['id'] = st.text_input("Question ID", st.session_state.data['id'])
+
+st.write("Current Data Loaded (Preview):")
+st.code(yaml.dump(st.session_state.data, sort_keys=False), language='yaml')
+
+# Image Generation Section
 if st.session_state.data.get('media', {}).get('diagram_url'):
     if st.button("Generate Image"):
         with st.spinner("Generating image via Pollinations..."):
             desc = st.session_state.data['media']['diagram_url']
-            img_prompt = f"A simple black and white physics textbook style diagram of {desc}"
-            encoded_prompt = urllib.parse.quote(img_prompt)
+            # Pollinations prompt (URL-encoded)
+            import urllib.parse
+            prompt_text = f"A simple black and white physics textbook style diagram of {desc}"
+            encoded_prompt = urllib.parse.quote(prompt_text)
             
-            # Using Pollinations API
-            url = f"https://pollinations.ai/p/{encoded_prompt}"
-            params = {"width": 1024, "height": 1024, "seed": 42, "model": "flux"}
-            if st.secrets.get("IMAGE_KEY"):
-                params["key"] = st.secrets["IMAGE_KEY"]
+            # Using the free Pollinations API (URL-based)
+            # We append the key as a query parameter if you have one
+            base_url = f"https://pollinations.ai/p/{encoded_prompt}"
+            params = {
+                "width": 1024,
+                "height": 1024,
+                "model": "flux", # You can specify flux, turbo, etc.
+                "key": st.secrets.get("IMAGE_KEY") 
+            }
             
             try:
-                response = requests.get(url, params=params)
+                import requests
+                response = requests.get(base_url, params=params)
+                
                 if response.status_code == 200:
-                    image = Image.open(io.BytesIO(response.content))
+                    image = Image.open(io.BytesIO(response.content)).convert("RGB")
                     st.session_state.generated_image = image
                 else:
-                    st.error(f"API Error ({response.status_code}): {response.text}")
+                    st.error(f"Failed to generate image: Status {response.status_code}")
             except Exception as e:
-                st.error(f"Image generation failed: {e}")
+                st.error(f"Error during image generation: {e}")
 
 if st.session_state.get('generated_image'):
     st.image(st.session_state.generated_image, caption="Generated Diagram")
+
+col1, col2 = st.columns(2)
+with col1:
+    st.download_button("Download YAML", yaml.dump(st.session_state.data, sort_keys=False), 
+                       file_name=f"{st.session_state.data['id']}.yaml", mime="text/yaml")
+with col2:
+    if st.button("Push to GitHub"):
+        yaml_output = yaml.dump(st.session_state.data, sort_keys=False)
+        push_to_github(f"{st.session_state.data['id']}.yaml", yaml_output)
