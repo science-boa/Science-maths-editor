@@ -35,15 +35,12 @@ def load_prompt_library():
     return {"Default Prompt": "Act as an expert GCSE Physics examiner. Generate a calculation question..."}
 
 def push_to_github(filename, content, is_image=False, image_data=None):
-    # Set path based on type
     subdir = "I" if is_image else "Q"
     path = f"{subdir}/{filename}"
     
     try:
         g = Github(st.secrets["GITHUB_TOKEN"])
         repo = g.get_repo(st.secrets["GITHUB_REPO"])
-        
-        # Determine content to push
         push_content = image_data if is_image else content
         
         try:
@@ -112,7 +109,6 @@ with col_gen2:
 
 st.subheader("Edit Question Data")
 st.session_state.data['id'] = st.text_input("Question ID", st.session_state.data['id'])
-st.code(yaml.dump(st.session_state.data, sort_keys=False), language='yaml')
 
 # --- Image Generation Flow ---
 if st.session_state.data.get('media', {}).get('diagram_url'):
@@ -129,6 +125,9 @@ st.divider()
 st.subheader("Upload Diagram")
 uploaded_image = st.file_uploader("Upload generated diagram", type=["png", "jpg", "jpeg"])
 
+# Display the YAML *after* the logic so it picks up state changes
+st.code(yaml.dump(st.session_state.data, sort_keys=False), language='yaml')
+
 col1, col2 = st.columns(2)
 with col1:
     st.download_button("Download YAML", yaml.dump(st.session_state.data, sort_keys=False), file_name=f"{st.session_state.data['id']}.yaml", mime="text/yaml")
@@ -136,14 +135,14 @@ with col2:
     if st.button("Push to GitHub"):
         q_id = st.session_state.data['id']
         
-        # If an image is uploaded, update the URL in the YAML data before pushing
+        # 1. Update the state first so it persists in the UI
         if uploaded_image:
             ext = uploaded_image.name.split('.')[-1]
-            new_path = f"I/{q_id}.{ext}"
-            st.session_state.data['media']['diagram_url'] = new_path
-            
-            # Push Image
+            st.session_state.data['media']['diagram_url'] = f"I/{q_id}.{ext}"
+            # 2. Push Image
             push_to_github(f"{q_id}.{ext}", None, is_image=True, image_data=uploaded_image.getvalue())
         
-        # Push updated YAML
+        # 3. Push updated YAML (which now contains the URL)
         push_to_github(f"{q_id}.yaml", yaml.dump(st.session_state.data, sort_keys=False))
+        # 4. Rerun to update the UI display
+        st.rerun()
