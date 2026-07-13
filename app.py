@@ -70,7 +70,9 @@ def get_empty_schema():
 def generate_question(prompt_text, force_image=False):
     with st.spinner("Generating..."):
         extra_instr = " You MUST include a detailed descriptive text for a diagram in the 'diagram_url' field." if force_image else ""
-        query = (f"Generate a physics question based on: {prompt_text}. "
+        latex_instr = " All mathematical expressions and scientific notation MUST be formatted in LaTeX (e.g., $E=mc^2$)."
+        
+        query = (f"Generate a physics question based on: {prompt_text}.{latex_instr} "
                  f"Output strictly in valid YAML matching this schema: {st.session_state.data}.{extra_instr} "
                  "Return ONLY the YAML.")
         
