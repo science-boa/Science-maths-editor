@@ -46,9 +46,7 @@ solution:
     milestone_value: 36.3
     tolerance: 0.1
 media:
-  diagram_url: A labelled diagram showing a rectangular metal block on a table. An
-    electrical wire enters the block representing an immersion heater. Arrows indicate
-    heat energy being transferred into the block from the heater.
+  diagram_url: I/T1.jpeg
   video_explainer_url: null
 tags:
 - GCSE Physics
