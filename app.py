@@ -115,9 +115,10 @@ if st.session_state.data.get('media', {}).get('diagram_url'):
         st.session_state.image_prompt = f"Generate a physics textbook style image, black and white line drawing of {desc}"
 
 if st.session_state.get('image_prompt'):
-    st.info("Image prompt generated. Click below to copy and open Gemini.")
-    st.text_area("Copy this prompt:", value=st.session_state.image_prompt, height=100)
+    st.info("Image prompt generated.")
+    st.code(st.session_state.image_prompt, language='text')
     
+    # Note: Streamlit's st.code has a built-in copy button in the UI
     st.link_button("Open Gemini Chat", "https://gemini.google.com")
 
 col1, col2 = st.columns(2)
