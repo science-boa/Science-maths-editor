@@ -1,22 +1,57 @@
 id: T1
 metadata:
-  topic: ''
+  topic: Energy transfers and Density
   marks: 4
   difficulty_level: 0.5
 question:
-  text: ''
-  variables: []
+  text: "A block of copper is heated using an immersion heater. The block has a volume\
+    \ of 0.002 m^3 and a density of 8960 kg/m^3. The initial temperature of the copper\
+    \ is 20 \xB0C. Calculate the final temperature of the copper if 500,000 J of energy\
+    \ is transferred to it. (Specific heat capacity of copper = 390 J/kg\xB0C)."
+  variables:
+  - substance: copper
+  - initial_temperature: 20
+  - energy_change_J: 500000
+  - density: 8960
+  - volume: 0.002
+  - specific_heat_capacity: 390
 solution:
-  final_answer: 0.0
+  final_answer: 36.3
   marks_available: 4
   steps:
   - step_number: 1
-    text: ''
+    text: "Calculate mass using m = density \xD7 volume (8960 \xD7 0.002 = 17.92 kg)"
     marks_assigned: 1
     check_type: numeric
-    milestone_value: 0.0
-    tolerance: 0.001
+    milestone_value: 17.92
+    tolerance: 0.01
+  - step_number: 2
+    text: "Rearrange \u0394E = mc\u0394\u03B8 to find \u0394\u03B8 = \u0394E / (mc)\
+      \ = 500,000 / (17.92 \xD7 390)"
+    marks_assigned: 1
+    check_type: numeric
+    milestone_value: 71.55
+    tolerance: 0.1
+  - step_number: 3
+    text: "Calculate the temperature change (\u0394\u03B8 \u2248 71.55 \xB0C)"
+    marks_assigned: 1
+    check_type: numeric
+    milestone_value: 71.55
+    tolerance: 0.1
+  - step_number: 4
+    text: "Calculate final temperature by adding \u0394\u03B8 to initial temperature\
+      \ (20 + 16.3 = 36.3 \xB0C)"
+    marks_assigned: 1
+    check_type: numeric
+    milestone_value: 36.3
+    tolerance: 0.1
 media:
-  diagram_url: null
+  diagram_url: A labelled diagram showing a rectangular metal block on a table. An
+    electrical wire enters the block representing an immersion heater. Arrows indicate
+    heat energy being transferred into the block from the heater.
   video_explainer_url: null
-tags: []
+tags:
+- GCSE Physics
+- Thermal Physics
+- Density
+- Specific Heat Capacity
