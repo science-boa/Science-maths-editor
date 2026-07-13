@@ -1,0 +1,53 @@
+id: T2
+metadata:
+  topic: Thermal Physics and Density
+  marks: 4
+  difficulty_level: 0.5
+question:
+  text: A block of copper has a volume of $0.002\text{ m}^3$ and a density of $8960\text{
+    kg/m}^3$. The block is at an initial temperature of $20\text{ }^\circ\text{C}$.
+    Calculate the final temperature of the copper block after $1.5 \times 10^6\text{
+    J}$ of thermal energy is transferred to it. The specific heat capacity of copper
+    is $385\text{ J/kg}\cdot^\circ\text{C}$.
+  variables:
+  - substance: Copper
+  - initial_temperature_celsius: 20
+  - energy_change_joules: 1500000
+  - density_kg_m3: 8960
+  - volume_m3: 0.002
+  - specific_heat_capacity_j_kg_c: 385
+solution:
+  final_answer: 163.63
+  marks_available: 4
+  steps:
+  - step_number: 1
+    text: 'Calculate mass using $m = \rho V$: $8960 \times 0.002 = 17.92\text{ kg}$'
+    marks_assigned: 1
+    milestone_value: 17.92
+    tolerance: 0.01
+  - step_number: 2
+    text: 'Rearrange $\Delta E = mc\Delta\theta$ to find change in temperature: $\Delta\theta
+      = \frac{\Delta E}{mc} = \frac{1500000}{17.92 \times 385}$'
+    marks_assigned: 1
+    milestone_value: 217.44
+    tolerance: 0.1
+  - step_number: 3
+    text: 'Calculate the change in temperature: $\Delta\theta \approx 217.44\text{
+      }^\circ\text{C}$'
+    marks_assigned: 1
+    milestone_value: 217.44
+    tolerance: 0.1
+  - step_number: 4
+    text: 'Determine final temperature: $T_f = T_i + \Delta\theta = 20 + 217.44 =
+      237.44\text{ }^\circ\text{C}$'
+    marks_assigned: 1
+    milestone_value: 237.44
+    tolerance: 0.1
+media:
+  diagram_url: I/T2.jpeg
+  video_explainer_url: None
+tags:
+- GCSE
+- Physics
+- ThermalEnergy
+- Density
