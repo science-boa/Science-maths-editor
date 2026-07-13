@@ -143,7 +143,7 @@
   </div>
 
   <script>
-    const BASE_RAW_URL = "https://raw.githubusercontent.com/science-boa/Science-maths-editor/main/Q/";
+    const BASE_RAW_URL = "https://raw.githubusercontent.com/science-boa/Science-maths-editor/main/";
     let questions = [];
     let currentIndex = 0;
     let studentAnswers = {};
@@ -151,7 +151,7 @@
     let calcExpression = "";
     let lastAnswer = 0;
 
-    // 1. App initialization: Parse URLs and Fetch YAML sequences
+    // 1. App initialization
     window.addEventListener('DOMContentLoaded', async () => {
       const params = new URLSearchParams(window.location.search);
       const qKeys = Array.from(params.keys()).filter(k => k.startsWith('q')).sort();
@@ -160,7 +160,6 @@
         document.getElementById('question-area').innerHTML = `
           <div class="text-center py-12">
             <p class="text-red-500 font-semibold text-lg">No configuration payload detected.</p>
-            <p class="text-sm text-gray-500 mt-2">Append target files to your browser window address bar string: <code class="bg-gray-100 p-1 rounded font-mono text-xs">?q1=PHYS-2026-001</code></p>
           </div>`;
         document.getElementById('loading-badge').classList.add('hidden');
         return;
@@ -170,13 +169,13 @@
         const fileId = params.get(key);
         if (!fileId) continue;
         try {
-          const response = await fetch(`${BASE_RAW_URL}${fileId}.yaml`);
+          const response = await fetch(`${BASE_RAW_URL}Q/${fileId}.yaml`);
           if (!response.ok) throw new Error(`Status ${response.status}`);
           const text = await response.text();
           const parsed = jsyaml.load(text);
           questions.push({ ...parsed, id: fileId });
         } catch (err) {
-          questions.push({ id: fileId, error: true, message: `Failed fetching asset details: ${err.message}` });
+          questions.push({ id: fileId, error: true, message: `Failed fetching: ${err.message}` });
         }
       }
 
@@ -222,7 +221,7 @@
       if (q.media && q.media.diagram_url) {
         diagramHtml = `
           <div class="mb-6 border border-gray-200 bg-gray-100 rounded-lg w-full h-48 flex items-center justify-center overflow-hidden">
-            <img src="${BASE_RAW_URL}${q.media.diagram_url}" alt="Question Diagram" class="object-contain h-full w-full" onerror="this.parentElement.innerHTML='<span class=\'text-xs text-gray-400\'>Diagram Image Reference Broken: ${q.media.diagram_url}</span>'">
+            <img src="${BASE_RAW_URL}I/${q.media.diagram_url}" alt="Question Diagram" class="object-contain h-full w-full" onerror="this.parentElement.innerHTML='<span class=\'text-xs text-gray-400\'>Diagram Image Reference Broken: ${q.media.diagram_url}</span>'">
           </div>`;
       }
 
@@ -255,24 +254,13 @@
       }
     }
 
-    function captureAnswer(val) {
-      studentAnswers[currentIndex] = val;
-    }
-
+    function captureAnswer(val) { studentAnswers[currentIndex] = val; }
     function saveScratchpad() {
       const q = questions[currentIndex];
-      if (q && q.id) {
-        const val = document.getElementById('scratchpad').value;
-        localStorage.setItem(`scratchpad-id-${q.id}`, val);
-      }
+      if (q && q.id) localStorage.setItem(`scratchpad-id-${q.id}`, document.getElementById('scratchpad').value);
     }
+    function changeQuestion(dir) { currentIndex += dir; renderCurrentQuestion(); }
 
-    function changeQuestion(dir) {
-      currentIndex += dir;
-      renderCurrentQuestion();
-    }
-
-    // 5. Quiz Evaluator Engine & Rich Reporting Page Builder
     function submitQuiz() {
       let grandTotalEarned = 0;
       let grandTotalPossible = 0;
@@ -289,218 +277,94 @@
         const targetFinalNum = parseFloat(correctRawAnswer.toString().replace(/[^0-9.-]/g, ''));
         const studentFinalNum = parseFloat(studentRawAnswer);
 
-        // Calculate maximum possible marks for this question from steps
         const structuredSteps = (q.solution && Array.isArray(q.solution.steps)) ? q.solution.steps : [];
         if (structuredSteps.length > 0) {
           structuredSteps.forEach(s => questionMaxMarks += parseInt(s.marks_assigned || 1));
         } else {
-          questionMaxMarks = 1; // Default fallback point
+          questionMaxMarks = 1;
         }
 
-        // Check if final answer is fundamentally correct
         let finalAnswerCorrect = false;
         if (!isNaN(targetFinalNum) && !isNaN(studentFinalNum)) {
-          if (studentFinalNum === targetFinalNum) {
+          if (studentFinalNum === targetFinalNum || Math.abs((studentFinalNum - targetFinalNum) / targetFinalNum) <= 0.005) {
             finalAnswerCorrect = true;
-          } else {
-            const deviation = Math.abs((studentFinalNum - targetFinalNum) / targetFinalNum);
-            if (deviation <= 0.005) finalAnswerCorrect = true;
           }
         }
 
-        // Build Step-by-Step Step Elements array for the display layout review
         let dynamicStepsHtml = "";
-
         if (finalAnswerCorrect) {
-          // Rule 1 Override: If final answer is correct, award maximum marks automatically
           questionEarnedMarks = questionMaxMarks;
-          
-          if (structuredSteps.length > 0) {
-            structuredSteps.forEach(step => {
-              dynamicStepsHtml += `
+          structuredSteps.forEach(step => {
+            dynamicStepsHtml += `
                 <div class="flex items-start gap-3 text-sm border-l-2 border-emerald-500 pl-3 py-1 bg-emerald-50/50 rounded-r">
                   <span class="text-emerald-600 font-bold">Step ${step.step_number}:</span>
                   <div class="flex-1 text-gray-700">${step.text}</div>
                   <span class="text-xs font-semibold px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-full shrink-0">Earned: ${step.marks_assigned}/${step.marks_assigned}</span>
                 </div>`;
-            });
-          } else {
-            dynamicStepsHtml = `<p class="text-sm text-emerald-600 font-medium">✓ Direct final answer processed successfully.</p>`;
-          }
+          });
         } else {
-          // Rule 2 Fallback: Final answer wrong or missing, parse scratchpad line milestones
           const scratchpadText = localStorage.getItem(`scratchpad-id-${q.id}`) || "";
           const studentNumbersInWorking = (scratchpadText.match(/[+-]?\d+(\.\d+)?/g) || []).map(Number);
 
-          if (structuredSteps.length > 0) {
-            structuredSteps.forEach((step) => {
-              const stepWeight = parseInt(step.marks_assigned || 1);
-              let milestoneMatched = false;
-
-              if (step.check_type === "numeric" && step.milestone_value !== undefined) {
-                const targetVal = parseFloat(step.milestone_value);
-                const tolerancePercent = parseFloat(step.tolerance || 0.005);
-                
-                for (let num of studentNumbersInWorking) {
-                  if (num === targetVal) { milestoneMatched = true; break; }
-                  if (Math.abs((num - targetVal) / targetVal) <= tolerancePercent) { milestoneMatched = true; break; }
-                }
+          structuredSteps.forEach((step) => {
+            const stepWeight = parseInt(step.marks_assigned || 1);
+            let milestoneMatched = false;
+            if (step.check_type === "numeric" && step.milestone_value !== undefined) {
+              const targetVal = parseFloat(step.milestone_value);
+              const tolerancePercent = parseFloat(step.tolerance || 0.005);
+              for (let num of studentNumbersInWorking) {
+                if (num === targetVal || Math.abs((num - targetVal) / targetVal) <= tolerancePercent) { milestoneMatched = true; break; }
               }
+            }
 
-              if (milestoneMatched) {
-                questionEarnedMarks += stepWeight;
-                dynamicStepsHtml += `
-                  <div class="flex items-start gap-3 text-sm border-l-2 border-emerald-500 pl-3 py-1 bg-emerald-50/50 rounded-r">
-                    <span class="text-emerald-600 font-bold">Step ${step.step_number}:</span>
-                    <div class="flex-1 text-gray-700">${step.text}</div>
-                    <span class="text-xs font-semibold px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-full shrink-0">Earned: ${stepWeight}/${stepWeight}</span>
-                  </div>`;
-              } else {
-                dynamicStepsHtml += `
-                  <div class="flex items-start gap-3 text-sm border-l-2 border-rose-300 pl-3 py-1 bg-rose-50/30 rounded-r">
-                    <span class="text-gray-400 font-bold">Step ${step.step_number}:</span>
-                    <div class="flex-1 text-gray-500 line-through decoration-gray-300">${step.text}</div>
-                    <span class="text-xs font-semibold px-2 py-0.5 bg-gray-100 text-gray-500 rounded-full shrink-0">Earned: 0/${stepWeight}</span>
-                  </div>`;
-              }
-            });
-          } else {
-            dynamicStepsHtml = `<p class="text-sm text-rose-500 font-medium">✗ Final answer box mismatch. No partial markings available.</p>`;
-          }
+            if (milestoneMatched) {
+              questionEarnedMarks += stepWeight;
+              dynamicStepsHtml += `<div class="flex items-start gap-3 text-sm border-l-2 border-emerald-500 pl-3 py-1 bg-emerald-50/50 rounded-r"><span class="text-emerald-600 font-bold">Step ${step.step_number}:</span><div class="flex-1 text-gray-700">${step.text}</div><span class="text-xs font-semibold px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-full shrink-0">Earned: ${stepWeight}/${stepWeight}</span></div>`;
+            } else {
+              dynamicStepsHtml += `<div class="flex items-start gap-3 text-sm border-l-2 border-rose-300 pl-3 py-1 bg-rose-50/30 rounded-r"><span class="text-gray-400 font-bold">Step ${step.step_number}:</span><div class="flex-1 text-gray-500 line-through decoration-gray-300">${step.text}</div><span class="text-xs font-semibold px-2 py-0.5 bg-gray-100 text-gray-500 rounded-full shrink-0">Earned: 0/${stepWeight}</span></div>`;
+            }
+          });
         }
 
         grandTotalEarned += questionEarnedMarks;
         grandTotalPossible += questionMaxMarks;
 
-        // Render full un-editable snapshot card block for this specific entry
-        const scratchpadCapturedText = localStorage.getItem(`scratchpad-id-${q.id}`) || "No working text provided.";
-        
         resultsContainerHtml += `
-          <div class="bg-white rounded-xl shadow-xs border border-gray-200 overflow-hidden">
-            <div class="bg-gray-50 border-b border-gray-200 px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-              <div>
-                <span class="text-xs font-bold text-blue-600 tracking-wider uppercase">${q.metadata?.topic || 'General Science'}</span>
-                <h3 class="text-lg font-bold text-gray-900">Q${idx + 1}: ${q.id}</h3>
-              </div>
-              <div class="px-4 py-1.5 rounded-full font-mono font-bold text-sm ${questionEarnedMarks === questionMaxMarks ? 'bg-emerald-100 text-emerald-800' : questionEarnedMarks > 0 ? 'bg-amber-100 text-amber-800' : 'bg-rose-100 text-rose-800'}">
-                Marks: ${questionEarnedMarks} / ${questionMaxMarks}
-              </div>
+          <div class="bg-white rounded-xl shadow-xs border border-gray-200 overflow-hidden mb-6">
+            <div class="bg-gray-50 border-b border-gray-200 px-6 py-4 flex justify-between items-center">
+              <div><h3 class="text-lg font-bold text-gray-900">Q${idx + 1}: ${q.id}</h3></div>
+              <div class="px-4 py-1.5 rounded-full font-mono font-bold text-sm ${questionEarnedMarks === questionMaxMarks ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}">Marks: ${questionEarnedMarks} / ${questionMaxMarks}</div>
             </div>
-
             <div class="p-6 space-y-6">
-              <div>
-                <h4 class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">Question</h4>
-                <div class="text-gray-800 text-sm leading-relaxed">${q.question.text}</div>
-              </div>
-
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-100">
-                <div>
-                  <h4 class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">Student Answer Box</h4>
-                  <div class="font-mono text-sm px-3 py-2 border rounded-lg bg-gray-50 inline-block min-w-[12rem] ${finalAnswerCorrect ? 'border-emerald-300 text-emerald-700 bg-emerald-50/20' : 'border-gray-200 text-gray-700'}">
-                    ${studentRawAnswer || '<i>Empty</i>'}
-                  </div>
-                </div>
-                <div>
-                  <h4 class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">Expected Target Answer</h4>
-                  <div class="font-mono text-sm px-3 py-2 border border-blue-200 bg-blue-50/20 text-blue-800 rounded-lg inline-block min-w-[12rem]">
-                    ${correctRawAnswer}
-                  </div>
-                </div>
-              </div>
-
-              <div class="pt-4 border-t border-gray-100">
-                <h4 class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">Student Scratchpad Canvas (Read Only)</h4>
-                <pre class="w-full bg-slate-50 border border-gray-200 p-3 rounded-lg text-xs font-mono whitespace-pre-wrap text-gray-600 block leading-relaxed">${scratchpadCapturedText}</pre>
-              </div>
-
+              <div class="text-gray-800 text-sm leading-relaxed">${q.question.text}</div>
               <div class="pt-4 border-t border-gray-100 space-y-2">
-                <h4 class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">Marking Scheme Evaluation & Resolution Paths</h4>
+                <h4 class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">Evaluation</h4>
                 <div class="space-y-2">${dynamicStepsHtml}</div>
               </div>
-
             </div>
           </div>`;
       });
 
-      // Swap Workspace page screens out smoothly 
       document.getElementById('quiz-workspace').classList.add('hidden');
       document.getElementById('dashboard').classList.add('hidden');
-      
       const resultsScreen = document.getElementById('quiz-results-screen');
       resultsScreen.classList.remove('hidden');
-      
       document.getElementById('results-score-badge').innerText = `${grandTotalEarned} / ${grandTotalPossible}`;
       document.getElementById('results-cards-container').innerHTML = resultsContainerHtml;
-
-      // Re-run Math rendering over the newly injected results page
-      renderMathInElement(document.getElementById('results-cards-container'), {
-        delimiters: [
-          { left: "$$", right: "$$", display: true },
-          { left: "$", right: "$", display: false }
-        ]
-      });
-
-      // Scroll to the top of the screen to view the performance dashboard
+      renderMathInElement(document.getElementById('results-cards-container'), { delimiters: [{ left: "$$", right: "$$", display: true }, { left: "$", right: "$", display: false }] });
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    // 6. Advanced Scientific Calculator Engine
     function pressCalc(token) {
       const display = document.getElementById('calc-display');
-      const history = document.getElementById('calc-history');
-
-      if (token === 'AC') {
-        calcExpression = "";
-        display.innerText = "0";
-        history.innerText = "";
-      } 
-      else if (token === 'DEL') {
-        if (calcExpression.length > 0) {
-          if (calcExpression.endsWith('sin(') || calcExpression.endsWith('cos(') || calcExpression.endsWith('tan(')) {
-            calcExpression = calcExpression.slice(0, -4);
-          } else if (calcExpression.endsWith('sqrt(')) {
-            calcExpression = calcExpression.slice(0, -5);
-          } else if (calcExpression.endsWith('*10^')) {
-            calcExpression = calcExpression.slice(0, -4);
-          } else if (calcExpression.endsWith('Ans')) {
-            calcExpression = calcExpression.slice(0, -3);
-          } else {
-            calcExpression = calcExpression.slice(0, -1);
-          }
-        }
-        display.innerText = calcExpression || "0";
-      } 
+      if (token === 'AC') { calcExpression = ""; display.innerText = "0"; }
+      else if (token === 'DEL') { calcExpression = calcExpression.slice(0, -1); display.innerText = calcExpression || "0"; }
       else if (token === '=') {
         try {
-          if (calcExpression === "") return;
-
-          const degreeScope = {
-            sin: (x) => Math.sin(x * Math.PI / 180),
-            cos: (x) => Math.cos(x * Math.PI / 180),
-            tan: (x) => Math.tan(x * Math.PI / 180),
-            sqrt: (x) => Math.sqrt(x),
-            pi: Math.PI,
-            Ans: lastAnswer
-          };
-
-          let result = math.evaluate(calcExpression, degreeScope);
-          
-          if (typeof result === 'number') {
-            if (result % 1 !== 0) result = parseFloat(result.toFixed(6));
-            history.innerText = calcExpression.replace(/\*/g, '×').replace(/\//g, '÷') + " =";
-            display.innerText = result;
-            lastAnswer = result;
-            calcExpression = result.toString();
-          }
-        } catch (e) {
-          display.innerText = "Syntax Error";
-          calcExpression = "";
-        }
-      } 
-      else {
-        calcExpression += token;
-        display.innerText = calcExpression.replace(/\*/g, '×').replace(/\//g, '÷');
-      }
+          let result = math.evaluate(calcExpression, {sin:(x)=>Math.sin(x*Math.PI/180),cos:(x)=>Math.cos(x*Math.PI/180),tan:(x)=>Math.tan(x*Math.PI/180),sqrt:(x)=>Math.sqrt(x),pi:Math.PI,Ans:lastAnswer});
+          lastAnswer = result; display.innerText = result; calcExpression = result.toString();
+        } catch { display.innerText = "Syntax Error"; calcExpression = ""; }
+      } else { calcExpression += token; display.innerText = calcExpression; }
     }
   </script>
 </body>
