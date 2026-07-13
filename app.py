@@ -34,21 +34,27 @@ def load_prompt_library():
             st.error(f"Error loading CSV: {e}")
     return {"Default Prompt": "Act as an expert GCSE Physics examiner. Generate a calculation question..."}
 
-def push_to_github(filename, content):
-    if not filename.startswith("Q/"):
-        filename = f"Q/{filename}"
+def push_to_github(filename, content, is_image=False, image_data=None):
+    # Set path based on type
+    subdir = "I" if is_image else "Q"
+    path = f"{subdir}/{filename}"
+    
     try:
         g = Github(st.secrets["GITHUB_TOKEN"])
         repo = g.get_repo(st.secrets["GITHUB_REPO"])
+        
+        # Determine content to push
+        push_content = image_data if is_image else content
+        
         try:
-            contents = repo.get_contents(filename)
-            repo.update_file(contents.path, f"Update {filename}", content, contents.sha)
-            st.success(f"Updated {filename} on GitHub!")
+            contents = repo.get_contents(path)
+            repo.update_file(contents.path, f"Update {path}", push_content, contents.sha)
+            st.success(f"Updated {path} on GitHub!")
         except:
-            repo.create_file(filename, f"Add {filename}", content)
-            st.success(f"Created {filename} on GitHub!")
+            repo.create_file(path, f"Add {path}", push_content)
+            st.success(f"Created {path} on GitHub!")
     except Exception as e:
-        st.error(f"GitHub push failed: {e}")
+        st.error(f"GitHub push failed for {path}: {e}")
 
 def get_empty_schema():
     return {
@@ -115,15 +121,24 @@ if st.session_state.data.get('media', {}).get('diagram_url'):
         st.session_state.image_prompt = f"Generate a physics textbook style image, black and white line drawing of {desc}"
 
 if st.session_state.get('image_prompt'):
-    st.info("Image prompt generated.")
+    st.info("Image prompt generated. Use the copy button on the code block below:")
     st.code(st.session_state.image_prompt, language='text')
-    
-    # Note: Streamlit's st.code has a built-in copy button in the UI
     st.link_button("Open Gemini Chat", "https://gemini.google.com")
+
+st.divider()
+st.subheader("Upload Diagram")
+uploaded_image = st.file_uploader("Upload generated diagram", type=["png", "jpg", "jpeg"])
 
 col1, col2 = st.columns(2)
 with col1:
     st.download_button("Download YAML", yaml.dump(st.session_state.data, sort_keys=False), file_name=f"{st.session_state.data['id']}.yaml", mime="text/yaml")
 with col2:
     if st.button("Push to GitHub"):
-        push_to_github(f"{st.session_state.data['id']}.yaml", yaml.dump(st.session_state.data, sort_keys=False))
+        q_id = st.session_state.data['id']
+        # Push YAML
+        push_to_github(f"{q_id}.yaml", yaml.dump(st.session_state.data, sort_keys=False))
+        # Push Image if available
+        if uploaded_image:
+            # Determine extension
+            ext = uploaded_image.name.split('.')[-1]
+            push_to_github(f"{q_id}.{ext}", None, is_image=True, image_data=uploaded_image.getvalue())
