@@ -1,65 +1,22 @@
 id: T1
 metadata:
-  topic: Thermal Physics and Density
+  topic: ''
   marks: 4
   difficulty_level: 0.5
 question:
-  text: "A block of copper is heated. Using the data provided, calculate the final\
-    \ temperature of the block. Data: Substance = Copper, Initial Temperature = 20\
-    \ \xB0C, Energy change = 150 kJ, Density = 8960 kg/m\xB3, Volume = 0.002 m\xB3\
-    , Specific heat capacity = 385 J/kg\xB0C."
-  variables:
-  - name: substance
-    value: Copper
-  - name: initial_temperature
-    value: 20
-  - name: energy_change_kJ
-    value: 150
-  - name: density
-    value: 8960
-  - name: volume
-    value: 0.002
-  - name: specific_heat_capacity
-    value: 385
+  text: ''
+  variables: []
 solution:
-  final_answer: 63.53
+  final_answer: 0.0
   marks_available: 4
   steps:
   - step_number: 1
-    text: "Calculate the mass: m = density \xD7 volume = 8960 \xD7 0.002 = 17.92 kg"
+    text: ''
     marks_assigned: 1
     check_type: numeric
-    milestone_value: 17.92
+    milestone_value: 0.0
     tolerance: 0.001
-  - step_number: 2
-    text: 'Convert energy to Joules: 150 kJ = 150,000 J'
-    marks_assigned: 1
-    check_type: numeric
-    milestone_value: 150000
-    tolerance: 0.001
-  - step_number: 3
-    text: "Rearrange \u0394E = mc\u0394\u03B8 to find \u0394\u03B8: \u0394\u03B8 =\
-      \ \u0394E / (mc) = 150,000 / (17.92 \xD7 385) \u2248 21.74 \xB0C"
-    marks_assigned: 1
-    check_type: numeric
-    milestone_value: 21.74
-    tolerance: 0.05
-  - step_number: 4
-    text: "Determine final temperature: T_final = T_initial + \u0394\u03B8 = 20 +\
-      \ 21.74 = 41.74 \xB0C"
-    marks_assigned: 1
-    check_type: numeric
-    milestone_value: 41.74
-    tolerance: 0.05
 media:
-  diagram_url: A 3D schematic diagram showing a rectangular copper block on a laboratory
-    bench with a heat source underneath, labeled with dimensions indicating volume
-    and a thermometer inserted into the side showing an initial reading of 20 degrees
-    Celsius.
+  diagram_url: null
   video_explainer_url: null
-tags:
-- GCSE
-- Physics
-- Calculation
-- Thermal
-- Density
+tags: []
