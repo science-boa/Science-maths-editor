@@ -135,10 +135,15 @@ with col1:
 with col2:
     if st.button("Push to GitHub"):
         q_id = st.session_state.data['id']
-        # Push YAML
-        push_to_github(f"{q_id}.yaml", yaml.dump(st.session_state.data, sort_keys=False))
-        # Push Image if available
+        
+        # If an image is uploaded, update the URL in the YAML data before pushing
         if uploaded_image:
-            # Determine extension
             ext = uploaded_image.name.split('.')[-1]
+            new_path = f"I/{q_id}.{ext}"
+            st.session_state.data['media']['diagram_url'] = new_path
+            
+            # Push Image
             push_to_github(f"{q_id}.{ext}", None, is_image=True, image_data=uploaded_image.getvalue())
+        
+        # Push updated YAML
+        push_to_github(f"{q_id}.yaml", yaml.dump(st.session_state.data, sort_keys=False))
