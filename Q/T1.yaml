@@ -44,7 +44,7 @@ solution:
     milestone_value: 61.15
     tolerance: 0.1
 media:
-  diagram_url: I/T1.jpeg
+  diagram_url: I/T1.jpg
   video_explainer_url: null
 tags:
 - thermal
