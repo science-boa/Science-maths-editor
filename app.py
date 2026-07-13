@@ -4,6 +4,7 @@ from google import genai
 from github import Github
 import os
 import pandas as pd
+import time
 
 # --- Configuration ---
 st.set_page_config(page_title="Physics Question Generator", layout="wide")
@@ -46,10 +47,10 @@ def push_to_github(filename, content, is_image=False, image_data=None):
         try:
             contents = repo.get_contents(path)
             repo.update_file(contents.path, f"Update {path}", push_content, contents.sha)
-            st.success(f"Updated {path} on GitHub!")
+            st.toast(f"Updated {path} on GitHub!", icon="✅")
         except:
             repo.create_file(path, f"Add {path}", push_content)
-            st.success(f"Created {path} on GitHub!")
+            st.toast(f"Created {path} on GitHub!", icon="✅")
     except Exception as e:
         st.error(f"GitHub push failed for {path}: {e}")
 
@@ -143,6 +144,8 @@ with col2:
             st.session_state.data['media']['diagram_url'] = f"I/{q_id}.{ext}"
             # 2. Push Image
             push_to_github(f"{q_id}.{ext}", None, is_image=True, image_data=uploaded_image.getvalue())
+            # Small delay to ensure users see the toast
+            time.sleep(1)
         
         # 3. Push updated YAML (which now contains the URL)
         push_to_github(f"{q_id}.yaml", yaml.dump(st.session_state.data, sort_keys=False))
