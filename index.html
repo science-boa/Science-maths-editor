@@ -221,7 +221,7 @@
       if (q.media && q.media.diagram_url) {
         diagramHtml = `
           <div class="mb-6 border border-gray-200 bg-gray-100 rounded-lg w-full h-48 flex items-center justify-center overflow-hidden">
-            <img src="${BASE_RAW_URL}I/${q.media.diagram_url}" alt="Question Diagram" class="object-contain h-full w-full" onerror="this.parentElement.innerHTML='<span class=\'text-xs text-gray-400\'>Diagram Image Reference Broken: ${q.media.diagram_url}</span>'">
+            <img src="${BASE_RAW_URL}${q.media.diagram_url}" alt="Question Diagram" class="object-contain h-full w-full" onerror="this.parentElement.innerHTML='<span class=\'text-xs text-gray-400\'>Diagram Image Reference Broken: ${q.media.diagram_url}</span>'">
           </div>`;
       }
 
