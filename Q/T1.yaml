@@ -16,7 +16,7 @@ question:
   - volume: 0.002
   - specific_heat_capacity: 390
 solution:
-  final_answer: 36.3
+  final_answer: 91.55
   marks_available: 4
   steps:
   - step_number: 1
@@ -40,10 +40,10 @@ solution:
     tolerance: 0.1
   - step_number: 4
     text: "Calculate final temperature by adding \u0394\u03B8 to initial temperature\
-      \ (20 + 16.3 = 36.3 \xB0C)"
+      \ (20 + 71.55 = 91.55 \xB0C)"
     marks_assigned: 1
     check_type: numeric
-    milestone_value: 36.3
+    milestone_value: 91.55
     tolerance: 0.1
 media:
   diagram_url: I/T1.jpeg
