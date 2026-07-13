@@ -64,6 +64,22 @@ def get_empty_schema():
         "tags": []
     }
 
+def generate_question(prompt_text, force_image=False):
+    with st.spinner("Generating..."):
+        extra_instr = " You MUST include a detailed descriptive text for a diagram in the 'diagram_url' field." if force_image else ""
+        query = (f"Generate a physics question based on: {prompt_text}. "
+                 f"Output strictly in valid YAML matching this schema: {st.session_state.data}.{extra_instr} "
+                 "Return ONLY the YAML.")
+        
+        response = client.models.generate_content(
+            model='gemini-3.1-flash-lite',
+            contents=query
+        )
+        
+        st.session_state.data = yaml.safe_load(clean_latex(response.text.replace('```yaml', '').replace('```', '')))
+        st.session_state.image_prompt = None
+        st.success("Generation complete!")
+
 if 'data' not in st.session_state:
     st.session_state.data = get_empty_schema()
 
@@ -80,21 +96,13 @@ selected_key = st.sidebar.selectbox("Select a Prompt Type", list(PROMPT_LIBRARY.
 st.title("Physics Question Generator")
 prompt = st.text_area("Question Prompt", value=PROMPT_LIBRARY[selected_key], height=100)
 
-if st.button("Generate Question"):
-    with st.spinner("Generating..."):
-        query = (f"Generate a physics question based on: {prompt}. "
-                 f"Output strictly in valid YAML matching this schema: {st.session_state.data}. "
-                 "Return ONLY the YAML.")
-        
-        # Using the new Interactions API client
-        response = client.models.generate_content(
-            model='gemini-3.1-flash-lite',
-            contents=query
-        )
-        
-        st.session_state.data = yaml.safe_load(clean_latex(response.text.replace('```yaml', '').replace('```', '')))
-        st.session_state.image_prompt = None
-        st.success("Generation complete!")
+col_gen1, col_gen2 = st.columns(2)
+with col_gen1:
+    if st.button("Generate Question"):
+        generate_question(prompt, force_image=False)
+with col_gen2:
+    if st.button("Generate Question with Image"):
+        generate_question(prompt, force_image=True)
 
 st.subheader("Edit Question Data")
 st.session_state.data['id'] = st.text_input("Question ID", st.session_state.data['id'])
