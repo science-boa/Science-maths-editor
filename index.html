@@ -148,7 +148,9 @@
 
   <script>
     const BASE_RAW_URL = "https://raw.githubusercontent.com/science-boa/Science-maths-editor/main/";
-    const POWER_AUTOMATE_URL = null; // Set to null for display mode
+    
+    // Configured Flow HTTP URL address string
+    const POWER_AUTOMATE_URL = "https://default4a7dcc91048348f19bae8f17879c3c.f9.environment.api.powerplatform.com:443/powerautomate/automations/direct/cu/29/workflows/a8a331e382e74657a516764c89be0275/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=KT9XgfUvTIbCqYn0cansRO7s6v85jfR9b5PieqcGt7c";
 
     let questions = [];
     let currentIndex = 0;
@@ -198,7 +200,6 @@
       renderCurrentQuestion();
     });
 
-    // 2. Dashboard UI Generator
     function buildDashboard() {
       const container = document.getElementById('dashboard');
       container.innerHTML = '';
@@ -215,7 +216,6 @@
       });
     }
 
-    // 3. Main State Content Renderer
     function renderCurrentQuestion() {
       buildDashboard();
       const questionArea = document.getElementById('question-area');
@@ -376,27 +376,79 @@
     }
 
     async function triggerPayload() {
-      if (!POWER_AUTOMATE_URL) {
-        const modal = document.createElement('div');
-        modal.className = "fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50";
-        modal.innerHTML = `
-          <div class="bg-white p-6 rounded-xl max-w-lg w-full max-h-[80vh] overflow-auto">
-            <h3 class="font-bold mb-4 text-gray-900">Payload (Preview Mode)</h3>
-            <pre class="bg-gray-100 p-4 rounded text-xs text-gray-800">${JSON.stringify(finalResultsSummary, null, 2)}</pre>
-            <button onclick="this.parentElement.parentElement.remove()" class="mt-4 bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded cursor-pointer transition-colors">Close</button>
-          </div>`;
-        document.body.appendChild(modal);
-      } else {
+      // 1. Create and render the modal on the DOM for preview
+      const modal = document.createElement('div');
+      modal.className = "fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50";
+      modal.id = "payload-modal";
+      modal.innerHTML = `
+        <div class="bg-white p-6 rounded-2xl max-w-lg w-full max-h-[80vh] overflow-auto flex flex-col shadow-2xl border border-gray-100">
+          <h3 class="font-bold mb-2 text-gray-900 text-lg">System Submission Status</h3>
+          
+          <!-- Status Banner inside modal -->
+          <div id="modal-status" class="mb-4 p-3 rounded-lg text-sm font-semibold flex items-center gap-2 bg-blue-50 text-blue-800 animate-pulse">
+            <svg class="animate-spin h-4 w-4 text-blue-800" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span>Connecting & sending results to Flow...</span>
+          </div>
+
+          <h4 class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">Payload Output Data</h4>
+          <pre class="bg-gray-100 p-4 rounded-lg text-xs text-gray-800 font-mono overflow-auto max-h-56">${JSON.stringify(finalResultsSummary, null, 2)}</pre>
+          
+          <button onclick="document.getElementById('payload-modal').remove()" class="mt-5 bg-gray-800 hover:bg-gray-700 text-white px-5 py-2 rounded-xl cursor-pointer transition-colors text-sm font-semibold self-end shadow-md">
+            Close Preview
+          </button>
+        </div>`;
+      document.body.appendChild(modal);
+
+      // 2. Concurrently attempt transfer if URL is specified
+      if (POWER_AUTOMATE_URL) {
         try {
-          await fetch(POWER_AUTOMATE_URL, { 
+          const response = await fetch(POWER_AUTOMATE_URL, { 
             method: "POST", 
             headers: { "Content-Type": "application/json" }, 
             body: JSON.stringify(finalResultsSummary) 
           });
-          // Optional: Add visual confirmation here
+          
+          const statusDiv = document.getElementById('modal-status');
+          if (statusDiv) {
+            statusDiv.classList.remove('animate-pulse');
+            if (response.ok) {
+              statusDiv.className = "mb-4 p-3 rounded-lg text-sm font-semibold flex items-center gap-2 bg-emerald-50 text-emerald-800";
+              statusDiv.innerHTML = `
+                <svg class="h-4 w-4 text-emerald-800 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                </svg>
+                <span>Success! Results sent & processed by Power Automate.</span>`;
+            } else {
+              throw new Error(`Server returned status: ${response.status}`);
+            }
+          }
         } catch (error) {
           console.error("Error submitting to Power Automate:", error);
-          alert("Failed to submit results. Please try again.");
+          const statusDiv = document.getElementById('modal-status');
+          if (statusDiv) {
+            statusDiv.classList.remove('animate-pulse');
+            statusDiv.className = "mb-4 p-3 rounded-lg text-sm font-semibold flex items-center gap-2 bg-rose-50 text-rose-800";
+            statusDiv.innerHTML = `
+              <svg class="h-4 w-4 text-rose-800 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+              </svg>
+              <span>Transfer Failed: ${error.message}</span>`;
+          }
+        }
+      } else {
+        // If the URL is ever deleted or set back to null
+        const statusDiv = document.getElementById('modal-status');
+        if (statusDiv) {
+          statusDiv.classList.remove('animate-pulse');
+          statusDiv.className = "mb-4 p-3 rounded-lg text-sm font-semibold flex items-center gap-2 bg-amber-50 text-amber-800";
+          statusDiv.innerHTML = `
+            <svg class="h-4 w-4 text-amber-800 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+            </svg>
+            <span>Preview Mode. Flow URL is currently unset.</span>`;
         }
       }
     }
