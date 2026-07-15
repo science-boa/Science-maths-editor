@@ -176,7 +176,7 @@
     window.addEventListener('DOMContentLoaded', async () => {
       startTime = Date.now();
       const params = new URLSearchParams(window.location.search);
-      userID = params.get('u') || params.get('U'); 
+      userID = params.get('user') || params.get('User'); 
       const qKeys = Array.from(params.keys()).filter(k => k.toLowerCase().startsWith('q')).sort();
 
       if (qKeys.length === 0) {
