@@ -32,9 +32,14 @@
 <body class="bg-gray-50 min-h-screen text-gray-800 antialiased font-sans">
 
   <div class="max-w-7xl mx-auto px-4 py-8">
-    <header class="mb-8 border-b border-gray-200 pb-4 flex justify-between items-center">
-      <h1 class="text-3xl font-bold text-gray-900 tracking-tight">Maths for Science</h1>
-      <span id="loading-badge" class="bg-amber-100 text-amber-800 text-xs font-semibold px-3 py-1 rounded-full animate-pulse">Loading Questions...</span>
+    <header class="mb-8 border-b border-gray-200 pb-4">
+      <div class="flex justify-between items-center mb-2">
+        <h1 class="text-3xl font-bold text-gray-900 tracking-tight">Maths for Science</h1>
+        <span id="loading-badge" class="bg-amber-100 text-amber-800 text-xs font-semibold px-3 py-1 rounded-full animate-pulse">Loading Questions...</span>
+      </div>
+      <button onclick="document.getElementById('equation-modal').classList.remove('hidden')" class="text-sm font-medium text-blue-600 hover:text-blue-800 underline underline-offset-4 cursor-pointer">
+        Science Equation Sheet
+      </button>
     </header>
 
     <div id="dashboard" class="flex gap-2 mb-6 overflow-x-auto pb-2"></div>
@@ -139,13 +144,23 @@
       
       <div id="results-cards-container" class="space-y-6"></div>
     </div>
+  </div>
 
+  <!-- Equation Sheet Modal -->
+  <div id="equation-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl h-[85vh] flex flex-col overflow-hidden">
+      <div class="flex justify-between items-center p-4 border-b border-gray-100 bg-gray-50">
+        <h3 class="font-bold text-lg text-gray-900">Science Equation Sheet</h3>
+        <button onclick="document.getElementById('equation-modal').classList.add('hidden')" class="p-2 hover:bg-gray-200 rounded-full cursor-pointer transition-colors">
+          <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+      <iframe src="https://www.aqa.org.uk/files/resources.science.AQA-8464-8465-FS-INS-2025_PDF/c4fac749855e8fefcd6ff58bd7b9cb701309df9b.pdf" class="flex-1 w-full border-none"></iframe>
+    </div>
   </div>
 
   <script>
     const BASE_RAW_URL = "https://raw.githubusercontent.com/science-boa/Science-maths-editor/main/";
-    
-    // Configured Flow HTTP URL address string
     const POWER_AUTOMATE_URL = "https://default4a7dcc91048348f19bae8f17879c3c.f9.environment.api.powerplatform.com:443/powerautomate/automations/direct/cu/29/workflows/a8a331e382e74657a516764c89be0275/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=KT9XgfUvTIbCqYn0cansRO7s6v85jfR9b5PieqcGt7c";
 
     let questions = [];
@@ -158,21 +173,14 @@
     let lastAnswer = 0;
     let finalResultsSummary = null;
 
-    // 1. App initialization
     window.addEventListener('DOMContentLoaded', async () => {
-      startTime = Date.now(); // Start timer
+      startTime = Date.now();
       const params = new URLSearchParams(window.location.search);
-      
-      // Allow for both 'u' and 'U' as parameter values for safety
       userID = params.get('u') || params.get('U'); 
-      
       const qKeys = Array.from(params.keys()).filter(k => k.toLowerCase().startsWith('q')).sort();
 
       if (qKeys.length === 0) {
-        document.getElementById('question-area').innerHTML = `
-          <div class="text-center py-12">
-            <p class="text-red-500 font-semibold text-lg">No configuration payload detected.</p>
-          </div>`;
+        document.getElementById('question-area').innerHTML = `<div class="text-center py-12"><p class="text-red-500 font-semibold text-lg">No configuration payload detected.</p></div>`;
         document.getElementById('loading-badge').classList.add('hidden');
         return;
       }
@@ -202,11 +210,7 @@
       questions.forEach((q, idx) => {
         const btn = document.createElement('button');
         btn.innerText = `Q${idx + 1}`;
-        btn.className = `px-4 py-2 text-sm font-semibold rounded-lg border transition-all cursor-pointer ${
-          idx === currentIndex 
-            ? 'bg-blue-600 border-blue-600 text-white shadow-xs' 
-            : 'bg-white border-gray-200 hover:bg-gray-50 text-gray-700'
-        }`;
+        btn.className = `px-4 py-2 text-sm font-semibold rounded-lg border transition-all cursor-pointer ${idx === currentIndex ? 'bg-blue-600 border-blue-600 text-white shadow-xs' : 'bg-white border-gray-200 hover:bg-gray-50 text-gray-700'}`;
         btn.onclick = () => { currentIndex = idx; renderCurrentQuestion(); };
         container.appendChild(btn);
       });
@@ -218,7 +222,6 @@
       const workingArea = document.getElementById('working-area');
       const answerArea = document.getElementById('answer-area');
       const q = questions[currentIndex];
-
       if (!q) return;
       if (q.error) {
         questionArea.innerHTML = `<div class="text-red-500 font-medium">⚠️ ${q.message} (${q.id})</div>`;
@@ -226,34 +229,16 @@
         answerArea.classList.add('hidden');
         return;
       }
-
       let diagramHtml = '';
       if (q.media && q.media.diagram_url) {
-        diagramHtml = `
-          <div class="mb-6 border border-gray-200 bg-gray-100 rounded-lg w-full h-48 flex items-center justify-center overflow-hidden">
-            <img src="${BASE_RAW_URL}${q.media.diagram_url}" alt="Question Diagram" class="object-contain h-full w-full" onerror="this.parentElement.innerHTML='<span class=\'text-xs text-gray-400\'>Diagram Image Reference Broken: ${q.media.diagram_url}</span>'">
-          </div>`;
+        diagramHtml = `<div class="mb-6 border border-gray-200 bg-gray-100 rounded-lg w-full h-48 flex items-center justify-center overflow-hidden"><img src="${BASE_RAW_URL}${q.media.diagram_url}" alt="Question Diagram" class="object-contain h-full w-full" onerror="this.parentElement.innerHTML='<span class=\'text-xs text-gray-400\'>Diagram Image Reference Broken: ${q.media.diagram_url}</span>'"></div>`;
       }
-
-      questionArea.innerHTML = `
-        <div class="text-xs font-bold text-blue-600 tracking-wider uppercase mb-1">${q.metadata?.topic || 'General Science'}</div>
-        <h2 class="text-xl font-bold text-gray-900 mb-4">Question ID: ${q.id}</h2>
-        ${diagramHtml}
-        <div id="math-text" class="text-base leading-relaxed text-gray-800 font-normal">${q.question.text}</div>`;
-
-      renderMathInElement(document.getElementById('math-text'), {
-        delimiters: [
-          { left: "$$", right: "$$", display: true },
-          { left: "$", right: "$", display: false }
-        ]
-      });
-
+      questionArea.innerHTML = `<div class="text-xs font-bold text-blue-600 tracking-wider uppercase mb-1">${q.metadata?.topic || 'General Science'}</div><h2 class="text-xl font-bold text-gray-900 mb-4">Question ID: ${q.id}</h2>${diagramHtml}<div id="math-text" class="text-base leading-relaxed text-gray-800 font-normal">${q.question.text}</div>`;
+      renderMathInElement(document.getElementById('math-text'), { delimiters: [{ left: "$$", right: "$$", display: true }, { left: "$", right: "$", display: false }] });
       workingArea.classList.remove('hidden');
       document.getElementById('scratchpad').value = localStorage.getItem(`scratchpad-id-${q.id}`) || '';
-
       answerArea.classList.remove('hidden');
       document.getElementById('answer-input').value = studentAnswers[currentIndex] || '';
-
       document.getElementById('btn-prev').disabled = (currentIndex === 0);
       if (currentIndex === questions.length - 1) {
         document.getElementById('btn-next').classList.add('hidden');
@@ -277,58 +262,38 @@
       let grandTotalPossible = 0;
       let resultsContainerHtml = "";
       let resultsArr = [];
-
       questions.forEach((q, idx) => {
         if (q.error) return;
-        
         let questionEarnedMarks = 0;
         let questionMaxMarks = 0;
-        
         const studentRawAnswer = studentAnswers[idx] || "";
         const correctRawAnswer = q.solution.final_answer;
         const targetFinalNum = parseFloat(correctRawAnswer.toString().replace(/[^0-9.-]/g, ''));
         const studentFinalNum = parseFloat(studentRawAnswer);
-
         const structuredSteps = (q.solution && Array.isArray(q.solution.steps)) ? q.solution.steps : [];
-        if (structuredSteps.length > 0) {
-          structuredSteps.forEach(s => questionMaxMarks += parseInt(s.marks_assigned || 1));
-        } else {
-          questionMaxMarks = 1;
-        }
-
+        structuredSteps.forEach(s => questionMaxMarks += parseInt(s.marks_assigned || 1));
+        if (structuredSteps.length === 0) questionMaxMarks = 1;
         let finalAnswerCorrect = false;
         if (!isNaN(targetFinalNum) && !isNaN(studentFinalNum)) {
-          if (studentFinalNum === targetFinalNum || Math.abs((studentFinalNum - targetFinalNum) / targetFinalNum) <= 0.005) {
-            finalAnswerCorrect = true;
-          }
+          if (studentFinalNum === targetFinalNum || Math.abs((studentFinalNum - targetFinalNum) / targetFinalNum) <= 0.005) finalAnswerCorrect = true;
         }
-
         let dynamicStepsHtml = "";
         if (finalAnswerCorrect) {
           questionEarnedMarks = questionMaxMarks;
           structuredSteps.forEach(step => {
-            dynamicStepsHtml += `
-                <div class="flex items-start gap-3 text-sm border-l-2 border-emerald-500 pl-3 py-1 bg-emerald-50/50 rounded-r">
-                  <span class="text-emerald-600 font-bold">Step ${step.step_number}:</span>
-                  <div class="flex-1 text-gray-700">${step.text}</div>
-                  <span class="text-xs font-semibold px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-full shrink-0">Earned: ${step.marks_assigned}/${step.marks_assigned}</span>
-                </div>`;
+            dynamicStepsHtml += `<div class="flex items-start gap-3 text-sm border-l-2 border-emerald-500 pl-3 py-1 bg-emerald-50/50 rounded-r"><span class="text-emerald-600 font-bold">Step ${step.step_number}:</span><div class="flex-1 text-gray-700">${step.text}</div><span class="text-xs font-semibold px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-full shrink-0">Earned: ${step.marks_assigned}/${step.marks_assigned}</span></div>`;
           });
         } else {
           const scratchpadText = localStorage.getItem(`scratchpad-id-${q.id}`) || "";
           const studentNumbersInWorking = (scratchpadText.match(/[+-]?\d+(\.\d+)?/g) || []).map(Number);
-
           structuredSteps.forEach((step) => {
             const stepWeight = parseInt(step.marks_assigned || 1);
             let milestoneMatched = false;
             if (step.check_type === "numeric" && step.milestone_value !== undefined) {
               const targetVal = parseFloat(step.milestone_value);
               const tolerancePercent = parseFloat(step.tolerance || 0.005);
-              for (let num of studentNumbersInWorking) {
-                if (num === targetVal || Math.abs((num - targetVal) / targetVal) <= tolerancePercent) { milestoneMatched = true; break; }
-              }
+              for (let num of studentNumbersInWorking) { if (num === targetVal || Math.abs((num - targetVal) / targetVal) <= tolerancePercent) { milestoneMatched = true; break; } }
             }
-
             if (milestoneMatched) {
               questionEarnedMarks += stepWeight;
               dynamicStepsHtml += `<div class="flex items-start gap-3 text-sm border-l-2 border-emerald-500 pl-3 py-1 bg-emerald-50/50 rounded-r"><span class="text-emerald-600 font-bold">Step ${step.step_number}:</span><div class="flex-1 text-gray-700">${step.text}</div><span class="text-xs font-semibold px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-full shrink-0">Earned: ${stepWeight}/${stepWeight}</span></div>`;
@@ -337,30 +302,12 @@
             }
           });
         }
-
         grandTotalEarned += questionEarnedMarks;
         grandTotalPossible += questionMaxMarks;
-
         resultsArr.push({ question_id: q.id, score: questionEarnedMarks, max_marks: questionMaxMarks });
-
-        resultsContainerHtml += `
-          <div class="bg-white rounded-xl shadow-xs border border-gray-200 overflow-hidden mb-6">
-            <div class="bg-gray-50 border-b border-gray-200 px-6 py-4 flex justify-between items-center">
-              <div><h3 class="text-lg font-bold text-gray-900">Q${idx + 1}: ${q.id}</h3></div>
-              <div class="px-4 py-1.5 rounded-full font-mono font-bold text-sm ${questionEarnedMarks === questionMaxMarks ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}">Marks: ${questionEarnedMarks} / ${questionMaxMarks}</div>
-            </div>
-            <div class="p-6 space-y-6">
-              <div class="text-gray-800 text-sm leading-relaxed">${q.question.text}</div>
-              <div class="pt-4 border-t border-gray-100 space-y-2">
-                <h4 class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">Evaluation</h4>
-                <div class="space-y-2">${dynamicStepsHtml}</div>
-              </div>
-            </div>
-          </div>`;
+        resultsContainerHtml += `<div class="bg-white rounded-xl shadow-xs border border-gray-200 overflow-hidden mb-6"><div class="bg-gray-50 border-b border-gray-200 px-6 py-4 flex justify-between items-center"><div><h3 class="text-lg font-bold text-gray-900">Q${idx + 1}: ${q.id}</h3></div><div class="px-4 py-1.5 rounded-full font-mono font-bold text-sm ${questionEarnedMarks === questionMaxMarks ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}">Marks: ${questionEarnedMarks} / ${questionMaxMarks}</div></div><div class="p-6 space-y-6"><div class="text-gray-800 text-sm leading-relaxed">${q.question.text}</div><div class="pt-4 border-t border-gray-100 space-y-2"><h4 class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">Evaluation</h4><div class="space-y-2">${dynamicStepsHtml}</div></div></div></div>`;
       });
-
       finalResultsSummary = { userID, KEY: "29031977", time_taken, results: resultsArr };
-
       document.getElementById('quiz-workspace').classList.add('hidden');
       document.getElementById('dashboard').classList.add('hidden');
       const resultsScreen = document.getElementById('quiz-results-screen');
@@ -369,85 +316,33 @@
       document.getElementById('results-cards-container').innerHTML = resultsContainerHtml;
       renderMathInElement(document.getElementById('results-cards-container'), { delimiters: [{ left: "$$", right: "$$", display: true }, { left: "$", right: "$", display: false }] });
       window.scrollTo({ top: 0, behavior: 'smooth' });
-
-      // Automatically trigger payload submission at the end of feedback page creation
       triggerPayload();
     }
 
     async function triggerPayload() {
-      // 1. Create and render the modal on the DOM for preview
       const modal = document.createElement('div');
       modal.className = "fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50";
       modal.id = "payload-modal";
-      modal.innerHTML = `
-        <div class="bg-white p-6 rounded-2xl max-w-lg w-full max-h-[80vh] overflow-auto flex flex-col shadow-2xl border border-gray-100">
-          <h3 class="font-bold mb-2 text-gray-900 text-lg">System Submission Status</h3>
-          
-          <!-- Status Banner inside modal -->
-          <div id="modal-status" class="mb-4 p-3 rounded-lg text-sm font-semibold flex items-center gap-2 bg-blue-50 text-blue-800 animate-pulse">
-            <svg class="animate-spin h-4 w-4 text-blue-800" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            <span>Connecting & sending results to Flow...</span>
-          </div>
-
-          <h4 class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">Payload Output Data</h4>
-          <pre class="bg-gray-100 p-4 rounded-lg text-xs text-gray-800 font-mono overflow-auto max-h-56">${JSON.stringify(finalResultsSummary, null, 2)}</pre>
-          
-          <button onclick="document.getElementById('payload-modal').remove()" class="mt-5 bg-gray-800 hover:bg-gray-700 text-white px-5 py-2 rounded-xl cursor-pointer transition-colors text-sm font-semibold self-end shadow-md">
-            Close Preview
-          </button>
-        </div>`;
+      modal.innerHTML = `<div class="bg-white p-6 rounded-2xl max-w-lg w-full max-h-[80vh] overflow-auto flex flex-col shadow-2xl border border-gray-100"><h3 class="font-bold mb-2 text-gray-900 text-lg">System Submission Status</h3><div id="modal-status" class="mb-4 p-3 rounded-lg text-sm font-semibold flex items-center gap-2 bg-blue-50 text-blue-800 animate-pulse"><svg class="animate-spin h-4 w-4 text-blue-800" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><span>Connecting & sending results to Flow...</span></div><h4 class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">Payload Output Data</h4><pre class="bg-gray-100 p-4 rounded-lg text-xs text-gray-800 font-mono overflow-auto max-h-56">${JSON.stringify(finalResultsSummary, null, 2)}</pre><button onclick="document.getElementById('payload-modal').remove()" class="mt-5 bg-gray-800 hover:bg-gray-700 text-white px-5 py-2 rounded-xl cursor-pointer transition-colors text-sm font-semibold self-end shadow-md">Close Preview</button></div>`;
       document.body.appendChild(modal);
-
-      // 2. Concurrently attempt transfer if URL is specified
       if (POWER_AUTOMATE_URL) {
         try {
-          const response = await fetch(POWER_AUTOMATE_URL, { 
-            method: "POST", 
-            headers: { "Content-Type": "application/json" }, 
-            body: JSON.stringify(finalResultsSummary) 
-          });
-          
+          const response = await fetch(POWER_AUTOMATE_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(finalResultsSummary) });
           const statusDiv = document.getElementById('modal-status');
           if (statusDiv) {
             statusDiv.classList.remove('animate-pulse');
             if (response.ok) {
               statusDiv.className = "mb-4 p-3 rounded-lg text-sm font-semibold flex items-center gap-2 bg-emerald-50 text-emerald-800";
-              statusDiv.innerHTML = `
-                <svg class="h-4 w-4 text-emerald-800 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                </svg>
-                <span>Success! Results sent & processed by Power Automate.</span>`;
-            } else {
-              throw new Error(`Server returned status: ${response.status}`);
-            }
+              statusDiv.innerHTML = `<svg class="h-4 w-4 text-emerald-800 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg><span>Success! Results sent & processed by Power Automate.</span>`;
+            } else throw new Error(`Server returned status: ${response.status}`);
           }
         } catch (error) {
-          console.error("Error submitting to Power Automate:", error);
           const statusDiv = document.getElementById('modal-status');
           if (statusDiv) {
             statusDiv.classList.remove('animate-pulse');
             statusDiv.className = "mb-4 p-3 rounded-lg text-sm font-semibold flex items-center gap-2 bg-rose-50 text-rose-800";
-            statusDiv.innerHTML = `
-              <svg class="h-4 w-4 text-rose-800 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
-              </svg>
-              <span>Transfer Failed: ${error.message}</span>`;
+            statusDiv.innerHTML = `<svg class="h-4 w-4 text-rose-800 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg><span>Transfer Failed: ${error.message}</span>`;
           }
-        }
-      } else {
-        // If the URL is ever deleted or set back to null
-        const statusDiv = document.getElementById('modal-status');
-        if (statusDiv) {
-          statusDiv.classList.remove('animate-pulse');
-          statusDiv.className = "mb-4 p-3 rounded-lg text-sm font-semibold flex items-center gap-2 bg-amber-50 text-amber-800";
-          statusDiv.innerHTML = `
-            <svg class="h-4 w-4 text-amber-800 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
-            </svg>
-            <span>Preview Mode. Flow URL is currently unset.</span>`;
         }
       }
     }
