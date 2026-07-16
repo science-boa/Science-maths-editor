@@ -1,27 +1,18 @@
 import streamlit as st
 import yaml
-from google import genai
-from github import Github
 import os
 import pandas as pd
 import time
+from github import Github
+from google import genai
 
 # --- Configuration ---
 st.set_page_config(page_title="Physics Question Generator", layout="wide")
 
 # Initialize the Interactions API client
-client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
+client = genai.Client(api_key=st.secrets.get("GEMINI_API_KEY", ""))
 
 # --- Utilities ---
-def format_superscripts(text):
-    mapping = {
-        "^0": "⁰", "^1": "¹", "^2": "²", "^3": "³", "^4": "⁴",
-        "^5": "⁵", "^6": "⁶", "^7": "⁷", "^8": "⁸", "^9": "⁹"
-    }
-    for code, unicode_char in mapping.items():
-        text = text.replace(code, unicode_char)
-    return text
-
 def clean_latex(text):
     return text.replace('\\\\', '\\')
 
@@ -68,23 +59,31 @@ def get_empty_schema():
         "tags": []
     }
 
-def generate_question(prompt_text, force_image=False):
+def generate_question(prompt_text, force_image=False, unit_conv=False, std_form=False, inc_eq=False):
     with st.spinner("Generating..."):
         extra_instr = " You MUST include a detailed descriptive text for a diagram in the 'diagram_url' field." if force_image else ""
         latex_instr = " All mathematical expressions and scientific notation MUST be formatted in LaTeX (e.g., $E=mc^2$)."
         
+        conv_instr = " include one unit that must be converted to its base unit in the question." if unit_conv else " do not use unit conversions."
+        std_form_instr = " give one value as standard form." if std_form else ""
+        eq_instr = " include the equations needed in the question text." if inc_eq else ""
+        
         query = (f"Generate a physics question based on: {prompt_text}.{latex_instr} "
+                 f"{conv_instr} {std_form_instr} {eq_instr} "
                  f"Output strictly in valid YAML matching this schema: {st.session_state.data}.{extra_instr} "
                  "Return ONLY the YAML.")
         
-        response = client.models.generate_content(
-            model='gemini-3.1-flash-lite',
-            contents=query
-        )
-        
-        st.session_state.data = yaml.safe_load(clean_latex(response.text.replace('```yaml', '').replace('```', '')))
-        st.session_state.image_prompt = None
-        st.success("Generation complete!")
+        try:
+            response = client.models.generate_content(
+                model='gemini-3.1-flash-lite',
+                contents=query
+            )
+            raw_text = response.text.replace('```yaml', '').replace('```', '')
+            st.session_state.data = yaml.safe_load(clean_latex(raw_text))
+            st.session_state.image_prompt = None
+            st.success("Generation complete!")
+        except Exception as e:
+            st.error(f"Generation failed: {e}")
 
 if 'data' not in st.session_state:
     st.session_state.data = get_empty_schema()
@@ -102,25 +101,33 @@ selected_key = st.sidebar.selectbox("Select a Prompt Type", list(PROMPT_LIBRARY.
 st.title("Physics Question Generator")
 prompt = st.text_area("Question Prompt", value=PROMPT_LIBRARY[selected_key], height=100)
 
+# Toggle Switches
+col_t1, col_t2, col_t3 = st.columns(3)
+with col_t1:
+    unit_conv = st.toggle("Unit Conversions")
+with col_t2:
+    std_form = st.toggle("Standard Form")
+with col_t3:
+    inc_eq = st.toggle("Include Equation")
+
 col_gen1, col_gen2 = st.columns(2)
 with col_gen1:
     if st.button("Generate Question"):
-        generate_question(prompt, force_image=False)
+        generate_question(prompt, force_image=False, unit_conv=unit_conv, std_form=std_form, inc_eq=inc_eq)
 with col_gen2:
     if st.button("Generate Question with Image"):
-        generate_question(prompt, force_image=True)
+        generate_question(prompt, force_image=True, unit_conv=unit_conv, std_form=std_form, inc_eq=inc_eq)
 
 st.subheader("Edit Question Data")
 st.session_state.data['id'] = st.text_input("Question ID", st.session_state.data['id'])
 
-# --- Image Generation Flow ---
 if st.session_state.data.get('media', {}).get('diagram_url'):
     if st.button("Generate Image Prompt"):
         desc = st.session_state.data['media']['diagram_url']
         st.session_state.image_prompt = f"Generate a physics textbook style image, black and white line drawing of {desc}"
 
 if st.session_state.get('image_prompt'):
-    st.info("Image prompt generated. Use the copy button on the code block below:")
+    st.info("Image prompt generated. Use the copy button below:")
     st.code(st.session_state.image_prompt, language='text')
     st.link_button("Open Gemini Chat", "https://gemini.google.com")
 
@@ -128,7 +135,6 @@ st.divider()
 st.subheader("Upload Diagram")
 uploaded_image = st.file_uploader("Upload generated diagram", type=["png", "jpg", "jpeg"])
 
-# Display the YAML *after* the logic so it picks up state changes
 st.code(yaml.dump(st.session_state.data, sort_keys=False), language='yaml')
 
 col1, col2 = st.columns(2)
@@ -137,17 +143,11 @@ with col1:
 with col2:
     if st.button("Push to GitHub"):
         q_id = st.session_state.data['id']
-        
-        # 1. Update the state first so it persists in the UI
         if uploaded_image:
             ext = uploaded_image.name.split('.')[-1]
             st.session_state.data['media']['diagram_url'] = f"I/{q_id}.{ext}"
-            # 2. Push Image
             push_to_github(f"{q_id}.{ext}", None, is_image=True, image_data=uploaded_image.getvalue())
-            # Small delay to ensure users see the toast
             time.sleep(1)
         
-        # 3. Push updated YAML (which now contains the URL)
         push_to_github(f"{q_id}.yaml", yaml.dump(st.session_state.data, sort_keys=False))
-        # 4. Rerun to update the UI display
         st.rerun()
