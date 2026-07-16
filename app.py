@@ -99,7 +99,8 @@ PROMPT_LIBRARY = load_prompt_library()
 selected_key = st.sidebar.selectbox("Select a Prompt Type", list(PROMPT_LIBRARY.keys()))
 
 st.title("Physics Question Generator")
-prompt = st.text_area("Question Prompt", value=PROMPT_LIBRARY[selected_key], height=100)
+# Dynamic text area height
+prompt = st.text_area("Question Prompt", value=PROMPT_LIBRARY[selected_key])
 
 # Toggle Switches
 col_t1, col_t2, col_t3 = st.columns(3)
