@@ -30,7 +30,7 @@ solution:
     milestone_value: 80.0
     tolerance: 0.001
 media:
-  diagram_url: I/%Q1.png
+  diagram_url: I/PC1.png
   video_explainer_url: None
 tags:
 - Energy
