@@ -177,7 +177,24 @@
       startTime = Date.now();
       const params = new URLSearchParams(window.location.search);
       userID = params.get('user') || params.get('User'); 
-      const qKeys = Array.from(params.keys()).filter(k => k.toLowerCase().startsWith('q')).sort();
+      
+      const qKeys = [];
+      for (let i = 1; i <= 10; i++) {
+        const val = params.get(`q${i}`) || params.get(`Q${i}`);
+        if (val) {
+          qKeys.push({ key: `q${i}`, value: val });
+        }
+      }
+      
+      // Also support legacy/sorting generic keys if any exist and aren't covered, or strictly q1-q10
+      const extraKeys = Array.from(params.keys()).filter(k => {
+        const lower = k.toLowerCase();
+        return lower.startsWith('q') && !qKeys.some(item => item.key.toLowerCase() === lower);
+      }).sort();
+      
+      extraKeys.forEach(k => {
+        qKeys.push({ key: k, value: params.get(k) });
+      });
 
       if (qKeys.length === 0) {
         document.getElementById('question-area').innerHTML = `<div class="text-center py-12"><p class="text-red-500 font-semibold text-lg">No configuration payload detected.</p></div>`;
@@ -185,8 +202,8 @@
         return;
       }
 
-      for (const key of qKeys) {
-        const fileId = params.get(key);
+      for (const item of qKeys) {
+        const fileId = item.value;
         if (!fileId) continue;
         try {
           const response = await fetch(`${BASE_RAW_URL}Q/${fileId}.yaml`);
@@ -341,7 +358,7 @@
           if (statusDiv) {
             statusDiv.classList.remove('animate-pulse');
             statusDiv.className = "mb-4 p-3 rounded-lg text-sm font-semibold flex items-center gap-2 bg-rose-50 text-rose-800";
-            statusDiv.innerHTML = `<svg class="h-4 w-4 text-rose-800 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg><span>Transfer Failed: ${error.message}</span>`;
+            statusDiv.innerHTML = `<svg class="h-4 w-4 text-rose-800 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1-1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg><span>Transfer Failed: ${error.message}</span>`;
           }
         }
       }
