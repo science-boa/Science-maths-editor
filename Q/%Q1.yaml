@@ -1,0 +1,38 @@
+id: '%Q1'
+metadata:
+  topic: Energy Efficiency
+  marks: 2
+  difficulty_level: 0.5
+question:
+  text: A light bulb consumes $50\text{ J}$ of electrical energy. $40\text{ J}$ of
+    this energy is transferred as useful light energy. Calculate the percentage efficiency
+    of the light bulb.
+  variables:
+  - name: total_energy
+    value: 50
+  - name: useful_energy
+    value: 40
+solution:
+  final_answer: 80.0
+  marks_available: 2
+  steps:
+  - step_number: 1
+    text: Use the formula $\text{efficiency} = \frac{\text{useful energy}}{\text{total
+      energy}} \times 100$
+    marks_assigned: 1
+    check_type: numeric
+    milestone_value: 0.8
+    tolerance: 0.001
+  - step_number: 2
+    text: 'Calculate the percentage value: $\frac{40}{50} \times 100 = 80\%$'
+    marks_assigned: 1
+    check_type: numeric
+    milestone_value: 80.0
+    tolerance: 0.001
+media:
+  diagram_url: I/%Q1.png
+  video_explainer_url: None
+tags:
+- Energy
+- Efficiency
+- Calculation
