@@ -1,0 +1,38 @@
+id: PC7
+metadata:
+  topic: Genetics and Data Analysis
+  marks: 2
+  difficulty_level: 0.5
+question:
+  text: A genetic screening program identifies a specific mutation in a cohort of
+    $250$ patients. It is found that $14\%$ of these patients carry a rare allele
+    associated with cystic fibrosis. Calculate the number of patients in the cohort
+    who carry this rare allele. Show your working.
+  variables:
+  - name: total_patients
+    value: 250
+  - name: percentage
+    value: 0.14
+solution:
+  final_answer: 35.0
+  marks_available: 2
+  steps:
+  - step_number: 1
+    text: 'Identify the calculation: $\frac{14}{100} \times 250$.'
+    marks_assigned: 1
+    check_type: numeric
+    milestone_value: 35.0
+    tolerance: 0.0
+  - step_number: 2
+    text: 'Calculate the final result: $35$ patients.'
+    marks_assigned: 1
+    check_type: numeric
+    milestone_value: 35.0
+    tolerance: 0.0
+media:
+  diagram_url: null
+  video_explainer_url: null
+tags:
+- Genetics
+- GCSE
+- Data Analysis
