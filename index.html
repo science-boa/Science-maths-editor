@@ -48,7 +48,7 @@
         <div class="bg-white p-6 rounded-xl shadow-xs border border-gray-200 space-y-6">
           
           <div id="question-area">
-            <div class="text-gray-400 text-center py-16">Awaiting URL parameters...</div>
+            <div class="text-gray-400 text-center py-16">Awaiting parameters or demo preset...</div>
           </div>
 
           <div id="working-area" class="pt-4 border-t border-gray-100 hidden">
@@ -178,7 +178,6 @@
       
       const qKeys = [];
       
-      // Support standard q1-q10 keys
       for (let i = 1; i <= 10; i++) {
         const val = params.get(`q${i}`) || params.get(`Q${i}`);
         if (val) {
@@ -186,7 +185,6 @@
         }
       }
 
-      // Support g1(1), g1(2), etc., and general g[x]([y]) structured patterns from GitHub folder hierarchies
       for (const [key, val] of params.entries()) {
         const lowerKey = key.toLowerCase();
         if ((lowerKey.startsWith('g') || lowerKey.startsWith('q')) && !qKeys.some(item => item.key.toLowerCase() === lowerKey)) {
@@ -196,21 +194,32 @@
         }
       }
 
+      // Fallback demo question if none provided in URL so preview is immediately interactive
       if (qKeys.length === 0) {
-        document.getElementById('question-area').innerHTML = `<div class="text-center py-12"><p class="text-red-500 font-semibold text-lg">No configuration payload detected in URL query parameters.</p></div>`;
+        questions.push({
+          id: "demo-question",
+          metadata: { topic: "Physics Mechanics Demo" },
+          question: { text: "Calculate the kinetic energy of a car with mass $m = 1200\\text{ kg}$ travelling at a velocity of $v = 25\\text{ m/s}$. Use formula $E_k = \\frac{1}{2}mv^2$." },
+          solution: {
+            final_answer: "375000",
+            steps: [
+              { step_number: 1, text: "State formula $E_k = \\frac{1}{2}mv^2$", marks_assigned: 1, check_type: "numeric", milestone_value: 375000 }
+            ]
+          }
+        });
         document.getElementById('loading-badge').classList.add('hidden');
+        buildDashboard();
+        renderCurrentQuestion();
         return;
       }
 
       for (const item of qKeys) {
         let fileId = item.value.trim();
-        // Clean potential file extensions if passed directly
         if (fileId.endsWith('.yaml') || fileId.endsWith('.yml')) {
           fileId = fileId.replace(/\.(yaml|yml)$/i, '');
         }
 
         let fetchedSuccessfully = false;
-        // Try paths: Q/{fileId}.yaml, then root {fileId}.yaml, then Q/g1/{fileId}.yaml
         const candidatePaths = [
           `${BASE_RAW_URL}Q/${fileId}.yaml`,
           `${BASE_RAW_URL}${fileId}.yaml`,
@@ -228,7 +237,7 @@
               break;
             }
           } catch (e) {
-            // Try next candidate path
+            // Try next candidate
           }
         }
 
@@ -273,14 +282,13 @@
         mediaHtml += `<div class="mb-6 border border-gray-200 bg-gray-100 rounded-lg w-full h-48 flex items-center justify-center overflow-hidden"><img src="${BASE_RAW_URL}${q.media.diagram_url}" alt="Question Diagram" class="object-contain h-full w-full" onerror="this.parentElement.innerHTML='<span class=\'text-xs text-gray-400\'>Diagram Image Reference Broken: ${q.media.diagram_url}</span>'"></div>`;
       }
       
-      // Ensure canvas element is properly structured and forced to display
-      mediaHtml += `<div id="graph-container-${currentIndex}" class="mb-6 border border-gray-200 bg-white p-4 rounded-lg w-full ${q.graph ? '' : 'hidden'}"><div class="relative h-64 w-full"><canvas id="pgfplot-canvas-${currentIndex}"></canvas></div><div class="text-[10px] text-center text-gray-400 mt-2 font-mono">PGFPlots Visualization</div></div>`;
+      // Ensure canvas element is properly structured and forced to display without the PGFPlots footer label
+      mediaHtml += `<div id="graph-container-${currentIndex}" class="mb-6 border border-gray-200 bg-white p-4 rounded-lg w-full ${q.graph ? '' : 'hidden'}"><div class="relative h-64 w-full"><canvas id="pgfplot-canvas-${currentIndex}"></canvas></div></div>`;
 
       questionArea.innerHTML = `<div class="text-xs font-bold text-blue-600 tracking-wider uppercase mb-1">${q.metadata?.topic || 'General Science'}</div><h2 class="text-xl font-bold text-gray-900 mb-4">Question ID: ${q.id}</h2>${mediaHtml}<div id="math-text" class="text-base leading-relaxed text-gray-800 font-normal">${q.question.text}</div>`;
       renderMathInElement(document.getElementById('math-text'), { delimiters: [{ left: "$$", right: "$$", display: true }, { left: "$", right: "$", display: false }] });
       
       if (q.graph) {
-        // Small timeout to guarantee DOM node mounting before Chart.js initialization
         setTimeout(() => {
           renderPGFPlot(q.graph, `pgfplot-canvas-${currentIndex}`);
         }, 50);
@@ -341,7 +349,6 @@
           datasetLabel = graphConfig.ylabel || 'Value';
           if (graphConfig.type === 'bar') chartType = 'bar';
           
-          // Handle structured data object: { type: 'bar', data: { x: [...], y: [...] } } or coordinates
           if (graphConfig.data && Array.isArray(graphConfig.data.x) && Array.isArray(graphConfig.data.y)) {
             labels = graphConfig.data.x;
             dataPoints = graphConfig.data.y;
