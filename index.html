@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Maths for Science v0.32</title>
+  <title>Maths for Science v0.3</title>
   
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js"></script>
@@ -340,7 +340,12 @@
         } else if (typeof graphConfig === 'object' && graphConfig !== null) {
           datasetLabel = graphConfig.ylabel || 'Value';
           if (graphConfig.type === 'bar') chartType = 'bar';
-          if (Array.isArray(graphConfig.coordinates)) {
+          
+          // Handle structured data object: { type: 'bar', data: { x: [...], y: [...] } } or coordinates
+          if (graphConfig.data && Array.isArray(graphConfig.data.x) && Array.isArray(graphConfig.data.y)) {
+            labels = graphConfig.data.x;
+            dataPoints = graphConfig.data.y;
+          } else if (Array.isArray(graphConfig.coordinates)) {
             labels = graphConfig.coordinates.map(pt => pt[0]);
             dataPoints = graphConfig.coordinates.map(pt => pt[1]);
           }
