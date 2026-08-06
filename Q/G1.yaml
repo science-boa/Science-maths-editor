@@ -1,0 +1,30 @@
+id: G1
+metadata:
+  topic: Rate of Reaction / Biological Processes
+  marks: 1
+  difficulty_level: 0.7
+question:
+  text: The graph shows the concentration of a substrate in a reaction vessel over
+    time. Using the curve, determine the time $t$ at which the concentration of the
+    substrate drops to $4.0 \text{ mol/dm}^3$.
+  variables:
+  - concentration_target: 4.0
+  - unit: mol/dm^3
+solution:
+  final_answer: 30
+  marks_available: 1
+  steps:
+  - step_number: 1
+    text: Identify the value $4.0 \text{ on the y-axis, move horizontally to the curve,
+      and read the corresponding value on the x-axis.
+    marks_assigned: 1
+    check_type: numeric
+    milestone_value: 30
+    tolerance: 2
+media:
+  diagram_url: I/G1.png
+  video_explainer_url: null
+tags:
+- GCSE
+- Graph Interpretation
+- Biology
