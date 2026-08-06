@@ -40,9 +40,7 @@ solution:
     milestone_value: 14.0
     tolerance: 0.001
 media:
-  diagram_url: A schematic diagram showing a box labeled "Heating Element" with an
-    input arrow of $0.05\text{ kJ}$ electrical energy and an output arrow of $0.007\text{
-    kJ}$ chemical energy entering a "Reaction Chamber".
+  diagram_url: null
   video_explainer_url: None
 tags:
 - Energy
