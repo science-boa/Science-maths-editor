@@ -1,0 +1,51 @@
+id: '%Q3'
+metadata:
+  topic: Energy Efficiency
+  marks: 3
+  difficulty_level: 0.6
+question:
+  text: A chemical reactor uses an electric heating element to initiate a reaction.
+    The element draws $0.05\text{ kJ}$ of electrical energy. The reaction successfully
+    absorbs $0.007\text{ kJ}$ of this energy to break chemical bonds. Calculate the
+    percentage efficiency of this energy transfer, given that the input energy must
+    first be converted to joules ($1\text{ kJ} = 1000\text{ J}$).
+  variables:
+  - name: total_energy_kj
+    value: 0.05
+  - name: useful_energy_kj
+    value: 0.007
+solution:
+  final_answer: 14.0
+  marks_available: 3
+  steps:
+  - step_number: 1
+    text: 'Convert energy values from $\text{kJ}$ to $\text{J}$: $\text{Total} = 0.05
+      \times 1000 = 50\text{ J}$ and $\text{Useful} = 0.007 \times 1000 = 7\text{
+      J}$.'
+    marks_assigned: 1
+    check_type: numeric
+    milestone_value: 50.0
+    tolerance: 0.001
+  - step_number: 2
+    text: 'Use the efficiency formula: $\text{efficiency} = \frac{\text{useful energy}}{\text{total
+      energy}} \times 100$.'
+    marks_assigned: 1
+    check_type: numeric
+    milestone_value: 0.14
+    tolerance: 0.001
+  - step_number: 3
+    text: 'Calculate the final percentage: $\frac{7}{50} \times 100 = 14\%$.'
+    marks_assigned: 1
+    check_type: numeric
+    milestone_value: 14.0
+    tolerance: 0.001
+media:
+  diagram_url: A schematic diagram showing a box labeled "Heating Element" with an
+    input arrow of $0.05\text{ kJ}$ electrical energy and an output arrow of $0.007\text{
+    kJ}$ chemical energy entering a "Reaction Chamber".
+  video_explainer_url: None
+tags:
+- Energy
+- Efficiency
+- Calculation
+- Chemistry
