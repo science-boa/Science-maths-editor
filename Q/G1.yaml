@@ -22,7 +22,7 @@ solution:
     milestone_value: 30
     tolerance: 2
 media:
-  diagram_url: I/G1.png
+  diagram_url: null
   video_explainer_url: null
 graph: \begin{tikzpicture}
 \begin{axis}[
