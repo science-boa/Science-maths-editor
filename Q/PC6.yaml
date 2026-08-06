@@ -6,7 +6,7 @@ metadata:
 question:
   text: In a clinical study of $1200$ patients with a rare genetic disorder, it is
     found that $42\%$ of the patients exhibit a specific symptom. Calculate the number
-    of patients who exhibit this symptom. Express your final answer to the nearest whole number.
+    of patients who exhibit this symptom. 
   variables:
   - total_population: 1200
   - mutation_percentage: 42
