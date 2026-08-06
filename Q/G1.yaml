@@ -30,7 +30,20 @@ solution:
     check_type: numeric
     milestone_value: 28.0
     tolerance: 2.0
-graph: "\\begin{tikzpicture}\n\\begin{axis}[\n    ybar,\n    ylabel={Incidence\
+graph:
+  type: bar
+  data:
+    x:
+    - Country A
+    - Country B
+    - Country C
+    - Country D
+    y:
+    - 43
+    - 82
+    - 67
+    - 54
+  pgfplots: "\\begin{tikzpicture}\n\\begin{axis}[\n    ybar,\n    ylabel={Incidence\
     \ (cases / $100,000$)},\n    symbolic x coords={Country A, Country B, Country\
     \ C, Country D},\n    xtick=data,\n    ymin=0, ymax=100,\n    grid=major\n]\n\\\
     addplot coordinates {(Country A, 43) (Country B, 82) (Country C, 67) (Country\
