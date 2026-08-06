@@ -1,43 +1,37 @@
 id: '%Q4'
 metadata:
-  topic: Energy transfers in biological systems
-  marks: 4
-  difficulty_level: 0.5
+  topic: Energy efficiency and power
+  marks: 3
+  difficulty_level: 0.6
 question:
-  text: A wheat plant absorbs $4.50 \times 10^3 \text{ J}$ of energy from sunlight.
-    Only $12\%$ of this energy is transferred to the chemical store of the plant through
-    photosynthesis. Calculate the energy transferred to the chemical store in $\text{kJ}$.
+  text: An electric motor has a total energy input of $8.20 \times 10^4 \text{ J}$.
+    The motor is $35\%$ efficient at transferring this energy into kinetic energy.
+    Calculate the energy transferred as kinetic energy in $\text{kJ}$.
   variables:
-  - total_energy: 4500
-  - efficiency: 0.12
+  - total_energy: 82000
+  - efficiency: 0.35
 solution:
-  final_answer: 0.54
-  marks_available: 4
+  final_answer: 28.7
+  marks_available: 3
   steps:
   - step_number: 1
-    text: 'Identify the percentage calculation: $\frac{12}{100} \times 4500$'
+    text: 'Calculate the energy in Joules: $0.35 \times 82000 = 28700 \text{ J}$'
     marks_assigned: 1
     check_type: numeric
-    milestone_value: 540.0
+    milestone_value: 28700.0
     tolerance: 0.0
   - step_number: 2
-    text: 'State the energy in Joules: $540 \text{ J}$'
+    text: 'Convert the result from Joules to $\text{kJ}$ by dividing by $1000$: $\frac{28700}{1000}$'
     marks_assigned: 1
     check_type: numeric
-    milestone_value: 540.0
+    milestone_value: 28.7
     tolerance: 0.0
   - step_number: 3
-    text: 'Convert the result to $\text{kJ}$ by dividing by $1000$: $\frac{540}{1000}$'
+    text: 'Final answer with correct units: $28.7 \text{ kJ}$'
     marks_assigned: 1
     check_type: numeric
-    milestone_value: 0.54
-    tolerance: 0.001
-  - step_number: 4
-    text: 'Final answer with correct units: $0.54 \text{ kJ}$'
-    marks_assigned: 1
-    check_type: numeric
-    milestone_value: 0.54
-    tolerance: 0.001
+    milestone_value: 28.7
+    tolerance: 0.0
 media:
   diagram_url: I/%Q4.png
   video_explainer_url: None
