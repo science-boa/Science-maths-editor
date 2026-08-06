@@ -1,0 +1,38 @@
+id: PC8
+metadata:
+  topic: Genetics and Probability
+  marks: 2
+  difficulty_level: 0.5
+question:
+  text: A genetic counselor is analyzing a family pedigree for a rare inherited condition.
+    Out of a total of $40$ individuals studied in the family tree, $9$ individuals
+    have been diagnosed with the genetic disease. Calculate the percentage of the
+    studied individuals that have the genetic disease.
+  variables:
+  - total_individuals: 40
+  - affected_individuals: 9
+solution:
+  final_answer: 22.5
+  marks_available: 2
+  steps:
+  - step_number: 1
+    text: 'Divide the number of affected individuals by the total number of individuals:
+      $\frac{9}{40} = 0.225$'
+    marks_assigned: 1
+    check_type: numeric
+    milestone_value: 0.225
+    tolerance: 0.001
+  - step_number: 2
+    text: 'Multiply by $100$ to express the value as a percentage: $0.225 \times 100
+      = 22.5\%$'
+    marks_assigned: 1
+    check_type: numeric
+    milestone_value: 22.5
+    tolerance: 0.001
+media:
+  diagram_url: null
+  video_explainer_url: null
+tags:
+- GCSE
+- Percentage
+- Genetics
