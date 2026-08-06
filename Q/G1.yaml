@@ -1,50 +1,54 @@
 id: G1
 metadata:
-  topic: Rate of Reaction / Biological Processes
-  marks: 1
-  difficulty_level: 0.7
+  topic: Data Analysis and Health Statistics
+  marks: 3
+  difficulty_level: 0.5
 question:
-  text: The graph shows the concentration of a substrate in a reaction vessel over
-    time. Using the curve, determine the time $t$ at which the concentration of the
-    substrate drops to $4.0 \text{ mol/dm}^3$.
-  variables:
-  - concentration_target: 4.0
-  - unit: mol/dm^3
+  text: The bar chart shows the incidence of a specific genetic disease per $100,000$
+    people across four countries. Calculate the difference in the incidence of the
+    disease between Country B and Country D.
+  variables: []
 solution:
-  final_answer: 30
-  marks_available: 1
+  final_answer: 28.0
+  marks_available: 3
   steps:
   - step_number: 1
-    text: Identify the value $4.0 \text{ on the y-axis, move horizontally to the curve,
-      and read the corresponding value on the x-axis.
+    text: Identify the value for Country B from the graph ($82$ cases per $100,000$).
     marks_assigned: 1
     check_type: numeric
-    milestone_value: 30
-    tolerance: 2
-media:
-  diagram_url: null
-  video_explainer_url: null
-graph: 
-\begin{tikzpicture}
-\begin{axis}[
-ylabel={Incidence (cases / 100,000)},
-ymin=0, ymax=80,
-ytick={0,10,...,80},
-minor y tick num=4, % Creates 4 subdivision intervals (at 2, 4, 6, 8)
-ymajorgrids=true,
-yminorgrids=true,
-symbolic x coords={Country A, Country B, Country C},
-xtick=data,
-enlargelimits=0.2
-]
-\addplot[ybar, fill=white, draw=black] coordinates {
-(Country A, 53)
-(Country B, 62)
-(Country C, 39)
-};
-\end{axis}
-\end{tikzpicture}
+    milestone_value: 82.0
+    tolerance: 1.0
+  - step_number: 2
+    text: Identify the value for Country D from the graph ($54$ cases per $100,000$).
+    marks_assigned: 1
+    check_type: numeric
+    milestone_value: 54.0
+    tolerance: 1.0
+  - step_number: 3
+    text: 'Calculate the difference: $82 - 54 = 28$ cases per $100,000$.'
+    marks_assigned: 1
+    check_type: numeric
+    milestone_value: 28.0
+    tolerance: 2.0
+graph:
+  type: bar
+  data:
+    x:
+    - Country A
+    - Country B
+    - Country C
+    - Country D
+    y:
+    - 43
+    - 82
+    - 67
+    - 54
+  pgfplots: "\\begin{tikzpicture}\n\\begin{axis}[\n    ybar,\n    ylabel={Incidence\
+    \ (cases / $100,000$)},\n    symbolic x coords={Country A, Country B, Country\
+    \ C, Country D},\n    xtick=data,\n    ymin=0, ymax=100,\n    grid=major\n]\n\\\
+    addplot coordinates {(Country A, 43) (Country B, 82) (Country C, 67) (Country\
+    \ D, 54)};\n\\end{axis}\n\\end{tikzpicture}\n"
 tags:
-- GCSE
-- Graph Interpretation
-- Biology
+- data-interpretation
+- gcse-physics
+- statistics
