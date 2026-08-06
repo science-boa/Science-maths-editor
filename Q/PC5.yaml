@@ -35,7 +35,7 @@ solution:
     milestone_value: 1.62
     tolerance: 0.0
 media:
-  diagram_url: I/%Q5.png
+  diagram_url: I/PC5.png
   video_explainer_url: None
 tags:
 - Physics
