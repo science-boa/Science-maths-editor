@@ -1,0 +1,30 @@
+id: G2
+metadata:
+  topic: Genetics / Biological Processes
+  marks: 1
+  difficulty_level: 0.7
+question:
+  text: The bar graph below shows the number of recorded cases of specific genetic
+    conditions in a local population. Determine the number of individuals affected
+    by Cystic Fibrosis based on the provided data.
+  variables:
+  - condition: Cystic Fibrosis
+  - unit: individuals
+solution:
+  final_answer: 47
+  marks_available: 1
+  steps:
+  - step_number: 1
+    text: Locate the bar labeled "Cystic Fibrosis", identify the top edge of the bar,
+      and read the corresponding value on the y-axis.
+    marks_assigned: 1
+    check_type: numeric
+    milestone_value: 47
+    tolerance: 1
+media:
+  diagram_url: I/G2.png
+  video_explainer_url: None
+tags:
+- GCSE
+- Graph Interpretation
+- Biology
