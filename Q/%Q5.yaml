@@ -1,0 +1,44 @@
+id: '%Q5'
+metadata:
+  topic: Energy efficiency and power
+  marks: 3
+  difficulty_level: 0.6
+question:
+  text: 'A plant cell chloroplast absorbs a total light energy of $4.50 \times 10^3
+    \text{ J}$. The photosynthetic process is $36\%$ efficient at converting this
+    light energy into chemical energy. Calculate the energy converted to chemical
+    energy in $\text{kJ}$. (Note: $1 \text{ kJ} = 1,000 \text{ J}$)'
+  variables:
+  - total_energy: 4500
+  - efficiency: 0.36
+solution:
+  final_answer: 1.62
+  marks_available: 3
+  steps:
+  - step_number: 1
+    text: 'Calculate the total energy converted in Joules: $0.36 \times 4500 = 1620
+      \text{ J}$'
+    marks_assigned: 1
+    check_type: numeric
+    milestone_value: 1620.0
+    tolerance: 0.0
+  - step_number: 2
+    text: 'Convert the energy from Joules to $\text{kJ}$ by dividing by $10^3$: $\frac{1620}{1000}$'
+    marks_assigned: 1
+    check_type: numeric
+    milestone_value: 1.62
+    tolerance: 0.0
+  - step_number: 3
+    text: 'Final answer with correct units: $1.62 \text{ kJ}$'
+    marks_assigned: 1
+    check_type: numeric
+    milestone_value: 1.62
+    tolerance: 0.0
+media:
+  diagram_url: I/%Q5.png
+  video_explainer_url: None
+tags:
+- Physics
+- Energy
+- GCSE
+- Calculation
