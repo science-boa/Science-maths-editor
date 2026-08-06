@@ -3,12 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Maths for Science v0.2</title>
+  <title>Maths for Science v0.3</title>
   
   <script src="https://cdn.tailwindcss.com"></script>
-  
   <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js"></script>
-  
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/12.4.1/math.js"></script>
   
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
@@ -18,14 +16,11 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
-    /* Chrome, Safari, Edge, Opera */
     input::-webkit-outer-spin-button,
     input::-webkit-inner-spin-button {
-      _webkit-appearance: none;
+      -webkit-appearance: none;
       margin: 0;
     }
-
-    /* Firefox */
     input[type=number] {
       -moz-appearance: textfield;
     }
@@ -174,7 +169,7 @@
     let calcExpression = "";
     let lastAnswer = 0;
     let finalResultsSummary = null;
-    let activeChartInstance = null; // Track chart instance for cleanup
+    let activeChartInstance = null;
 
     window.addEventListener('DOMContentLoaded', async () => {
       startTime = Date.now();
@@ -182,40 +177,63 @@
       userID = params.get('user') || params.get('User'); 
       
       const qKeys = [];
+      
+      // Support standard q1-q10 keys
       for (let i = 1; i <= 10; i++) {
         const val = params.get(`q${i}`) || params.get(`Q${i}`);
         if (val) {
           qKeys.push({ key: `q${i}`, value: val });
         }
       }
-      
-      // Also support legacy/sorting generic keys if any exist and aren't covered, or strictly q1-q10
-      const extraKeys = Array.from(params.keys()).filter(k => {
-        const lower = k.toLowerCase();
-        return lower.startsWith('q') && !qKeys.some(item => item.key.toLowerCase() === lower);
-      }).sort();
-      
-      extraKeys.forEach(k => {
-        qKeys.push({ key: k, value: params.get(k) });
-      });
+
+      // Support g1(1), g1(2), etc., and general g[x]([y]) structured patterns from GitHub folder hierarchies
+      for (const [key, val] of params.entries()) {
+        const lowerKey = key.toLowerCase();
+        if ((lowerKey.startsWith('g') || lowerKey.startsWith('q')) && !qKeys.some(item => item.key.toLowerCase() === lowerKey)) {
+          if (val) {
+            qKeys.push({ key: key, value: val });
+          }
+        }
+      }
 
       if (qKeys.length === 0) {
-        document.getElementById('question-area').innerHTML = `<div class="text-center py-12"><p class="text-red-500 font-semibold text-lg">No configuration payload detected.</p></div>`;
+        document.getElementById('question-area').innerHTML = `<div class="text-center py-12"><p class="text-red-500 font-semibold text-lg">No configuration payload detected in URL query parameters.</p></div>`;
         document.getElementById('loading-badge').classList.add('hidden');
         return;
       }
 
       for (const item of qKeys) {
-        const fileId = item.value;
-        if (!fileId) continue;
-        try {
-          const response = await fetch(`${BASE_RAW_URL}Q/${fileId}.yaml`);
-          if (!response.ok) throw new Error(`Status ${response.status}`);
-          const text = await response.text();
-          const parsed = jsyaml.load(text);
-          questions.push({ ...parsed, id: fileId });
-        } catch (err) {
-          questions.push({ id: fileId, error: true, message: `Failed fetching: ${err.message}` });
+        let fileId = item.value.trim();
+        // Clean potential file extensions if passed directly
+        if (fileId.endsWith('.yaml') || fileId.endsWith('.yml')) {
+          fileId = fileId.replace(/\.(yaml|yml)$/i, '');
+        }
+
+        let fetchedSuccessfully = false;
+        // Try paths: Q/{fileId}.yaml, then root {fileId}.yaml, then Q/g1/{fileId}.yaml
+        const candidatePaths = [
+          `${BASE_RAW_URL}Q/${fileId}.yaml`,
+          `${BASE_RAW_URL}${fileId}.yaml`,
+          `${BASE_RAW_URL}Q/g1/${fileId}.yaml`
+        ];
+
+        for (const url of candidatePaths) {
+          try {
+            const response = await fetch(url);
+            if (response.ok) {
+              const text = await response.text();
+              const parsed = jsyaml.load(text);
+              questions.push({ ...parsed, id: fileId });
+              fetchedSuccessfully = true;
+              break;
+            }
+          } catch (e) {
+            // Try next candidate path
+          }
+        }
+
+        if (!fetchedSuccessfully) {
+          questions.push({ id: fileId, error: true, message: `Failed fetching YAML configuration for identifier: ${fileId}` });
         }
       }
 
@@ -262,7 +280,6 @@
       questionArea.innerHTML = `<div class="text-xs font-bold text-blue-600 tracking-wider uppercase mb-1">${q.metadata?.topic || 'General Science'}</div><h2 class="text-xl font-bold text-gray-900 mb-4">Question ID: ${q.id}</h2>${mediaHtml}<div id="math-text" class="text-base leading-relaxed text-gray-800 font-normal">${q.question.text}</div>`;
       renderMathInElement(document.getElementById('math-text'), { delimiters: [{ left: "$$", right: "$$", display: true }, { left: "$", right: "$", display: false }] });
       
-      // Render graph if configured
       if (q.graph) {
         renderPGFPlot(q.graph, `pgfplot-canvas-${currentIndex}`);
       }
@@ -295,22 +312,17 @@
         let dataPoints = [];
         let datasetLabel = 'Value';
 
-        // Check if graphConfig is a LaTeX PGFPlots string
         if (typeof graphConfig === 'string' && graphConfig.includes('tikzpicture')) {
-          // Extract ylabel if present
           const yLabelMatch = graphConfig.match(/ylabel\s*=\s*\{([^}]+)\}/);
           if (yLabelMatch) datasetLabel = yLabelMatch[1];
 
-          // Check if bar chart (ybar)
           if (graphConfig.includes('ybar')) {
             chartType = 'bar';
           }
 
-          // Extract coordinates from addplot: e.g., (Country A, 43) (Country B, 82)
           const addplotMatch = graphConfig.match(/\\addplot\s+(?:coordinates\s*)?\{([^}]+)\}/s);
           if (addplotMatch) {
             const coordBlock = addplotMatch[1];
-            // Match pairs like (x, y)
             const matches = coordBlock.matchAll(/\(\s*([^,]+)\s*,\s*([+-]?\d*\.?\d+)\s*\)/g);
             for (const match of matches) {
               const xVal = match[1].trim();
@@ -324,7 +336,6 @@
             }
           }
         } else if (typeof graphConfig === 'object' && graphConfig !== null) {
-          // Fallback to structured object format if used
           datasetLabel = graphConfig.ylabel || 'Value';
           if (graphConfig.type === 'bar') chartType = 'bar';
           if (Array.isArray(graphConfig.coordinates)) {
@@ -350,17 +361,10 @@
             responsive: true,
             maintainAspectRatio: false,
             scales: {
-              x: {
-                grid: { color: '#f3f4f6' }
-              },
-              y: {
-                title: { display: !!datasetLabel, text: datasetLabel },
-                grid: { color: '#f3f4f6' }
-              }
+              x: { grid: { color: '#f3f4f6' } },
+              y: { title: { display: !!datasetLabel, text: datasetLabel }, grid: { color: '#f3f4f6' } }
             },
-            plugins: {
-              legend: { display: false }
-            }
+            plugins: { legend: { display: false } }
           }
         });
       } catch (e) {
@@ -381,6 +385,7 @@
       let grandTotalPossible = 0;
       let resultsContainerHtml = "";
       let resultsArr = [];
+      
       questions.forEach((q, idx) => {
         if (q.error) return;
         let questionEarnedMarks = 0;
@@ -390,12 +395,17 @@
         const targetFinalNum = parseFloat(correctRawAnswer.toString().replace(/[^0-9.-]/g, ''));
         const studentFinalNum = parseFloat(studentRawAnswer);
         const structuredSteps = (q.solution && Array.isArray(q.solution.steps)) ? q.solution.steps : [];
+        
         structuredSteps.forEach(s => questionMaxMarks += parseInt(s.marks_assigned || 1));
         if (structuredSteps.length === 0) questionMaxMarks = 1;
+        
         let finalAnswerCorrect = false;
         if (!isNaN(targetFinalNum) && !isNaN(studentFinalNum)) {
-          if (studentFinalNum === targetFinalNum || Math.abs((studentFinalNum - targetFinalNum) / targetFinalNum) <= 0.005) finalAnswerCorrect = true;
+          if (studentFinalNum === targetFinalNum || Math.abs((studentFinalNum - targetFinalNum) / targetFinalNum) <= 0.005) {
+            finalAnswerCorrect = true;
+          }
         }
+        
         let dynamicStepsHtml = "";
         if (finalAnswerCorrect) {
           questionEarnedMarks = questionMaxMarks;
@@ -411,7 +421,12 @@
             if (step.check_type === "numeric" && step.milestone_value !== undefined) {
               const targetVal = parseFloat(step.milestone_value);
               const tolerancePercent = parseFloat(step.tolerance || 0.005);
-              for (let num of studentNumbersInWorking) { if (num === targetVal || Math.abs((num - targetVal) / targetVal) <= tolerancePercent) { milestoneMatched = true; break; } }
+              for (let num of studentNumbersInWorking) {
+                if (num === targetVal || Math.abs((num - targetVal) / targetVal) <= tolerancePercent) {
+                  milestoneMatched = true;
+                  break;
+                }
+              }
             }
             if (milestoneMatched) {
               questionEarnedMarks += stepWeight;
@@ -421,11 +436,13 @@
             }
           });
         }
+        
         grandTotalEarned += questionEarnedMarks;
         grandTotalPossible += questionMaxMarks;
         resultsArr.push({ question_id: q.id, score: questionEarnedMarks, max_marks: questionMaxMarks });
         resultsContainerHtml += `<div class="bg-white rounded-xl shadow-xs border border-gray-200 overflow-hidden mb-6"><div class="bg-gray-50 border-b border-gray-200 px-6 py-4 flex justify-between items-center"><div><h3 class="text-lg font-bold text-gray-900">Q${idx + 1}: ${q.id}</h3></div><div class="px-4 py-1.5 rounded-full font-mono font-bold text-sm ${questionEarnedMarks === questionMaxMarks ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}">Marks: ${questionEarnedMarks} / ${questionMaxMarks}</div></div><div class="p-6 space-y-6"><div class="text-gray-800 text-sm leading-relaxed">${q.question.text}</div><div class="pt-4 border-t border-gray-100 space-y-2"><h4 class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">Evaluation</h4><div class="space-y-2">${dynamicStepsHtml}</div></div></div></div>`;
       });
+      
       finalResultsSummary = { userID, KEY: "29031977", time_taken, results: resultsArr };
       document.getElementById('quiz-workspace').classList.add('hidden');
       document.getElementById('dashboard').classList.add('hidden');
@@ -444,6 +461,7 @@
       modal.id = "payload-modal";
       modal.innerHTML = `<div class="bg-white p-6 rounded-2xl max-w-lg w-full max-h-[80vh] overflow-auto flex flex-col shadow-2xl border border-gray-100"><h3 class="font-bold mb-2 text-gray-900 text-lg">System Submission Status</h3><div id="modal-status" class="mb-4 p-3 rounded-lg text-sm font-semibold flex items-center gap-2 bg-blue-50 text-blue-800 animate-pulse"><svg class="animate-spin h-4 w-4 text-blue-800" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><span>Connecting & sending results to Flow...</span></div><h4 class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">Payload Output Data</h4><pre class="bg-gray-100 p-4 rounded-lg text-xs text-gray-800 font-mono overflow-auto max-h-56">${JSON.stringify(finalResultsSummary, null, 2)}</pre><button onclick="document.getElementById('payload-modal').remove()" class="mt-5 bg-gray-800 hover:bg-gray-700 text-white px-5 py-2 rounded-xl cursor-pointer transition-colors text-sm font-semibold self-end shadow-md">Close Preview</button></div>`;
       document.body.appendChild(modal);
+      
       if (POWER_AUTOMATE_URL) {
         try {
           const response = await fetch(POWER_AUTOMATE_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(finalResultsSummary) });
@@ -453,7 +471,9 @@
             if (response.ok) {
               statusDiv.className = "mb-4 p-3 rounded-lg text-sm font-semibold flex items-center gap-2 bg-emerald-50 text-emerald-800";
               statusDiv.innerHTML = `<svg class="h-4 w-4 text-emerald-800 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg><span>Success! Results sent & processed by Power Automate.</span>`;
-            } else throw new Error(`Server returned status: ${response.status}`);
+            } else {
+              throw new Error(`Server returned status: ${response.status}`);
+            }
           }
         } catch (error) {
           const statusDiv = document.getElementById('modal-status');
@@ -468,14 +488,33 @@
 
     function pressCalc(token) {
       const display = document.getElementById('calc-display');
-      if (token === 'AC') { calcExpression = ""; display.innerText = "0"; }
-      else if (token === 'DEL') { calcExpression = calcExpression.slice(0, -1); display.innerText = calcExpression || "0"; }
-      else if (token === '=') {
+      if (token === 'AC') {
+        calcExpression = "";
+        display.innerText = "0";
+      } else if (token === 'DEL') {
+        calcExpression = calcExpression.slice(0, -1);
+        display.innerText = calcExpression || "0";
+      } else if (token === '=') {
         try {
-          let result = math.evaluate(calcExpression, {sin:(x)=>Math.sin(x*Math.PI/180),cos:(x)=>Math.cos(x*Math.PI/180),tan:(x)=>Math.tan(x*Math.PI/180),sqrt:(x)=>Math.sqrt(x),pi:Math.PI,Ans:lastAnswer});
-          lastAnswer = result; display.innerText = result; calcExpression = result.toString();
-        } catch { display.innerText = "Syntax Error"; calcExpression = ""; }
-      } else { calcExpression += token; display.innerText = calcExpression; }
+          let result = math.evaluate(calcExpression, {
+            sin: (x) => Math.sin(x * Math.PI / 180),
+            cos: (x) => Math.cos(x * Math.PI / 180),
+            tan: (x) => Math.tan(x * Math.PI / 180),
+            sqrt: (x) => Math.sqrt(x),
+            pi: Math.PI,
+            Ans: lastAnswer
+          });
+          lastAnswer = result;
+          display.innerText = result;
+          calcExpression = result.toString();
+        } catch {
+          display.innerText = "Syntax Error";
+          calcExpression = "";
+        }
+      } else {
+        calcExpression += token;
+        display.innerText = calcExpression;
+      }
     }
   </script>
 </body>
