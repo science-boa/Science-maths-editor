@@ -24,22 +24,23 @@ solution:
 media:
   diagram_url: null
   video_explainer_url: null
-graph: \begin{tikzpicture}
+graph: 
+\begin{tikzpicture}
 \begin{axis}[
-    ylabel={Incidence (cases / 100,000)},
-    ymin=0, ymax=80,
-    ytick={0,10,...,80},
-    minor y tick num=4, % Creates 4 subdivision intervals (at 2, 4, 6, 8)
-    ymajorgrids=true,
-    yminorgrids=true,
-    symbolic x coords={Country A, Country B, Country C},
-    xtick=data,
-    enlargelimits=0.2
+ylabel={Incidence (cases / 100,000)},
+ymin=0, ymax=80,
+ytick={0,10,...,80},
+minor y tick num=4, % Creates 4 subdivision intervals (at 2, 4, 6, 8)
+ymajorgrids=true,
+yminorgrids=true,
+symbolic x coords={Country A, Country B, Country C},
+xtick=data,
+enlargelimits=0.2
 ]
 \addplot[ybar, fill=white, draw=black] coordinates {
-    (Country A, 53)
-    (Country B, 62)
-    (Country C, 39)
+(Country A, 53)
+(Country B, 62)
+(Country C, 39)
 };
 \end{axis}
 \end{tikzpicture}
