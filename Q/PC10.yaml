@@ -1,0 +1,42 @@
+id: PC10
+metadata:
+  topic: Genetics and Inheritance
+  marks: 3
+  difficulty_level: 0.6
+question:
+  text: In a population of $800$ fruit flies, researchers are tracking a specific
+    genetic mutation. Studies show that $35\%$ of the population carries this mutation.
+    Calculate the number of fruit flies that carry the mutation. Express your final
+    answer as an integer.
+  variables:
+  - total_population: 800
+  - mutation_percentage: 35
+solution:
+  final_answer: 280
+  marks_available: 3
+  steps:
+  - step_number: 1
+    text: 'Convert the percentage to a decimal: $\frac{35}{100} = 0.35$'
+    marks_assigned: 1
+    check_type: numeric
+    milestone_value: 0.35
+    tolerance: 0.001
+  - step_number: 2
+    text: 'Multiply the decimal by the total population: $0.35 \times 800$'
+    marks_assigned: 1
+    check_type: numeric
+    milestone_value: 280
+    tolerance: 0.1
+  - step_number: 3
+    text: 'State the final answer with the correct unit: $280 \text{ flies}$'
+    marks_assigned: 1
+    check_type: numeric
+    milestone_value: 280
+    tolerance: 0.1
+media:
+  diagram_url: null
+  video_explainer_url: null
+tags:
+- GCSE
+- Percentage
+- Genetics
