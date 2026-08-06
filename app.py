@@ -56,12 +56,14 @@ def get_empty_schema():
             "steps": [{"step_number": 1, "text": "", "marks_assigned": 1, "check_type": "numeric", "milestone_value": 0.0, "tolerance": 0.001}]
         },
         "media": {"diagram_url": None, "video_explainer_url": None},
+        "graph": None,
         "tags": []
     }
 
-def generate_question(prompt_text, force_image=False, unit_conv=False, std_form=False, inc_eq=False):
+def generate_question(prompt_text, force_image=False, force_graph=False, unit_conv=False, std_form=False, inc_eq=False):
     with st.spinner("Generating..."):
         extra_instr = " You MUST include a detailed descriptive text for a diagram in the 'diagram_url' field." if force_image else ""
+        graph_instr = " You MUST include the information needed for a PGFPlots graph to be rendered under the top-level 'graph' key." if force_graph else ""
         latex_instr = " All mathematical expressions and scientific notation MUST be formatted in LaTeX (e.g., $E=mc^2$)."
         
         conv_instr = " include one unit that must be converted to its base unit in the question." if unit_conv else " do not use unit conversions."
@@ -70,7 +72,7 @@ def generate_question(prompt_text, force_image=False, unit_conv=False, std_form=
         
         query = (f"Generate a physics question based on: {prompt_text}.{latex_instr} "
                  f"{conv_instr} {std_form_instr} {eq_instr} "
-                 f"Output strictly in valid YAML matching this schema: {st.session_state.data}.{extra_instr} "
+                 f"Output strictly in valid YAML matching this schema: {st.session_state.data}.{extra_instr}{graph_instr} "
                  "Return ONLY the YAML.")
         
         try:
@@ -111,13 +113,16 @@ with col_t2:
 with col_t3:
     inc_eq = st.toggle("Include Equation")
 
-col_gen1, col_gen2 = st.columns(2)
+col_gen1, col_gen2, col_gen3 = st.columns(3)
 with col_gen1:
     if st.button("Generate Question"):
-        generate_question(prompt, force_image=False, unit_conv=unit_conv, std_form=std_form, inc_eq=inc_eq)
+        generate_question(prompt, force_image=False, force_graph=False, unit_conv=unit_conv, std_form=std_form, inc_eq=inc_eq)
 with col_gen2:
     if st.button("Generate Question with Image"):
-        generate_question(prompt, force_image=True, unit_conv=unit_conv, std_form=std_form, inc_eq=inc_eq)
+        generate_question(prompt, force_image=True, force_graph=False, unit_conv=unit_conv, std_form=std_form, inc_eq=inc_eq)
+with col_gen3:
+    if st.button("Generate with Graph"):
+        generate_question(prompt, force_image=False, force_graph=True, unit_conv=unit_conv, std_form=std_form, inc_eq=inc_eq)
 
 st.subheader("Edit Question Data")
 st.session_state.data['id'] = st.text_input("Question ID", st.session_state.data['id'])
