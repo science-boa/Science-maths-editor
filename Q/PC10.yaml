@@ -7,7 +7,7 @@ question:
   text: In a population of $800$ fruit flies, researchers are tracking a specific
     genetic mutation. Studies show that $35\%$ of the population carries this mutation.
     Calculate the number of fruit flies that carry the mutation. Express your final
-    answer as an integer.
+    answer to the nearest whole number.
   variables:
   - total_population: 800
   - mutation_percentage: 35
