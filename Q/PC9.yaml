@@ -1,0 +1,41 @@
+id: PC9
+metadata:
+  topic: Cell Biology
+  marks: 3
+  difficulty_level: 0.6
+question:
+  text: A scientist is observing a culture of $2500$ cells under a microscope. It
+    is determined that $64\%$ of these cells are currently in the process of mitosis.
+    Calculate the number of cells that are in the process of mitosis.
+  variables:
+  - total_cells: 2500
+  - mitosis_percentage: 64
+solution:
+  final_answer: 1600
+  marks_available: 3
+  steps:
+  - step_number: 1
+    text: 'Convert the percentage to a decimal: $\frac{64}{100} = 0.64$'
+    marks_assigned: 1
+    check_type: numeric
+    milestone_value: 0.64
+    tolerance: 0.001
+  - step_number: 2
+    text: 'Multiply the decimal by the total number of cells: $0.64 \times 2500$'
+    marks_assigned: 1
+    check_type: numeric
+    milestone_value: 1600
+    tolerance: 0.1
+  - step_number: 3
+    text: 'State the final answer with the correct unit: $1600 \text{ cells}$'
+    marks_assigned: 1
+    check_type: numeric
+    milestone_value: 1600
+    tolerance: 0.1
+media:
+  diagram_url: null
+  video_explainer_url: null
+tags:
+- GCSE
+- Percentage
+- Cell Biology
