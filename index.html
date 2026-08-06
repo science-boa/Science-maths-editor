@@ -293,21 +293,40 @@
         let chartType = 'line';
         let labels = [];
         let dataPoints = [];
-        let datasetLabel = graphConfig.ylabel || 'Value';
+        let datasetLabel = 'Value';
 
-        if (graphConfig.type === 'scatter' || graphConfig.type === 'axis') {
-          chartType = 'scatter';
-          if (Array.isArray(graphConfig.coordinates)) {
-            dataPoints = graphConfig.coordinates.map(pt => ({ x: pt[0], y: pt[1] }));
-          } else if (typeof graphConfig.coordinates === 'string') {
-            // Parse PGFPlots coordinate string like "(0,0) (1,2) (2,4)"
-            const matches = graphConfig.coordinates.matchAll(/\(\s*([+-]?\d*\.?\d+)\s*,\s*([+-]?\d*\.?\d+)\s*\)/g);
+        // Check if graphConfig is a LaTeX PGFPlots string
+        if (typeof graphConfig === 'string' && graphConfig.includes('tikzpicture')) {
+          // Extract ylabel if present
+          const yLabelMatch = graphConfig.match(/ylabel\s*=\s*\{([^}]+)\}/);
+          if (yLabelMatch) datasetLabel = yLabelMatch[1];
+
+          // Check if bar chart (ybar)
+          if (graphConfig.includes('ybar')) {
+            chartType = 'bar';
+          }
+
+          // Extract coordinates from addplot: e.g., (Country A, 43) (Country B, 82)
+          const addplotMatch = graphConfig.match(/\\addplot\s+(?:coordinates\s*)?\{([^}]+)\}/s);
+          if (addplotMatch) {
+            const coordBlock = addplotMatch[1];
+            // Match pairs like (x, y)
+            const matches = coordBlock.matchAll(/\(\s*([^,]+)\s*,\s*([+-]?\d*\.?\d+)\s*\)/g);
             for (const match of matches) {
-              dataPoints.push({ x: parseFloat(match[1]), y: parseFloat(match[2]) });
+              const xVal = match[1].trim();
+              const yVal = parseFloat(match[2]);
+              if (chartType === 'bar' || isNaN(xVal)) {
+                labels.push(xVal);
+                dataPoints.push(yVal);
+              } else {
+                dataPoints.push({ x: parseFloat(xVal), y: yVal });
+              }
             }
           }
-        } else {
-          // Default line or bar
+        } else if (typeof graphConfig === 'object' && graphConfig !== null) {
+          // Fallback to structured object format if used
+          datasetLabel = graphConfig.ylabel || 'Value';
+          if (graphConfig.type === 'bar') chartType = 'bar';
           if (Array.isArray(graphConfig.coordinates)) {
             labels = graphConfig.coordinates.map(pt => pt[0]);
             dataPoints = graphConfig.coordinates.map(pt => pt[1]);
@@ -315,16 +334,15 @@
         }
 
         activeChartInstance = new Chart(ctx, {
-          type: chartType === 'scatter' ? 'scatter' : 'line',
+          type: chartType === 'bar' ? 'bar' : 'line',
           data: {
-            labels: chartType === 'scatter' ? undefined : labels,
+            labels: labels.length > 0 ? labels : undefined,
             datasets: [{
               label: datasetLabel,
               data: dataPoints,
+              backgroundColor: 'rgba(37, 99, 235, 0.6)',
               borderColor: '#2563eb',
-              backgroundColor: 'rgba(37, 99, 235, 0.1)',
-              borderWidth: 2,
-              fill: chartType !== 'scatter',
+              borderWidth: 1,
               tension: 0.1
             }]
           },
@@ -333,11 +351,10 @@
             maintainAspectRatio: false,
             scales: {
               x: {
-                title: { display: !!graphConfig.xlabel, text: graphConfig.xlabel || '' },
                 grid: { color: '#f3f4f6' }
               },
               y: {
-                title: { display: !!graphConfig.ylabel, text: graphConfig.ylabel || '' },
+                title: { display: !!datasetLabel, text: datasetLabel },
                 grid: { color: '#f3f4f6' }
               }
             },
@@ -347,7 +364,7 @@
           }
         });
       } catch (e) {
-        console.error("Failed parsing graph config:", e);
+        console.error("Failed parsing PGFPlot/graph config:", e);
       }
     }
 
