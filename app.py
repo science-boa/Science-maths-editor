@@ -235,12 +235,56 @@ def render_yaml_graph_to_image(graph_data):
     if g_type != 'bar' and xtick_dist and xmin is not None and xmax is not None:
         ax.set_xticks(np.arange(xmin, xmax + xtick_dist * 0.1, xtick_dist))
 
-    ax.xaxis.grid(True, which='major', color='#000000', alpha=1.0, linestyle='solid', linewidth=0.7)
-    ax.yaxis.grid(True, which='major', color='#000000', alpha=1.0, linestyle='solid', linewidth=0.7)
-    ax.xaxis.set_minor_locator(AutoMinorLocator(5))
-    ax.xaxis.grid(True, which='minor', color='#000000', alpha=1.0, linestyle='dashed', linewidth=0.5)
-    ax.yaxis.set_minor_locator(AutoMinorLocator(5))
-    ax.yaxis.grid(True, which='minor', color='#000000', alpha=1.0, linestyle='dashed', linewidth=0.5)
+    # Dynamic Grid Rendering Logic based on axes config
+    style_map = {'solid': '-', 'dashed': '--', 'dotted': ':', 'dashdot': '-.'}
+
+    # x_major_grid
+    x_maj = axes_cfg.get('x_major_grid', {})
+    if x_maj and x_maj.get('present', True):
+        c = x_maj.get('color', '#000000')
+        alpha = float(x_maj.get('opacity', 1.0))
+        ls = x_maj.get('style', 'solid')
+        ls = style_map.get(ls, ls)
+        ax.xaxis.grid(True, which='major', color=c, alpha=alpha, linestyle=ls, linewidth=0.7)
+    else:
+        ax.xaxis.grid(False, which='major')
+
+    # y_major_grid
+    y_maj = axes_cfg.get('y_major_grid', {})
+    if y_maj and y_maj.get('present', True):
+        c = y_maj.get('color', '#000000')
+        alpha = float(y_maj.get('opacity', 1.0))
+        ls = y_maj.get('style', 'solid')
+        ls = style_map.get(ls, ls)
+        ax.yaxis.grid(True, which='major', color=c, alpha=alpha, linestyle=ls, linewidth=0.7)
+    else:
+        ax.yaxis.grid(False, which='major')
+
+    # x_minor_grid
+    x_min = axes_cfg.get('x_minor_grid', {})
+    if x_min and x_min.get('present', True):
+        divs = int(x_min.get('divisions', 5))
+        c = x_min.get('color', '#000000')
+        alpha = float(x_min.get('opacity', 1.0))
+        ls = x_min.get('style', 'dashed')
+        ls = style_map.get(ls, ls)
+        ax.xaxis.set_minor_locator(AutoMinorLocator(divs))
+        ax.xaxis.grid(True, which='minor', color=c, alpha=alpha, linestyle=ls, linewidth=0.5)
+    else:
+        ax.xaxis.grid(False, which='minor')
+
+    # y_minor_grid
+    y_min = axes_cfg.get('y_minor_grid', {})
+    if y_min and y_min.get('present', True):
+        divs = int(y_min.get('divisions', 5))
+        c = y_min.get('color', '#000000')
+        alpha = float(y_min.get('opacity', 1.0))
+        ls = y_min.get('style', 'dashed')
+        ls = style_map.get(ls, ls)
+        ax.yaxis.set_minor_locator(AutoMinorLocator(divs))
+        ax.yaxis.grid(True, which='minor', color=c, alpha=alpha, linestyle=ls, linewidth=0.5)
+    else:
+        ax.yaxis.grid(False, which='minor')
         
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
