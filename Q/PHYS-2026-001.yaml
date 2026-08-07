@@ -1,19 +1,19 @@
 id: PHYS-2026-001
 metadata:
   topic: Thermal Physics
-  marks: 4
+  marks: 1
   difficulty_level: 0.5
 question:
   text: The graph shows the cooling curve of a liquid. Use the graph to determine
-    the time $t$ at which the temperature $\theta$ reaches $40 \, ^\circ\text{C}$.
+    the time $t$ in seconds at which the temperature $\theta$ reaches $40 \, ^\circ\text{C}$.
   variables: []
 solution:
   final_answer: 30.0
-  marks_available: 4
+  marks_available: 1
   steps:
   - step_number: 1
-    text: Identify the point on the y-axis at $40 \, ^\circ\text{C}$ and read the
-      corresponding x-axis value.
+    text: Identify the point on the y-axis at $40 \, ^\circ\text{C}$, move horizontally
+      to the curve, and read the corresponding value on the x-axis.
     marks_assigned: 1
     check_type: numeric
     milestone_value: 30.0
