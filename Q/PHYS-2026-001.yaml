@@ -1,27 +1,26 @@
 id: PHYS-2026-001
 metadata:
-  topic: Thermal Physics - Cooling Curves
+  topic: Radioactive Decay
   marks: 4
   difficulty_level: 0.5
 question:
-  text: The graph shows the temperature of a cooling liquid over time. Using the graph,
-    determine the time $t$ in seconds at which the temperature of the liquid is $40\text{
-    }^\circ\text{C}$.
+  text: The graph shows the activity of a radioactive isotope over time. Determine
+    the time, in seconds ($s$), at which the activity ($A$) of the sample falls to
+    $200$ $Bq$.
   variables: []
 solution:
-  final_answer: 30.0
+  final_answer: 40.0
   marks_available: 4
   steps:
   - step_number: 1
-    text: Identify the value $40\text{ }^\circ\text{C}$ on the y-axis, draw a horizontal
-      line to the curve, and drop a vertical line to the x-axis to find the time.
+    text: Identify the value of $200$ $Bq$ on the y-axis, draw a horizontal line to
+      the curve, and read the corresponding value on the x-axis.
     marks_assigned: 1
     check_type: numeric
-    milestone_value: 30.0
+    milestone_value: 40.0
     tolerance: 2.0
 tags:
-- GCSE
-- Thermal Physics
-- Graph Analysis
+- radioactivity
+- graph-interpretation
 media:
   diagram_url: I/PHYS-2026-001.png
