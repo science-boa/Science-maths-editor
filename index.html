@@ -13,8 +13,6 @@
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
 
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
   <style>
     input::-webkit-outer-spin-button,
     input::-webkit-inner-spin-button {
@@ -169,7 +167,6 @@
     let calcExpression = "";
     let lastAnswer = 0;
     let finalResultsSummary = null;
-    let activeChartInstance = null;
 
     window.addEventListener('DOMContentLoaded', async () => {
       startTime = Date.now();
@@ -279,19 +276,11 @@
       
       let mediaHtml = '';
       if (q.media && q.media.diagram_url) {
-        mediaHtml += `<div class="mb-6 border border-gray-200 bg-gray-100 rounded-lg w-full max-h-[500px] flex items-center justify-center overflow-hidden"><img src="${BASE_RAW_URL}${q.media.diagram_url}" alt="Question Diagram" class="object-contain w-full h-auto max-h-[400px]" onerror="this.parentElement.innerHTML='<span class=\'text-xs text-gray-400\'>Diagram Image Reference Broken: ${q.media.diagram_url}</span>'"></div>`;
+        mediaHtml += `<div class="mb-6 border border-gray-200 bg-gray-100 rounded-lg w-full flex items-center justify-center overflow-hidden"><img src="${BASE_RAW_URL}${q.media.diagram_url}" alt="Question Diagram" onclick="toggleImageFullSize(this)" class="object-contain w-full h-auto max-h-[400px] cursor-pointer transition-all duration-300" title="Click to toggle full size" onerror="this.parentElement.innerHTML='<span class=\'text-xs text-gray-400\'>Diagram Image Reference Broken: ${q.media.diagram_url}</span>'"></div>`;
       }
-      
-      mediaHtml += `<div id="graph-container-${currentIndex}" class="mb-6 border border-gray-200 bg-white p-4 rounded-lg w-full ${q.graph ? '' : 'hidden'}"><div class="relative w-full h-72 md:h-96 max-h-[500px]"><canvas id="pgfplot-canvas-${currentIndex}"></canvas></div></div>`;
       
       questionArea.innerHTML = `<div class="text-xs font-bold text-blue-600 tracking-wider uppercase mb-1">${q.metadata?.topic || 'General Science'}</div><h2 class="text-xl font-bold text-gray-900 mb-4">Question ID: ${q.id}</h2>${mediaHtml}<div id="math-text" class="text-base leading-relaxed text-gray-800 font-normal">${q.question.text}</div>`;
       renderMathInElement(document.getElementById('math-text'), { delimiters: [{ left: "$$", right: "$$", display: true }, { left: "$", right: "$", display: false }] });
-      
-      if (q.graph) {
-        setTimeout(() => {
-          renderPGFPlot(q.graph, `pgfplot-canvas-${currentIndex}`);
-        }, 50);
-      }
 
       workingArea.classList.remove('hidden');
       document.getElementById('scratchpad').value = localStorage.getItem(`scratchpad-id-${q.id}`) || '';
@@ -307,348 +296,14 @@
       }
     }
 
-    function parsePgfplotsOptions(str) {
-      const options = {};
-      if (!str || typeof str !== 'string') return options;
-
-      let axisOptStr = str;
-      const axisMatch = str.match(/\\begin\{axis\}\s*\[([\s\S]*?)\]/);
-      if (axisMatch) {
-        axisOptStr = axisMatch[1];
-      }
-
-      let currentKey = '';
-      let currentValue = '';
-      let inBraces = 0;
-      let isParsingValue = false;
-
-      for (let i = 0; i < axisOptStr.length; i++) {
-        const char = axisOptStr[i];
-
-        if (char === '{') {
-          inBraces++;
-          if (isParsingValue && inBraces > 1) currentValue += char;
-        } else if (char === '}') {
-          inBraces--;
-          if (isParsingValue && inBraces > 0) currentValue += char;
-        } else if (char === '=' && inBraces === 0 && !isParsingValue) {
-          isParsingValue = true;
-        } else if ((char === ',' || char === '\n') && inBraces === 0) {
-          if (currentKey.trim()) {
-            const k = currentKey.trim();
-            const v = isParsingValue ? currentValue.trim() : true;
-            options[k] = v;
-          }
-          currentKey = '';
-          currentValue = '';
-          isParsingValue = false;
-        } else {
-          if (isParsingValue) {
-            currentValue += char;
-          } else {
-            currentKey += char;
-          }
-        }
-      }
-      if (currentKey.trim()) {
-        const k = currentKey.trim();
-        const v = isParsingValue ? currentValue.trim() : true;
-        options[k] = v;
-      }
-
-      return options;
-    }
-
-    function parseLatexColor(str, defaultColor = 'rgba(156, 163, 175, 0.5)') {
-      if (!str) return defaultColor;
-      str = str.trim();
-
-      const colorMap = {
-        'gray': [128, 128, 128],
-        'black': [0, 0, 0],
-        'white': [255, 255, 255],
-        'red': [239, 68, 68],
-        'blue': [59, 130, 246],
-        'green': [34, 197, 94],
-        'yellow': [234, 179, 8],
-        'cyan': [6, 182, 212],
-        'magenta': [217, 70, 239],
-        'orange': [249, 115, 22],
-        'purple': [168, 85, 247],
-        'violet': [139, 92, 246],
-        'teal': [20, 184, 166],
-        'brown': [180, 83, 9]
-      };
-
-      const mixMatch = str.match(/^([a-zA-Z]+)!(\d+)(?:!([a-zA-Z]+))?$/);
-      if (mixMatch) {
-        const baseColorName = mixMatch[1].toLowerCase();
-        const percent = parseFloat(mixMatch[2]) / 100;
-        const mixColorName = (mixMatch[3] || 'white').toLowerCase();
-
-        const c1 = colorMap[baseColorName] || [128, 128, 128];
-        const c2 = colorMap[mixColorName] || [255, 255, 255];
-
-        const r = Math.round(c1[0] * percent + c2[0] * (1 - percent));
-        const g = Math.round(c1[1] * percent + c2[1] * (1 - percent));
-        const b = Math.round(c1[2] * percent + c2[2] * (1 - percent));
-
-        return `rgb(${r}, ${g}, ${b})`;
-      }
-
-      if (colorMap[str.toLowerCase()]) {
-        const c = colorMap[str.toLowerCase()];
-        return `rgb(${c[0]}, ${c[1]}, ${c[2]})`;
-      }
-
-      if (str.startsWith('#') || str.startsWith('rgb') || str.startsWith('hsl')) {
-        return str;
-      }
-
-      return defaultColor;
-    }
-
-    function parseStyleProps(styleStr) {
-      const result = {
-        color: null,
-        borderDash: [],
-        borderWidth: 1
-      };
-      if (!styleStr) return result;
-
-      const parts = styleStr.split(',').map(p => p.trim());
-      parts.forEach(part => {
-        if (part === 'solid') {
-          result.borderDash = [];
-        } else if (part === 'dashed') {
-          result.borderDash = [6, 6];
-        } else if (part === 'dotted') {
-          result.borderDash = [2, 2];
-        } else if (part === 'dense dotted') {
-          result.borderDash = [1, 2];
-        } else if (part === 'loose dotted') {
-          result.borderDash = [3, 5];
-        } else if (part === 'ultra thin') {
-          result.borderWidth = 0.5;
-        } else if (part === 'very thin') {
-          result.borderWidth = 0.75;
-        } else if (part === 'thin') {
-          result.borderWidth = 1;
-        } else if (part === 'thick') {
-          result.borderWidth = 2;
-        } else if (part === 'very thick') {
-          result.borderWidth = 3;
-        } else if (part.includes('!')) {
-          result.color = parseLatexColor(part);
-        } else {
-          const parsedCol = parseLatexColor(part, null);
-          if (parsedCol) result.color = parsedCol;
-        }
-      });
-
-      return result;
-    }
-
-    function cleanTexString(str) {
-      if (!str) return '';
-      return str.replace(/\$/g, '').trim();
-    }
-
-    function renderPGFPlot(graphConfig, canvasId) {
-      if (activeChartInstance) {
-        activeChartInstance.destroy();
-        activeChartInstance = null;
-      }
-      const ctx = document.getElementById(canvasId);
-      if (!ctx) return;
-
-      try {
-        let opts = {};
-        let pgfString = "";
-
-        if (typeof graphConfig === 'string') {
-          pgfString = graphConfig;
-          opts = parsePgfplotsOptions(graphConfig);
-        } else if (typeof graphConfig === 'object' && graphConfig !== null) {
-          Object.assign(opts, graphConfig);
-          if (typeof graphConfig.pgfplots === 'string') {
-            pgfString = graphConfig.pgfplots;
-            const parsedPgf = parsePgfplotsOptions(graphConfig.pgfplots);
-            opts = { ...opts, ...parsedPgf };
-          }
-        }
-
-        let chartType = 'line';
-        if (opts.type === 'bar' || opts.ybar || (pgfString && pgfString.includes('ybar'))) {
-          chartType = 'bar';
-        }
-
-        let datasetLabel = cleanTexString(opts.ylabel || opts.label) || 'Value';
-        let xLabelText = cleanTexString(opts.xlabel);
-        let chartTitle = cleanTexString(opts.title);
-
-        let labels = [];
-        let dataPoints = [];
-
-        if (graphConfig && typeof graphConfig === 'object' && graphConfig.data && Array.isArray(graphConfig.data.x) && Array.isArray(graphConfig.data.y)) {
-          labels = graphConfig.data.x;
-          dataPoints = graphConfig.data.y;
-        } else if (graphConfig && typeof graphConfig === 'object' && Array.isArray(graphConfig.coordinates)) {
-          labels = graphConfig.coordinates.map(pt => pt[0]);
-          dataPoints = graphConfig.coordinates.map(pt => pt[1]);
-        } else if (pgfString) {
-          const addplotMatch = pgfString.match(/\\addplot\s*(?:\[([\s\S]*?)\])?\s*(?:coordinates\s*)?\{([\s\S]*?)\}/);
-          if (addplotMatch) {
-            const coordBlock = addplotMatch[2];
-            const matches = coordBlock.matchAll(/\(\s*([^,]+)\s*,\s*([+-]?\d*\.?\d+)\s*\)/g);
-            for (const match of matches) {
-              const xVal = match[1].trim();
-              const yVal = parseFloat(match[2]);
-              if (chartType === 'bar' || isNaN(parseFloat(xVal))) {
-                labels.push(xVal);
-                dataPoints.push(yVal);
-              } else {
-                dataPoints.push({ x: parseFloat(xVal), y: yVal });
-              }
-            }
-          }
-        }
-
-        if (labels.length === 0 && opts['symbolic x coords']) {
-          const symStr = opts['symbolic x coords'].replace(/^\{|\}$/g, '');
-          labels = symStr.split(',').map(s => s.trim());
-        }
-
-        // Parsing Grid & Formatting Instructions
-        const ymajorgrids = (opts.ymajorgrids === 'true' || opts.ymajorgrids === true || (opts.ymajorgrids !== 'false' && opts.ymajorgrids !== false));
-        const xmajorgrids = (opts.xmajorgrids === 'true' || opts.xmajorgrids === true);
-        const yminorgrids = (opts.yminorgrids === 'true' || opts.yminorgrids === true);
-        const xminorgrids = (opts.xminorgrids === 'true' || opts.xminorgrids === true);
-
-        const minorYTickNum = parseInt(opts['minor y tick num'] || opts.minor_y_tick_num || opts.minorYTickNum || 0);
-        const minorXTickNum = parseInt(opts['minor x tick num'] || opts.minor_x_tick_num || opts.minorXTickNum || 0);
-
-        const majorGridStyle = parseStyleProps(opts['grid style'] || opts.grid_style || opts.gridStyle);
-        const minorGridStyle = parseStyleProps(opts['minor grid style'] || opts.minor_grid_style || opts.minorGridStyle);
-
-        const numericY = dataPoints.map(p => (typeof p === 'object' && p !== null ? p.y : parseFloat(p))).filter(v => !isNaN(v));
-        const rawMinY = numericY.length ? Math.min(...numericY) : 0;
-        const rawMaxY = numericY.length ? Math.max(...numericY) : 100;
-
-        let yScaleMin = opts.ymin !== undefined ? parseFloat(opts.ymin) : Math.min(0, rawMinY);
-        let yScaleMax = opts.ymax !== undefined ? parseFloat(opts.ymax) : undefined;
-
-        if (yScaleMax === undefined) {
-          yScaleMax = Math.ceil(rawMaxY / 20) * 20;
-          if (yScaleMax <= rawMaxY) yScaleMax = Math.ceil((rawMaxY + 10) / 10) * 10;
-        }
-
-        const yRange = yScaleMax - yScaleMin;
-        const majorStep = yRange > 0 ? (yRange / 5) : 20;
-        const subStep = (minorYTickNum > 0 && yRange > 0) ? (majorStep / (minorYTickNum + 1)) : majorStep;
-
-        const checkIsMajor = (val, baseMin, step) => {
-          const rel = Math.abs(val - baseMin);
-          const rem = rel % step;
-          return rem < 1e-4 || Math.abs(rem - step) < 1e-4;
-        };
-
-        const chartConfig = {
-          type: chartType === 'bar' ? 'bar' : 'line',
-          data: {
-            labels: labels.length > 0 ? labels : undefined,
-            datasets: [{
-              label: datasetLabel,
-              data: dataPoints,
-              backgroundColor: chartType === 'bar' ? '#000000' : 'rgba(37, 99, 235, 0.6)',
-              borderColor: chartType === 'bar' ? '#000000' : '#2563eb',
-              borderWidth: 1,
-              tension: 0.1
-            }]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-              legend: { display: false },
-              title: {
-                display: !!chartTitle,
-                text: chartTitle,
-                font: { size: 14, weight: 'bold' }
-              }
-            },
-            scales: {
-              x: {
-                title: {
-                  display: !!xLabelText,
-                  text: xLabelText,
-                  font: { size: 12, weight: 'bold' }
-                },
-                grid: {
-                  display: xmajorgrids || xminorgrids,
-                  color: (ctx) => {
-                    if (!xmajorgrids && !xminorgrids) return 'transparent';
-                    return majorGridStyle.color || '#e5e7eb';
-                  },
-                  borderDash: majorGridStyle.borderDash || [],
-                  lineWidth: majorGridStyle.borderWidth || 1
-                }
-              },
-              y: {
-                min: yScaleMin,
-                max: yScaleMax,
-                title: {
-                  display: !!datasetLabel,
-                  text: datasetLabel,
-                  font: { size: 12, weight: 'bold' }
-                },
-                ticks: {
-                  stepSize: subStep,
-                  callback: function(value) {
-                    return checkIsMajor(value, yScaleMin, majorStep) ? value : '';
-                  }
-                },
-                grid: {
-                  display: ymajorgrids || yminorgrids,
-                  color: function(context) {
-                    if (!context.tick) return majorGridStyle.color || '#e5e7eb';
-                    const val = context.tick.value;
-                    const isMajor = checkIsMajor(val, yScaleMin, majorStep);
-                    if (isMajor) {
-                      return ymajorgrids ? (majorGridStyle.color || '#d1d5db') : 'transparent';
-                    } else {
-                      return yminorgrids ? (minorGridStyle.color || 'rgba(156, 163, 175, 0.4)') : 'transparent';
-                    }
-                  },
-                  borderDash: function(context) {
-                    if (!context.tick) return [];
-                    const val = context.tick.value;
-                    const isMajor = checkIsMajor(val, yScaleMin, majorStep);
-                    if (isMajor) {
-                      return majorGridStyle.borderDash || [];
-                    } else {
-                      return minorGridStyle.borderDash || [];
-                    }
-                  },
-                  lineWidth: function(context) {
-                    if (!context.tick) return 1;
-                    const val = context.tick.value;
-                    const isMajor = checkIsMajor(val, yScaleMin, majorStep);
-                    if (isMajor) {
-                      return majorGridStyle.borderWidth || 1;
-                    } else {
-                      return minorGridStyle.borderWidth || 0.75;
-                    }
-                  }
-                }
-              }
-            }
-          }
-        };
-
-        activeChartInstance = new Chart(ctx, chartConfig);
-      } catch (e) {
-        console.error("Failed parsing PGFPlot/graph config:", e);
+    function toggleImageFullSize(imgElement) {
+      if (!imgElement.classList.contains('fixed')) {
+        imgElement.dataset.originalParent = imgElement.parentElement.outerHTML;
+        imgElement.classList.remove('object-contain', 'w-full', 'h-auto', 'max-h-[400px]');
+        imgElement.classList.add('fixed', 'inset-0', 'm-auto', 'max-w-[95vw]', 'max-h-[95vh]', 'w-auto', 'h-auto', 'object-contain', 'z-50', 'bg-black/80', 'p-4', 'rounded-lg', 'shadow-2xl');
+      } else {
+        imgElement.classList.remove('fixed', 'inset-0', 'm-auto', 'max-w-[95vw]', 'max-h-[95vh]', 'w-auto', 'h-auto', 'object-contain', 'z-50', 'bg-black/80', 'p-4', 'rounded-lg', 'shadow-2xl');
+        imgElement.classList.add('object-contain', 'w-full', 'h-auto', 'max-h-[400px]');
       }
     }
 
@@ -739,7 +394,7 @@
       const modal = document.createElement('div');
       modal.className = "fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50";
       modal.id = "payload-modal";
-      modal.innerHTML = `<div class="bg-white p-6 rounded-2xl max-w-lg w-full max-h-[80vh] overflow-auto flex flex-col shadow-2xl border border-gray-100"><h3 class="font-bold mb-2 text-gray-900 text-lg">System Submission Status</h3><div id="modal-status" class="mb-4 p-3 rounded-lg text-sm font-semibold flex items-center gap-2 bg-blue-50 text-blue-800 animate-pulse"><svg class="animate-spin h-4 w-4 text-blue-800" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><span>Connecting & sending results to Flow...</span></div><h4 class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">Payload Output Data</h4><pre class="bg-gray-100 p-4 rounded-lg text-xs text-gray-800 font-mono overflow-auto max-h-56">${JSON.stringify(finalResultsSummary, null, 2)}</pre><button onclick="document.getElementById('payload-modal').remove()" class="mt-5 bg-gray-800 hover:bg-gray-700 text-white px-5 py-2 rounded-xl cursor-pointer transition-colors text-sm font-semibold self-end shadow-md">Close Preview</button></div>`;
+      modal.innerHTML = `<div class="bg-white p-6 rounded-2xl max-w-lg w-full overflow-auto flex flex-col shadow-2xl border border-gray-100"><h3 class="font-bold mb-2 text-gray-900 text-lg">System Submission Status</h3><div id="modal-status" class="mb-4 p-3 rounded-lg text-sm font-semibold flex items-center gap-2 bg-blue-50 text-blue-800 animate-pulse"><svg class="animate-spin h-4 w-4 text-blue-800" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><span>Connecting & sending results to Flow...</span></div><button onclick="document.getElementById('payload-modal').remove()" class="mt-2 bg-gray-800 hover:bg-gray-700 text-white px-5 py-2 rounded-xl cursor-pointer transition-colors text-sm font-semibold self-end shadow-md">Close</button></div>`;
       document.body.appendChild(modal);
       
       if (POWER_AUTOMATE_URL) {
