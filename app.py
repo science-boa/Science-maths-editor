@@ -10,6 +10,48 @@ from matplotlib.ticker import MultipleLocator, AutoMinorLocator
 from github import Github
 from google import genai
 
+# --- Embedded Reference Documentation ---
+EMBEDDED_GRAPH_REFERENCE = """# Scientific Graph Keys and Syntax Reference
+
+This reference guide lists all the configuration keys, data structures, and syntax rules used by the `render_yaml_graph_to_image` function in your Physics Question Generator application.
+
+## 1. Top-Level Graph Keys
+
+Every scientific graph object defined under the top-level `graph` key in a question YAML file supports the following properties:
+
+| Key | Type | Description |
+| --- | --- | --- |
+| `type` | String | Defines the chart type. Options: `'bar'`, `'scatter'`, `'line'`, or `'mixed'`. |
+| `title` | String | The title displayed at the top of the rendered graph figure. |
+| `xlabel` | String | The label displayed along the horizontal ($X$) axis. |
+| `ylabel` | String | The label displayed along the vertical ($Y$) axis. |
+| `axes` | Dictionary | Configuration block for axis limits, major/minor gridlines, and tick spacings. |
+| `data` | Dictionary | Primary data block (used for simple bar charts or single-series data). |
+| `datasets` | List of Dictionaries | Multi-series data block (used for scatter plots with separate data points and lines of best fit). |
+
+## 2. Axes Configuration (`axes`)
+
+The `axes` dictionary fine-tunes the plotting area, tick mark intervals, and gridline behaviors:
+
+| Key | Type | Description |
+| --- | --- | --- |
+| `ymin` | Float / Int | Minimum value for the vertical ($Y$) axis. |
+| `ymax` | Float / Int | Maximum value for the vertical ($Y$) axis. |
+| `xmin` | Float / Int | Minimum value for the horizontal ($X$) axis. |
+| `xmax` | Float / Int | Maximum value for the horizontal ($X$) axis. |
+| `ytick_distance` | Float / Int | Step size interval for major tick marks on the $Y$ axis. |
+| `xtick_distance` | Float / Int | Step size interval for major tick marks on the $X$ axis. |
+| `x_major_grid` | Dictionary | Configuration for $X$-axis major grid lines. |
+| `y_major_grid` | Dictionary | Configuration for $Y$-axis major grid lines. |
+"""
+
+EMBEDDED_DEFAULT_PROMPTS = [
+    "Act as an expert GCSE Physics examiner. Generate a calculation question involving force, mass, and acceleration.",
+    "Act as an expert GCSE Physics examiner. Generate a graph analysis question involving Hooke's law and extension.",
+    "Act as an expert GCSE Physics examiner. Generate a energy calculation question involving specific heat capacity.",
+    "Act as an expert GCSE Physics examiner. Generate a wave equation calculation question involving frequency and wavelength."
+]
+
 # --- Configuration ---
 st.set_page_config(page_title="Physics Question Generator", layout="wide")
 
@@ -19,14 +61,8 @@ def clean_latex(text):
     return text.replace('\\\\', '\\')
 
 def load_prompt_library():
-    if os.path.exists("prompts.csv"):
-        try:
-            df = pd.read_csv("prompts.csv", header=None, quotechar='"')
-            prompts = df.iloc[:, 0].dropna().tolist()
-            return {f"{i+1}: {p[:40]}...": p for i, p in enumerate(prompts)}
-        except Exception as e:
-            st.error(f"Error loading CSV: {e}")
-    return {"Default Prompt": "Act as an expert GCSE Physics examiner. Generate a calculation question..."}
+    # Load prompts from embedded list instead of prompts.csv
+    return {f"{i+1}: {p[:40]}...": p for i, p in enumerate(EMBEDDED_DEFAULT_PROMPTS)}
 
 def push_to_github(filename, content, subdir="Q", is_image=False, image_data=None):
     path = f"{subdir}/{filename}"
@@ -346,11 +382,8 @@ if st.session_state.get('pushed_graph_id'):
             
             st.divider()
             st.markdown("### Scientific Graph Keys & Syntax Reference")
-            if os.path.exists("graph_keys_reference.md"):
-                with open("graph_keys_reference.md", "r") as ref_file:
-                    st.markdown(ref_file.read())
-            else:
-                st.warning("Reference guide file `graph_keys_reference.md` not found.")
+            # Render embedded reference documentation directly
+            st.markdown(EMBEDDED_GRAPH_REFERENCE)
             
     except Exception as e:
         st.warning(f"Could not load `G/{pushed_id}.yaml` from GitHub yet: {e}")
