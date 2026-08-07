@@ -1,49 +1,76 @@
-type: bar
-title: Reported Cases of Disease by Country
-xlabel: Country
-ylabel: Number of Cases
+type: line
+title: Voltage Across a Discharging Capacitor Over Time
+xlabel: Time (s)
+ylabel: Voltage (V)
 axes:
-  xmin: 0
-  xmax: 5
-  xtick_distance: 1
-  ymin: 0
-  ymax: 600
-  ytick_distance: 100
-  grid: true
+  xmin: 0.0
+  xmax: 10.0
+  xtick_distance: 1.0
+  ymin: 0.0
+  ymax: 10.0
+  ytick_distance: 1.0
   x_major_grid:
     present: true
-    color: '#000000'
-    opacity: 1.0
-    style: solid
+    color: '#cccccc'
+    opacity: 0.5
+    style: dashed
+    divisions: null
   y_major_grid:
     present: true
-    color: '#000000'
-    opacity: 1.0
-    style: solid
-  x_minor_grid:
-    present: true
-    color: '#000000'
-    opacity: 1.0
+    color: '#cccccc'
+    opacity: 0.5
     style: dashed
-    divisions: 5
-  y_minor_grid:
-    present: true
-    color: '#000000'
-    opacity: 1.0
-    style: dashed
-    divisions: 5
+    divisions: null
+  x_minor_grid: null
+  y_minor_grid: null
+data: null
 datasets:
-- label: Disease Incidence
-  points:
-  - x: 1
-    y: 300
-  - x: 2
-    y: 450
-  - x: 3
-    y: 200
-  - x: 4
-    y: 550
-  point_size: 5
-tags:
-- data-interpretation
-- statistics
+- name: Voltage
+  label: Voltage (V)
+  type: line
+  color: '#1f77b4'
+  point_size: 0
+  coordinates:
+  - x: 0.0
+    y: 10.0
+  - x: 0.5
+    y: 9.048
+  - x: 1.0
+    y: 8.187
+  - x: 1.5
+    y: 7.408
+  - x: 2.0
+    y: 6.703
+  - x: 2.5
+    y: 6.065
+  - x: 3.0
+    y: 5.488
+  - x: 3.5
+    y: 4.966
+  - x: 4.0
+    y: 4.493
+  - x: 4.5
+    y: 4.066
+  - x: 5.0
+    y: 3.679
+  - x: 5.5
+    y: 3.329
+  - x: 6.0
+    y: 3.012
+  - x: 6.5
+    y: 2.725
+  - x: 7.0
+    y: 2.466
+  - x: 7.5
+    y: 2.231
+  - x: 8.0
+    y: 2.019
+  - x: 8.5
+    y: 1.827
+  - x: 9.0
+    y: 1.653
+  - x: 9.5
+    y: 1.496
+  - x: 10.0
+    y: 1.353
+  points: null
