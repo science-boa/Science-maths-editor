@@ -1,0 +1,25 @@
+id: PHYS-2026-002
+metadata:
+  topic: Disease Incidence
+  marks: 1
+  difficulty_level: 0.2
+question:
+  text: The bar graph shows the number of recorded cases of a specific disease in
+    four countries. Determine the number of recorded cases for Country C.
+  variables: []
+solution:
+  final_answer: 32000
+  marks_available: 1
+  steps:
+  - step_number: 1
+    text: Read the value for Country C from the bar chart, noting it lies between
+      the grid lines for 30000 and 40000.
+    marks_assigned: 1
+    check_type: numeric
+    milestone_value: 32000
+    tolerance: 1000
+tags:
+- graph-interpretation
+- data-analysis
+media:
+  diagram_url: I/PHYS-2026-002.png
