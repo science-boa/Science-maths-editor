@@ -1,0 +1,24 @@
+type: line
+title: Capacitor Discharge Curve
+xlabel: Time (s)
+ylabel: Potential Difference (V)
+axes:
+  ymin: 0
+  ymax: 10
+  ytick_distance: 1
+  grid: true
+datasets:
+- label: Discharge
+  values:
+  - x: 0
+    y: 10
+  - x: 1
+    y: 6.3
+  - x: 2
+    y: 4.0
+  - x: 3
+    y: 2.5
+  - x: 4
+    y: 1.6
+  - x: 5
+    y: 1.0
