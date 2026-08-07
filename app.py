@@ -42,15 +42,99 @@ The `axes` dictionary fine-tunes the plotting area, tick mark intervals, and gri
 | `ytick_distance` | Float / Int | Step size interval for major tick marks on the $Y$ axis. |
 | `xtick_distance` | Float / Int | Step size interval for major tick marks on the $X$ axis. |
 | `x_major_grid` | Dictionary | Configuration for $X$-axis major grid lines. |
+| `x_minor_grid` | Dictionary | Configuration for $X$-axis minor grid lines. |
 | `y_major_grid` | Dictionary | Configuration for $Y$-axis major grid lines. |
+| `y_minor_grid` | Dictionary | Configuration for $Y$-axis minor grid lines. |
+
+### Gridline Object Properties (`x_major_grid`, `y_minor_grid`, etc.)
+
+* `present` (Boolean): Turns the gridlines on (`true`) or off (`false`).
+* `color` (String): Hex color code for the grid lines (e.g., `'#000000'`).
+* `opacity` (Float): Transparency level between `0.0` (fully transparent) and `1.0` (fully opaque).
+* `style` (String): Line style (e.g., `'solid'`, `'dashed'`, `'dotted'`).
+
+## 3. Data Structures by Graph Type
+
+### A. Bar Charts (`type: "bar"`)
+Bar charts use a `data` block with discrete category labels and numeric heights:
+```yaml
+graph:
+  type: "bar"
+  title: "Bar Chart Example"
+  xlabel: "Categories"
+  ylabel: "Values"
+  axes:
+    ymin: 0
+    ymax: 100
+    ytick_distance: 20
+  data:
+    labels: ["Cat A", "Cat B", "Cat C"]
+    values: [45, 80, 60]
+    styling:
+      fill: "#374151"    # Bar fill color
+      border: "#111827"  # Bar border outline color
+```
+
+### B. Scatter and Line Plots (`type: "scatter"` or `"line"`)
+For continuous numerical data, coordinates can be provided as an array of dictionaries or coordinate tuples:
+```yaml
+graph:
+  type: "scatter"
+  title: "Scatter Plot Example"
+  xlabel: "Force (N)"
+  ylabel: "Extension (m)"
+  axes:
+    xmin: 0
+    xmax: 100
+    ymin: 0
+    ymax: 4
+    xtick_distance: 20
+    ytick_distance: 1
+  datasets:
+    - name: "Experimental Data"
+      type: "scatter"
+      color: "#2563eb"
+      point_radius: 6
+      coordinates:
+        - {"x": 10, "y": 0.4}
+        - {"x": 30, "y": 1.2}
+        - {"x": 50, "y": 2.0}
+    - name: "Line of Best Fit"
+      type: "line"
+      color: "#dc2626"
+      border_width: 2
+      border_dash: true   # Renders as dashed line if true
+      coordinates:
+        - {"x": 0, "y": 0}
+        - {"x": 100, "y": 4.0}
+```
 """
 
-EMBEDDED_DEFAULT_PROMPTS = [
-    "Act as an expert GCSE Physics examiner. Generate a calculation question involving force, mass, and acceleration.",
-    "Act as an expert GCSE Physics examiner. Generate a graph analysis question involving Hooke's law and extension.",
-    "Act as an expert GCSE Physics examiner. Generate a energy calculation question involving specific heat capacity.",
-    "Act as an expert GCSE Physics examiner. Generate a wave equation calculation question involving frequency and wavelength."
-]
+def load_prompt_library():
+    """
+    Loads custom prompt templates from prompts.csv in the GitHub repository.
+    Falls back to default prompts if CSV is unavailable.
+    """
+    try:
+        g = Github(st.secrets["GITHUB_TOKEN"])
+        repo = g.get_repo(st.secrets["GITHUB_REPO"])
+        file_content = repo.get_contents("prompts.csv")
+        df = pd.read_csv(io.BytesIO(file_content.decoded_content))
+        
+        # Expecting columns like 'title' and 'prompt' or falling back to first two columns
+        if 'title' in df.columns and 'prompt' in df.columns:
+            return {row['title']: row['prompt'] for _, row in df.iterrows()}
+        elif len(df.columns) >= 2:
+            return {row.iloc[0]: row.iloc[1] for _, row in df.iterrows()}
+    except Exception as e:
+        st.warning(f"Could not load prompts.csv from GitHub repository ({e}). Using default prompts.")
+        
+    return {
+        "Force & Acceleration": "Act as an expert GCSE Physics examiner. Generate a calculation question involving force, mass, and acceleration.",
+        "Hooke's Law Graph": "Act as an expert GCSE Physics examiner. Generate a graph analysis question involving Hooke's law and extension.",
+        "Specific Heat Capacity": "Act as an expert GCSE Physics examiner. Generate a energy calculation question involving specific heat capacity.",
+        "Wave Equation": "Act as an expert GCSE Physics examiner. Generate a wave equation calculation question involving frequency and wavelength."
+    }
 
 # --- Configuration ---
 st.set_page_config(page_title="Physics Question Generator", layout="wide")
@@ -257,7 +341,7 @@ PROMPT_LIBRARY = load_prompt_library()
 selected_key = st.sidebar.selectbox("Select a Prompt Type", list(PROMPT_LIBRARY.keys()))
 
 st.title("Physics Question Generator")
-prompt = st.text_area("Question Prompt", value=PROMPT_LIBRARY[selected_key])
+prompt = st.text_area("Question Prompt", value=PROMPT_LIBRARY.get(selected_key, ""))
 
 col_t1, col_t2, col_t3 = st.columns(3)
 with col_t1:
@@ -382,7 +466,7 @@ if st.session_state.get('pushed_graph_id'):
             
             st.divider()
             st.markdown("### Scientific Graph Keys & Syntax Reference")
-            # Render embedded reference documentation directly
+            # Render complete embedded reference documentation directly
             st.markdown(EMBEDDED_GRAPH_REFERENCE)
             
     except Exception as e:
