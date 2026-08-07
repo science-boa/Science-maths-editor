@@ -260,6 +260,85 @@ with col_gen3:
 st.subheader("Edit Question Data")
 st.session_state.data['id'] = st.text_input("Question ID", st.session_state.data['id'])
 
+if st.session_state.data.get('graph'):
+    st.markdown("### 📊 Graph Axis & Grid Configuration")
+    if not isinstance(st.session_state.data['graph'], dict):
+        st.session_state.data['graph'] = {}
+    if 'axes' not in st.session_state.data['graph'] or not isinstance(st.session_state.data['graph']['axes'], dict):
+        st.session_state.data['graph']['axes'] = {}
+    
+    axes = st.session_state.data['graph']['axes']
+    
+    col_ax1, col_ax2 = st.columns(2)
+    with col_ax1:
+        st.markdown("**X-Axis Settings**")
+        curr_xmin = axes.get('xmin', 0.0)
+        curr_xmax = axes.get('xmax', 100.0)
+        curr_xtick = axes.get('xtick_distance', '')
+        
+        xmin_val = st.text_input("X Min", value=str(curr_xmin) if curr_xmin is not None else "", key="live_xmin")
+        xmax_val = st.text_input("X Max", value=str(curr_xmax) if curr_xmax is not None else "", key="live_xmax")
+        xtick_val = st.text_input("X Interval (Tick Distance)", value=str(curr_xtick) if curr_xtick is not None else "", key="live_xtick")
+        
+        try:
+            axes['xmin'] = float(xmin_val) if xmin_val.strip() != "" else None
+        except:
+            pass
+        try:
+            axes['xmax'] = float(xmax_val) if xmax_val.strip() != "" else None
+        except:
+            pass
+        try:
+            axes['xtick_distance'] = float(xtick_val) if xtick_val.strip() != "" else None
+        except:
+            axes.pop('xtick_distance', None)
+
+    with col_ax2:
+        st.markdown("**Y-Axis Settings**")
+        curr_ymin = axes.get('ymin', 0.0)
+        curr_ymax = axes.get('ymax', 100.0)
+        curr_ytick = axes.get('ytick_distance', '')
+        
+        ymin_val = st.text_input("Y Min", value=str(curr_ymin) if curr_ymin is not None else "", key="live_ymin")
+        ymax_val = st.text_input("Y Max", value=str(curr_ymax) if curr_ymax is not None else "", key="live_ymax")
+        ytick_val = st.text_input("Y Interval (Tick Distance)", value=str(curr_ytick) if curr_ytick is not None else "", key="live_ytick")
+        
+        try:
+            axes['ymin'] = float(ymin_val) if ymin_val.strip() != "" else None
+        except:
+            pass
+        try:
+            axes['ymax'] = float(ymax_val) if ymax_val.strip() != "" else None
+        except:
+            pass
+        try:
+            axes['ytick_distance'] = float(ytick_val) if ytick_val.strip() != "" else None
+        except:
+            axes.pop('ytick_distance', None)
+
+    col_mg1, col_mg2 = st.columns(2)
+    with col_mg1:
+        x_min_grid_toggle = st.toggle("X Minor Gridlines", value=axes.get('x_minor_grid', {}).get('present', False), key="live_x_minor_toggle")
+        if 'x_minor_grid' not in axes or not isinstance(axes['x_minor_grid'], dict):
+            axes['x_minor_grid'] = {'present': False, 'color': '#000000', 'opacity': 0.5}
+        axes['x_minor_grid']['present'] = x_min_grid_toggle
+    with col_mg2:
+        y_min_grid_toggle = st.toggle("Y Minor Gridlines", value=axes.get('y_minor_grid', {}).get('present', False), key="live_y_minor_toggle")
+        if 'y_minor_grid' not in axes or not isinstance(axes['y_minor_grid'], dict):
+            axes['y_minor_grid'] = {'present': False, 'color': '#000000', 'opacity': 0.5}
+        axes['y_minor_grid']['present'] = y_min_grid_toggle
+
+    st.markdown("#### Live Graph Preview")
+    try:
+        live_img_bytes = render_yaml_graph_to_image(
+            st.session_state.data['graph'],
+            x_minor_on=axes.get('x_minor_grid', {}).get('present', False),
+            y_minor_on=axes.get('y_minor_grid', {}).get('present', False)
+        )
+        st.image(live_img_bytes, caption="Live Rendered Graph Preview", use_container_width=True)
+    except Exception as ex:
+        st.warning(f"Could not render live graph preview: {ex}")
+
 if st.session_state.data.get('media', {}).get('diagram_url'):
     if st.button("Generate Image Prompt"):
         desc = st.session_state.data['media']['diagram_url']
