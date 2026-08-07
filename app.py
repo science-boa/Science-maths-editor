@@ -223,8 +223,7 @@ def generate_question(prompt_text, force_image=False, force_graph=False, unit_co
                 model='gemini-3.1-flash-lite',
                 contents=query
             )
-            raw_text = response.text.replace('
-```yaml', '').replace('```', '')
+            raw_text = response.text.replace('```yaml', '').replace('```', '')
             st.session_state.data = yaml.safe_load(clean_latex(raw_text))
             st.session_state.image_prompt = None
             st.session_state.pushed_graph_id = None
