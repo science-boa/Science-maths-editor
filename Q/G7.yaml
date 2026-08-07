@@ -1,0 +1,25 @@
+id: G7
+metadata:
+  topic: Electricity - Capacitor Discharge
+  marks: 1
+  difficulty_level: 0.5
+question:
+  text: The graph shows the discharge of a capacitor over time. Determine the time
+    $t$ in seconds at which the potential difference $V$ drops to $3.0\text{ V}$.
+  variables: []
+solution:
+  final_answer: 4.0
+  marks_available: 1
+  steps:
+  - step_number: 1
+    text: Identify $3.0\text{ V}$ on the y-axis, draw a horizontal line to the curve,
+      and drop a vertical line to the x-axis to find $t = 4.0\text{ s}$.
+    marks_assigned: 1
+    check_type: numeric
+    milestone_value: 4.0
+    tolerance: 0.2
+tags:
+- electricity
+- graph-interpretation
+media:
+  diagram_url: I/G7.png
