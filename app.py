@@ -434,4 +434,4 @@ if st.session_state.get('pushed_graph_id'):
             st.warning("Reference guide file `graph_keys_reference.md` not found.")
             
     except Exception as e:
-    exp_msg = f"Could not load `G/{pushed_id}.yaml` from GitHub yet: {e}"
+        exp_msg = f"Could not load `G/{pushed_id}.yaml` from GitHub yet: {e}"
