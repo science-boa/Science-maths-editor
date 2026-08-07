@@ -67,25 +67,10 @@ def render_yaml_graph_to_image(graph_data, x_minor_on=False, x_minor_count=4, y_
     xmin = axes_cfg.get('xmin')
     xmax = axes_cfg.get('xmax')
     
-    grid_cfg = axes_cfg.get('grid', True)
-    if isinstance(grid_cfg, bool):
-        show_major_grid = grid_cfg
-        show_minor_grid = True
-        grid_color = '#000000'
-        minor_color = 'rgba(0, 0, 0, 0.5)'
-    elif isinstance(grid_cfg, dict):
-        show_major_grid = grid_cfg.get('major', True)
-        show_minor_grid = grid_cfg.get('minor', True)
-        grid_color = grid_cfg.get('color', '#000000')
-        minor_color = grid_cfg.get('minor_color', 'rgba(0, 0, 0, 0.5)')
-    else:
-        show_major_grid = True
-        show_minor_grid = True
-        grid_color = '#000000'
-        minor_color = 'rgba(0, 0, 0, 0.5)'
-        
-    minor_y_num = axes_cfg.get('minor_y_tick_num', y_minor_count)
-    minor_x_num = axes_cfg.get('minor_x_tick_num', x_minor_count)
+    x_major_grid = axes_cfg.get('x_major_grid', {'present': True, 'color': '#000000', 'opacity': 1.0})
+    x_minor_grid = axes_cfg.get('x_minor_grid', {'present': True, 'color': '#000000', 'opacity': 0.5})
+    y_major_grid = axes_cfg.get('y_major_grid', {'present': True, 'color': '#000000', 'opacity': 1.0})
+    y_minor_grid = axes_cfg.get('y_minor_grid', {'present': True, 'color': '#000000', 'opacity': 0.5})
     
     if title:
         ax.set_title(title, fontsize=12, fontweight='bold', pad=12)
@@ -145,9 +130,6 @@ def render_yaml_graph_to_image(graph_data, x_minor_on=False, x_minor_count=4, y_
     if xmin is not None or xmax is not None:
         ax.set_xlim(left=xmin, right=xmax)
         
-    if show_major_grid:
-        ax.grid(True, which='major', color=grid_color, linestyle='-', linewidth=0.7, alpha=1.0)
-    
     ytick_dist = axes_cfg.get('ytick_distance')
     if ytick_dist is None and ymin is not None and ymax is not None:
         ytick_dist = (ymax - ymin) / 5.0
@@ -160,21 +142,29 @@ def render_yaml_graph_to_image(graph_data, x_minor_on=False, x_minor_count=4, y_
     if xtick_dist and xmin is not None and xmax is not None:
         ax.set_xticks(np.arange(xmin, xmax + xtick_dist * 0.1, xtick_dist))
         
-    if show_minor_grid or x_minor_on:
+    if x_minor_on or x_minor_grid.get('present', False):
         ax.minorticks_on()
-        if xtick_dist and minor_x_num > 0:
-            ax.xaxis.set_minor_locator(MultipleLocator(xtick_dist / (minor_x_num + 1)))
+        if xtick_dist and x_minor_count > 0:
+            ax.xaxis.set_minor_locator(MultipleLocator(xtick_dist / (x_minor_count + 1)))
         else:
-            ax.xaxis.set_minor_locator(AutoMinorLocator(minor_x_num + 1 if minor_x_num > 0 else 4))
-        ax.grid(True, which='minor', color=minor_color, linestyle=':', linewidth=0.5, alpha=0.5)
+            ax.xaxis.set_minor_locator(AutoMinorLocator(x_minor_count + 1 if x_minor_count > 0 else 4))
 
-    if show_minor_grid or y_minor_on:
+    if y_minor_on or y_minor_grid.get('present', False):
         ax.minorticks_on()
-        if ytick_dist and minor_y_num > 0:
-            ax.yaxis.set_minor_locator(MultipleLocator(ytick_dist / (minor_y_num + 1)))
+        if ytick_dist and y_minor_count > 0:
+            ax.yaxis.set_minor_locator(MultipleLocator(ytick_dist / (y_minor_count + 1)))
         else:
-            ax.yaxis.set_minor_locator(AutoMinorLocator(minor_y_num + 1 if minor_y_num > 0 else 4))
-        ax.grid(True, which='minor', color=minor_color, linestyle=':', linewidth=0.5, alpha=0.5)
+            ax.yaxis.set_minor_locator(AutoMinorLocator(y_minor_count + 1 if y_minor_count > 0 else 4))
+
+    if x_major_grid.get('present', True):
+        ax.xaxis.grid(True, which='major', color=x_major_grid.get('color', '#000000'), alpha=x_major_grid.get('opacity', 1.0), linestyle='-', linewidth=0.7)
+    if x_minor_grid.get('present', False) or x_minor_on:
+        ax.xaxis.grid(True, which='minor', color=x_minor_grid.get('color', '#000000'), alpha=x_minor_grid.get('opacity', 0.5), linestyle=':', linewidth=0.5)
+
+    if y_major_grid.get('present', True):
+        ax.yaxis.grid(True, which='major', color=y_major_grid.get('color', '#000000'), alpha=y_major_grid.get('opacity', 1.0), linestyle='-', linewidth=0.7)
+    if y_minor_grid.get('present', False) or y_minor_on:
+        ax.yaxis.grid(True, which='minor', color=y_minor_grid.get('color', '#000000'), alpha=y_minor_grid.get('opacity', 0.5), linestyle=':', linewidth=0.5)
         
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
@@ -310,22 +300,42 @@ with col2:
         
         has_graph = graph_data is not None
         if has_graph:
-            if isinstance(graph_data, dict):
-                if 'axes' not in graph_data:
-                    graph_data['axes'] = {}
-                axes = graph_data['axes']
-                if 'grid' not in axes or not isinstance(axes['grid'], dict):
-                    axes['grid'] = {}
-                grid = axes['grid']
-                grid['major'] = True
-                grid['minor'] = True
-                grid['color'] = '#000000'
-                grid['minor_color'] = 'rgba(0, 0, 0, 0.5)'
-                axes.setdefault('minor_y_tick_num', 4)
-                axes.setdefault('minor_x_tick_num', 4)
+            if not isinstance(graph_data, dict):
+                graph_data = {}
+            if 'axes' not in graph_data or not isinstance(graph_data['axes'], dict):
+                graph_data['axes'] = {}
+            
+            # Explicitly define X and Y major and minor grid lines individually
+            # Major lines: 100% black (#000000, opacity 1.0)
+            # Minor lines: 50% black (#000000, opacity 0.5)
+            graph_data['axes']['x_major_grid'] = {
+                'present': True,
+                'color': '#000000',
+                'opacity': 1.0,
+                'style': 'solid'
+            }
+            graph_data['axes']['x_minor_grid'] = {
+                'present': True,
+                'color': '#000000',
+                'opacity': 0.5,
+                'style': 'solid'
+            }
+            graph_data['axes']['y_major_grid'] = {
+                'present': True,
+                'color': '#000000',
+                'opacity': 1.0,
+                'style': 'solid'
+            }
+            graph_data['axes']['y_minor_grid'] = {
+                'present': True,
+                'color': '#000000',
+                'opacity': 0.5,
+                'style': 'solid'
+            }
+            
             graph_yaml_str = yaml.dump(graph_data, sort_keys=False)
-            push_to_github(f"{pushed_id}.yaml", graph_yaml_str, subdir="G")
-            st.session_state.pushed_graph_id = pushed_id
+            push_to_github(f"{q_id}.yaml", graph_yaml_str, subdir="G")
+            st.session_state.pushed_graph_id = q_id
             time.sleep(1)
         else:
             st.session_state.pushed_graph_id = None
