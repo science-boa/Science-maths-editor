@@ -80,13 +80,29 @@ def render_yaml_graph_to_image(graph_data):
         ax.set_ylabel(ylabel, fontsize=10, fontweight='semibold')
         
     if g_type == 'bar':
-        data_block = graph_data.get('data', {})
-        labels = data_block.get('labels', [])
-        values = data_block.get('values', [])
-        styling = data_block.get('styling', {})
-        fill_color = styling.get('fill', '#000000')
-        border_color = styling.get('border', '#000000')
+        labels, values = [], []
+        fill_color, border_color = '#000000', '#000000'
         
+        if 'data' in graph_data:
+            data_block = graph_data.get('data', {})
+            labels = data_block.get('labels', [])
+            values = data_block.get('values', [])
+            styling = data_block.get('styling', {})
+            fill_color = styling.get('fill', '#000000')
+            border_color = styling.get('border', '#000000')
+        elif 'datasets' in graph_data and graph_data['datasets']:
+            ds = graph_data['datasets'][0]
+            raw_vals = ds.get('values', ds.get('coordinates', []))
+            if raw_vals:
+                if isinstance(raw_vals[0], (list, tuple)):
+                    labels = [item[0] for item in raw_vals]
+                    values = [item[1] for item in raw_vals]
+                elif isinstance(raw_vals[0], dict):
+                    labels = [item.get('x', item.get('label', '')) for item in raw_vals]
+                    values = [item.get('y', item.get('value', 0)) for item in raw_vals]
+            fill_color = ds.get('color', '#000000')
+            border_color = '#000000'
+            
         ax.bar(labels, values, color=fill_color, edgecolor=border_color, width=0.6)
         
     elif g_type in ['scatter', 'line', 'mixed']:
