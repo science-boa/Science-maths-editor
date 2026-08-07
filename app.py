@@ -69,8 +69,8 @@ def render_yaml_graph_to_image(graph_data):
     
     x_major_grid = axes_cfg.get('x_major_grid', {'present': True, 'color': '#000000', 'opacity': 1.0})
     y_major_grid = axes_cfg.get('y_major_grid', {'present': True, 'color': '#000000', 'opacity': 1.0})
-    x_minor_grid = axes_cfg.get('x_minor_grid', {'present': True, 'color': '#9ca3af', 'opacity': 0.5})
-    y_minor_grid = axes_cfg.get('y_minor_grid', {'present': True, 'color': '#9ca3af', 'opacity': 0.5})
+    x_minor_grid = axes_cfg.get('x_minor_grid', {'present': True, 'color': '#9ca3af', 'opacity': 0.5, 'style': 'dashed', 'divisions': 5})
+    y_minor_grid = axes_cfg.get('y_minor_grid', {'present': True, 'color': '#9ca3af', 'opacity': 0.5, 'style': 'dashed', 'divisions': 5})
     
     if title:
         ax.set_title(title, fontsize=12, fontweight='bold', pad=12)
@@ -145,20 +145,22 @@ def render_yaml_graph_to_image(graph_data):
     if xtick_dist and xmin is not None and xmax is not None:
         ax.set_xticks(np.arange(xmin, xmax + xtick_dist * 0.1, xtick_dist))
 
-    # Major and Minor Gridlines configuration
+    # Major and Minor Gridlines configuration using explicit divisions
     if x_major_grid.get('present', True):
-        ax.xaxis.grid(True, which='major', color=x_major_grid.get('color', '#000000'), alpha=x_major_grid.get('opacity', 1.0), linestyle='-', linewidth=0.7)
+        ax.xaxis.grid(True, which='major', color=x_major_grid.get('color', '#000000'), alpha=x_major_grid.get('opacity', 1.0), linestyle=x_major_grid.get('style', 'solid'), linewidth=0.7)
 
     if y_major_grid.get('present', True):
-        ax.yaxis.grid(True, which='major', color=y_major_grid.get('color', '#000000'), alpha=y_major_grid.get('opacity', 1.0), linestyle='-', linewidth=0.7)
+        ax.yaxis.grid(True, which='major', color=y_major_grid.get('color', '#000000'), alpha=y_major_grid.get('opacity', 1.0), linestyle=y_major_grid.get('style', 'solid'), linewidth=0.7)
 
     if x_minor_grid.get('present', True):
-        ax.xaxis.set_minor_locator(AutoMinorLocator(5))
-        ax.xaxis.grid(True, which='minor', color=x_minor_grid.get('color', '#9ca3af'), alpha=x_minor_grid.get('opacity', 0.5), linestyle='--', linewidth=0.5)
+        x_divs = int(x_minor_grid.get('divisions', 5))
+        ax.xaxis.set_minor_locator(AutoMinorLocator(x_divs))
+        ax.xaxis.grid(True, which='minor', color=x_minor_grid.get('color', '#9ca3af'), alpha=x_minor_grid.get('opacity', 0.5), linestyle=x_minor_grid.get('style', 'dashed'), linewidth=0.5)
 
     if y_minor_grid.get('present', True):
-        ax.yaxis.set_minor_locator(AutoMinorLocator(5))
-        ax.yaxis.grid(True, which='minor', color=y_minor_grid.get('color', '#9ca3af'), alpha=y_minor_grid.get('opacity', 0.5), linestyle='--', linewidth=0.5)
+        y_divs = int(y_minor_grid.get('divisions', 5))
+        ax.yaxis.set_minor_locator(AutoMinorLocator(y_divs))
+        ax.yaxis.grid(True, which='minor', color=y_minor_grid.get('color', '#9ca3af'), alpha=y_minor_grid.get('opacity', 0.5), linestyle=y_minor_grid.get('style', 'dashed'), linewidth=0.5)
         
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
@@ -214,7 +216,7 @@ def generate_question(prompt_text, force_image=False, force_graph=False, unit_co
             raw_text = response.text.replace('```yaml', '').replace('```', '')
             parsed_data = yaml.safe_load(clean_latex(raw_text))
             
-            # Ensure generated graph defaults to X and Y minor gridlines with 5 divisions
+            # Ensure generated graph defaults to explicit X and Y major & minor gridlines with divisions
             if isinstance(parsed_data, dict) and parsed_data.get('graph'):
                 if 'axes' not in parsed_data['graph'] or not isinstance(parsed_data['graph']['axes'], dict):
                     parsed_data['graph']['axes'] = {}
@@ -310,7 +312,7 @@ with col2:
             if 'axes' not in graph_data or not isinstance(graph_data['axes'], dict):
                 graph_data['axes'] = {}
             
-            # Default to X and Y major & minor gridlines with 5 divisions on each
+            # Default to explicit X and Y major & minor gridlines with divisions
             graph_data['axes']['x_major_grid'] = {
                 'present': True,
                 'color': '#000000',
