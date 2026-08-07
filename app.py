@@ -155,12 +155,12 @@ def render_yaml_graph_to_image(graph_data):
     if x_minor_grid.get('present', True):
         x_divs = int(x_minor_grid.get('divisions', 5))
         ax.xaxis.set_minor_locator(AutoMinorLocator(x_divs))
-        ax.xaxis.grid(True, which='minor', color=x_minor_grid.get('color', '#9ca3af'), alpha=x_minor_grid.get('opacity', 0.5), linestyle=x_minor_grid.get('style', 'dashed'), linewidth=0.5)
+        ax.xaxis.grid(True, which='minor', color=x_minor_grid.get('color', '#000000'), alpha=x_minor_grid.get('opacity', 1.0), linestyle=x_minor_grid.get('style', 'dashed'), linewidth=0.5)
 
     if y_minor_grid.get('present', True):
         y_divs = int(y_minor_grid.get('divisions', 5))
         ax.yaxis.set_minor_locator(AutoMinorLocator(y_divs))
-        ax.yaxis.grid(True, which='minor', color=y_minor_grid.get('color', '#9ca3af'), alpha=y_minor_grid.get('opacity', 0.5), linestyle=y_minor_grid.get('style', 'dashed'), linewidth=0.5)
+        ax.yaxis.grid(True, which='minor', color=y_minor_grid.get('color', '#000000'), alpha=y_minor_grid.get('opacity', 1.0), linestyle=y_minor_grid.get('style', 'dashed'), linewidth=0.5)
         
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
@@ -222,8 +222,8 @@ def generate_question(prompt_text, force_image=False, force_graph=False, unit_co
                     parsed_data['graph']['axes'] = {}
                 parsed_data['graph']['axes']['x_major_grid'] = {'present': True, 'color': '#000000', 'opacity': 1.0, 'style': 'solid'}
                 parsed_data['graph']['axes']['y_major_grid'] = {'present': True, 'color': '#000000', 'opacity': 1.0, 'style': 'solid'}
-                parsed_data['graph']['axes']['x_minor_grid'] = {'present': True, 'color': '#9ca3af', 'opacity': 0.5, 'style': 'dashed', 'divisions': 5}
-                parsed_data['graph']['axes']['y_minor_grid'] = {'present': True, 'color': '#9ca3af', 'opacity': 0.5, 'style': 'dashed', 'divisions': 5}
+                parsed_data['graph']['axes']['x_minor_grid'] = {'present': True, 'color': '#000000', 'opacity': 1.0, 'style': 'dashed', 'divisions': 5}
+                parsed_data['graph']['axes']['y_minor_grid'] = {'present': True, 'color': '#000000', 'opacity': 1.0, 'style': 'dashed', 'divisions': 5}
             
             st.session_state.data = parsed_data
             st.session_state.image_prompt = None
@@ -327,15 +327,15 @@ with col2:
             }
             graph_data['axes']['x_minor_grid'] = {
                 'present': True,
-                'color': '#9ca3af',
-                'opacity': 0.5,
+                'color': '#000000',
+                'opacity': 1.0,
                 'style': 'dashed',
                 'divisions': 5
             }
             graph_data['axes']['y_minor_grid'] = {
                 'present': True,
-                'color': '#9ca3af',
-                'opacity': 0.5,
+                'color': '#000000',
+                'opacity': 1.0,
                 'style': 'dashed',
                 'divisions': 5
             }
