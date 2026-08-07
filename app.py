@@ -114,7 +114,7 @@ if g_type == 'bar':
         # Set proper graph limits so padding exists on both ends
         ax.set_xlim(0, len(labels) + 1.0)
         
-    elif g_type in ['scatter', 'line', 'mixed']:
+elif g_type in ['scatter', 'line', 'mixed']:
         datasets = graph_data.get('datasets', [])
         if not datasets and 'data' in graph_data:
             datasets = [{'name': 'Data', 'type': g_type, 'coordinates': graph_data.get('data', {}).get('coordinates', graph_data.get('data', {}).get('values', []))}]
