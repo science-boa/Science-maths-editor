@@ -79,7 +79,7 @@ def render_yaml_graph_to_image(graph_data):
     if ylabel:
         ax.set_ylabel(ylabel, fontsize=10, fontweight='semibold')
         
-if g_type == 'bar':
+    if g_type == 'bar':
         labels, values = [], []
         fill_color, border_color = '#000000', '#000000'
         
