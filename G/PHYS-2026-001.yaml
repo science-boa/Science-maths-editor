@@ -1,17 +1,15 @@
-type: scatter
-title: Radioactive Decay Curve
+type: line
+title: Cooling curve of a liquid over time
 xlabel: Time ($s$)
-ylabel: Activity ($Bq$)
+ylabel: Temperature ($^\circ C$)
 axes:
-  x:
-    min: 0
-    max: 100
-  y:
-    min: 0
-    max: 800
   xmin: 0
   xmax: 100
-  xtick_distance: 20
+  xtick_distance: 10
+  ymin: 0
+  ymax: 100
+  ytick_distance: 10
+  grid: true
   x_major_grid:
     present: true
     color: '#000000'
@@ -35,19 +33,21 @@ axes:
     style: dashed
     divisions: 5
 datasets:
-- label: Isotope Decay
-  color: '#000000'
-  point_radius: 0
-  data:
+- label: Cooling Curve
+  values:
   - - 0
-    - 800
-  - - 20
-    - 400
-  - - 40
-    - 200
-  - - 60
     - 100
+  - - 10
+    - 75
+  - - 20
+    - 55
+  - - 30
+    - 40
+  - - 40
+    - 30
+  - - 60
+    - 20
   - - 80
-    - 50
+    - 15
   - - 100
-    - 25
+    - 12
