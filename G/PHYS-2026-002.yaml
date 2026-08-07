@@ -1,0 +1,46 @@
+type: bar
+title: Incidence of disease in four countries
+xlabel: Country
+ylabel: Number of cases
+axes:
+  xmin: 0
+  xmax: 5
+  xtick_distance: 1
+  ymin: 0
+  ymax: 60000
+  ytick_distance: 10000
+  grid: true
+  x_major_grid:
+    present: true
+    color: '#000000'
+    opacity: 1.0
+    style: solid
+  y_major_grid:
+    present: true
+    color: '#000000'
+    opacity: 1.0
+    style: solid
+  x_minor_grid:
+    present: true
+    color: '#000000'
+    opacity: 1.0
+    style: dashed
+    divisions: 5
+  y_minor_grid:
+    present: true
+    color: '#000000'
+    opacity: 1.0
+    style: dashed
+    divisions: 5
+datasets:
+- label: Disease Cases
+  values:
+  - - A
+    - 45000
+  - - B
+    - 15000
+  - - C
+    - 32000
+  - - D
+    - 52000
+  point_size: 10
