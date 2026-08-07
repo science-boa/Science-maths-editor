@@ -6,32 +6,29 @@ import time
 import io
 import matplotlib.pyplot as plt
 import numpy as np
-import matplotlib.ticker as ticker
 from github import Github
 from google import genai
 
+# --- Configuration ---
 st.set_page_config(page_title="Physics Question Generator", layout="wide")
 
-# Initialize the Gemini API client
+# Initialize the Interactions API client
 client = genai.Client(api_key=st.secrets.get("GEMINI_API_KEY", ""))
 
 def clean_latex(text):
-    """Replaces double backslashes with single backslashes for standard LaTeX output."""
     return text.replace('\\\\', '\\')
 
 def load_prompt_library():
-    """Loads prompt templates from a CSV file if available, falling back to defaults."""
     if os.path.exists("prompts.csv"):
         try:
             df = pd.read_csv("prompts.csv", header=None, quotechar='"')
             prompts = df.iloc[:, 0].dropna().tolist()
             return {f"{i+1}: {p[:40]}...": p for i, p in enumerate(prompts)}
-        except Exception:
-            pass
-    return {"1: Default Physics Question...": "Calculate the force required to accelerate a 1200 kg car at 3.5 m/s^2."}
+        except Exception as e:
+            st.error(f"Error loading CSV: {e}")
+    return {"Default Prompt": "Act as an expert GCSE Physics examiner. Generate a calculation question..."}
 
 def push_to_github(filename, content, subdir="Q", is_image=False, image_data=None):
-    """Pushes text content or binary image data to a specified subdirectory in the GitHub repository."""
     path = f"{subdir}/{filename}"
     
     try:
@@ -43,22 +40,22 @@ def push_to_github(filename, content, subdir="Q", is_image=False, image_data=Non
             contents = repo.get_contents(path)
             repo.update_file(contents.path, f"Update {path}", push_content, contents.sha)
             st.toast(f"Updated {path} on GitHub!", icon="✅")
-        except Exception:
+        except:
             repo.create_file(path, f"Add {path}", push_content)
             st.toast(f"Created {path} on GitHub!", icon="✅")
     except Exception as e:
         st.error(f"GitHub push failed for {path}: {e}")
 
-def render_yaml_graph_to_image(graph_data, x_minor_toggle=None, x_minor_num=None, y_minor_toggle=None, y_minor_num=None):
+def render_yaml_graph_to_image(graph_data):
     """
-    Parses scientific graph YAML schema and renders it as an 800x600 pixel matplotlib figure,
-    returning PNG image bytes. Supports major/minor gridlines and multiple graph variants.
+    Parses scientific graph YAML schema and renders it as a matplotlib figure,
+    returning bytes of the PNG image. Handles standard schemas as well as shorthand
+    variants (e.g. grid: true, label, points, values).
     """
     if not isinstance(graph_data, dict):
         raise ValueError(f"Invalid graph YAML content: expected dictionary schema, got {type(graph_data).__name__}.")
-    
-    # Figure size 8 inches x 6 inches at 100 DPI produces 800x600 pixel image
-    fig, ax = plt.subplots(figsize=(8, 6), dpi=100)
+        
+    fig, ax = plt.subplots(figsize=(8, 5), dpi=150)
     
     g_type = graph_data.get('type', 'bar')
     title = graph_data.get('title', '')
@@ -66,37 +63,21 @@ def render_yaml_graph_to_image(graph_data, x_minor_toggle=None, x_minor_num=None
     ylabel = graph_data.get('ylabel', '')
     
     axes_cfg = graph_data.get('axes', {})
-    if not isinstance(axes_cfg, dict):
-        axes_cfg = {}
-        
     ymin = axes_cfg.get('ymin')
     ymax = axes_cfg.get('ymax')
     xmin = axes_cfg.get('xmin')
     xmax = axes_cfg.get('xmax')
     
-    # Handle flexible boolean or dictionary grid definitions
     grid_cfg = axes_cfg.get('grid', True)
     if isinstance(grid_cfg, bool):
         show_major_grid = grid_cfg
-        show_minor_grid = False
         grid_color = '#d1d5db'
-        minor_grid_color = '#f3f4f6'
     elif isinstance(grid_cfg, dict):
         show_major_grid = grid_cfg.get('major', True)
-        show_minor_grid = grid_cfg.get('minor', False)
         grid_color = grid_cfg.get('color', '#d1d5db')
-        minor_grid_color = grid_cfg.get('minor_color', '#f3f4f6')
     else:
         show_major_grid = True
-        show_minor_grid = False
         grid_color = '#d1d5db'
-        minor_grid_color = '#f3f4f6'
-        
-    show_x_minor = x_minor_toggle if x_minor_toggle is not None else show_minor_grid
-    show_y_minor = y_minor_toggle if y_minor_toggle is not None else show_minor_grid
-    
-    x_minor_count = x_minor_num if x_minor_num is not None else axes_cfg.get('minor_x_tick_num', 3)
-    y_minor_count = y_minor_num if y_minor_num is not None else axes_cfg.get('minor_y_tick_num', 3)
     
     if title:
         ax.set_title(title, fontsize=12, fontweight='bold', pad=12)
@@ -105,7 +86,6 @@ def render_yaml_graph_to_image(graph_data, x_minor_toggle=None, x_minor_num=None
     if ylabel:
         ax.set_ylabel(ylabel, fontsize=10, fontweight='semibold')
         
-    # Render Bar Charts
     if g_type == 'bar':
         data_block = graph_data.get('data', {})
         labels = data_block.get('labels', [])
@@ -116,7 +96,6 @@ def render_yaml_graph_to_image(graph_data, x_minor_toggle=None, x_minor_num=None
         
         ax.bar(labels, values, color=fill_color, edgecolor=border_color, width=0.6)
         
-    # Render Scatter / Line / Mixed Charts
     elif g_type in ['scatter', 'line', 'mixed']:
         datasets = graph_data.get('datasets', [])
         if not datasets and 'data' in graph_data:
@@ -127,6 +106,7 @@ def render_yaml_graph_to_image(graph_data, x_minor_toggle=None, x_minor_num=None
             ds_type = ds.get('type', g_type)
             ds_color = ds.get('color', '#2563eb')
             
+            # Support coordinates, points, or values (list of dicts with x, y or tuples)
             coords = ds.get('coordinates', ds.get('points', ds.get('values', [])))
             
             xs, ys = [], []
@@ -134,7 +114,7 @@ def render_yaml_graph_to_image(graph_data, x_minor_toggle=None, x_minor_num=None
                 if isinstance(coords[0], dict) and 'x' in coords[0] and 'y' in coords[0]:
                     xs = [pt['x'] for pt in coords]
                     ys = [pt['y'] for pt in coords]
-                elif isinstance(coords[0], (list, tuple)):
+                else:
                     xs = [pt[0] for pt in coords]
                     ys = [pt[1] for pt in coords]
             elif 'x' in ds and 'y' in ds:
@@ -164,18 +144,10 @@ def render_yaml_graph_to_image(graph_data, x_minor_toggle=None, x_minor_num=None
     ytick_dist = axes_cfg.get('ytick_distance')
     if ytick_dist and ymin is not None and ymax is not None:
         ax.set_yticks(np.arange(ymin, ymax + ytick_dist * 0.1, ytick_dist))
-        if show_y_minor and y_minor_count > 0:
-            ax.yaxis.set_minor_locator(ticker.AutoMinorLocator(int(y_minor_count) + 1))
         
     xtick_dist = axes_cfg.get('xtick_distance')
     if xtick_dist and xmin is not None and xmax is not None:
         ax.set_xticks(np.arange(xmin, xmax + xtick_dist * 0.1, xtick_dist))
-        if show_x_minor and x_minor_count > 0:
-            ax.xaxis.set_minor_locator(ticker.AutoMinorLocator(int(x_minor_count) + 1))
-            
-    if show_x_minor or show_y_minor:
-        ax.minorticks_on()
-        ax.grid(True, which='minor', color=minor_grid_color, linestyle='--', linewidth=0.4, alpha=0.5)
         
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
@@ -190,7 +162,6 @@ def render_yaml_graph_to_image(graph_data, x_minor_toggle=None, x_minor_num=None
     return buf.getvalue()
 
 def get_empty_schema():
-    """Returns default blank schema structure."""
     return {
         "id": "PHYS-2026-001",
         "metadata": {"topic": "", "marks": 4, "difficulty_level": 0.5},
@@ -206,7 +177,6 @@ def get_empty_schema():
     }
 
 def generate_question(prompt_text, force_image=False, force_graph=False, unit_conv=False, std_form=False, inc_eq=False):
-    """Calls Gemini API to generate structured physics question YAML based on parameters."""
     with st.spinner("Generating..."):
         extra_instr = " You MUST include a detailed descriptive text for a diagram in the 'diagram_url' field." if force_image else ""
         graph_instr = (
@@ -341,40 +311,13 @@ if st.session_state.get('pushed_graph_id'):
         else:
             st.info(f"Loaded `G/{pushed_id}.yaml` successfully from GitHub.")
             
-            # Layout columns: Image on the left, Grid Controls on the right
-            col_img, col_ctrl = st.columns([2, 1])
+            # Render graph as image bytes
+            image_bytes = render_yaml_graph_to_image(parsed_graph)
+            st.image(image_bytes, caption=f"Rendered Graph for {pushed_id}", use_container_width=True)
             
-            with col_ctrl:
-                st.markdown("### Grid Controls")
-                x_minor_toggle = st.toggle("X minor gridline", value=False)
-                x_minor_num_input = st.text_input("Number of X minor gridlines", value="3")
-                y_minor_toggle = st.toggle("Y minor gridline", value=False)
-                y_minor_num_input = st.text_input("Number of Y minor gridlines", value="3")
-            
-            with col_img:
-                try:
-                    x_min_count = int(x_minor_num_input) if x_minor_num_input.strip() else 3
-                except Exception:
-                    x_min_count = 3
-                try:
-                    y_min_count = int(y_minor_num_input) if y_minor_num_input.strip() else 3
-                except Exception:
-                    y_min_count = 3
-                
-                # Render graph as 800x600 image bytes with minor grid options
-                image_bytes = render_yaml_graph_to_image(
-                    parsed_graph,
-                    x_minor_toggle=x_minor_toggle,
-                    x_minor_num=x_min_count,
-                    y_minor_toggle=y_minor_toggle,
-                    y_minor_num=y_min_count
-                )
-                st.image(image_bytes, caption=f"Rendered Graph for {pushed_id} (800x600px)", use_container_width=True)
-                
-                if st.button("Push image to GitHub"):
-                    push_to_github(f"{pushed_id}.png", None, subdir="I", is_image=True, image_data=image_bytes)
-                    st.success(f"Graph image successfully pushed to `I/{pushed_id}.png`!")
+            if st.button("Push image to GitHub"):
+                push_to_github(f"{pushed_id}.png", None, subdir="I", is_image=True, image_data=image_bytes)
+                st.success(f"Graph image successfully pushed to `I/{pushed_id}.png`!")
             
     except Exception as e:
         st.warning(f"Could not load `G/{pushed_id}.yaml` from GitHub yet: {e}")
-```eout
