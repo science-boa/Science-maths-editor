@@ -10,132 +10,6 @@ from matplotlib.ticker import MultipleLocator, AutoMinorLocator
 from github import Github
 from google import genai
 
-# --- Embedded Reference Documentation ---
-EMBEDDED_GRAPH_REFERENCE = """# Scientific Graph Keys and Syntax Reference
-
-This reference guide lists all the configuration keys, data structures, and syntax rules used by the `render_yaml_graph_to_image` function in your Physics Question Generator application.
-
-## 1. Top-Level Graph Keys
-
-Every scientific graph object defined under the top-level `graph` key in a question YAML file supports the following properties:
-
-| Key | Type | Description |
-| --- | --- | --- |
-| `type` | String | Defines the chart type. Options: `'bar'`, `'scatter'`, `'line'`, or `'mixed'`. |
-| `title` | String | The title displayed at the top of the rendered graph figure. |
-| `xlabel` | String | The label displayed along the horizontal ($X$) axis. |
-| `ylabel` | String | The label displayed along the vertical ($Y$) axis. |
-| `axes` | Dictionary | Configuration block for axis limits, major/minor gridlines, and tick spacings. |
-| `data` | Dictionary | Primary data block (used for simple bar charts or single-series data). |
-| `datasets` | List of Dictionaries | Multi-series data block (used for scatter plots with separate data points and lines of best fit). |
-
-## 2. Axes Configuration (`axes`)
-
-The `axes` dictionary fine-tunes the plotting area, tick mark intervals, and gridline behaviors:
-
-| Key | Type | Description |
-| --- | --- | --- |
-| `ymin` | Float / Int | Minimum value for the vertical ($Y$) axis. |
-| `ymax` | Float / Int | Maximum value for the vertical ($Y$) axis. |
-| `xmin` | Float / Int | Minimum value for the horizontal ($X$) axis. |
-| `xmax` | Float / Int | Maximum value for the horizontal ($X$) axis. |
-| `ytick_distance` | Float / Int | Step size interval for major tick marks on the $Y$ axis. |
-| `xtick_distance` | Float / Int | Step size interval for major tick marks on the $X$ axis. |
-| `x_major_grid` | Dictionary | Configuration for $X$-axis major grid lines. |
-| `x_minor_grid` | Dictionary | Configuration for $X$-axis minor grid lines. |
-| `y_major_grid` | Dictionary | Configuration for $Y$-axis major grid lines. |
-| `y_minor_grid` | Dictionary | Configuration for $Y$-axis minor grid lines. |
-
-### Gridline Object Properties (`x_major_grid`, `y_minor_grid`, etc.)
-
-* `present` (Boolean): Turns the gridlines on (`true`) or off (`false`).
-* `color` (String): Hex color code for the grid lines (e.g., `'#000000'`).
-* `opacity` (Float): Transparency level between `0.0` (fully transparent) and `1.0` (fully opaque).
-* `style` (String): Line style (e.g., `'solid'`, `'dashed'`, `'dotted'`).
-
-## 3. Data Structures by Graph Type
-
-### A. Bar Charts (`type: "bar"`)
-Bar charts use a `data` block with discrete category labels and numeric heights:
-```yaml
-graph:
-  type: "bar"
-  title: "Bar Chart Example"
-  xlabel: "Categories"
-  ylabel: "Values"
-  axes:
-    ymin: 0
-    ymax: 100
-    ytick_distance: 20
-  data:
-    labels: ["Cat A", "Cat B", "Cat C"]
-    values: [45, 80, 60]
-    styling:
-      fill: "#374151"    # Bar fill color
-      border: "#111827"  # Bar border outline color
-```
-
-### B. Scatter and Line Plots (`type: "scatter"` or `"line"`)
-For continuous numerical data, coordinates can be provided as an array of dictionaries or coordinate tuples:
-```yaml
-graph:
-  type: "scatter"
-  title: "Scatter Plot Example"
-  xlabel: "Force (N)"
-  ylabel: "Extension (m)"
-  axes:
-    xmin: 0
-    xmax: 100
-    ymin: 0
-    ymax: 4
-    xtick_distance: 20
-    ytick_distance: 1
-  datasets:
-    - name: "Experimental Data"
-      type: "scatter"
-      color: "#2563eb"
-      point_radius: 6
-      coordinates:
-        - {"x": 10, "y": 0.4}
-        - {"x": 30, "y": 1.2}
-        - {"x": 50, "y": 2.0}
-    - name: "Line of Best Fit"
-      type: "line"
-      color: "#dc2626"
-      border_width: 2
-      border_dash: true   # Renders as dashed line if true
-      coordinates:
-        - {"x": 0, "y": 0}
-        - {"x": 100, "y": 4.0}
-```
-"""
-
-def load_prompt_library():
-    """
-    Loads custom prompt templates from prompts.csv in the GitHub repository.
-    Falls back to default prompts if CSV is unavailable.
-    """
-    try:
-        g = Github(st.secrets["GITHUB_TOKEN"])
-        repo = g.get_repo(st.secrets["GITHUB_REPO"])
-        file_content = repo.get_contents("prompts.csv")
-        df = pd.read_csv(io.BytesIO(file_content.decoded_content))
-        
-        # Expecting columns like 'title' and 'prompt' or falling back to first two columns
-        if 'title' in df.columns and 'prompt' in df.columns:
-            return {row['title']: row['prompt'] for _, row in df.iterrows()}
-        elif len(df.columns) >= 2:
-            return {row.iloc[0]: row.iloc[1] for _, row in df.iterrows()}
-    except Exception as e:
-        st.warning(f"Could not load prompts.csv from GitHub repository ({e}). Using default prompts.")
-        
-    return {
-        "Force & Acceleration": "Act as an expert GCSE Physics examiner. Generate a calculation question involving force, mass, and acceleration.",
-        "Hooke's Law Graph": "Act as an expert GCSE Physics examiner. Generate a graph analysis question involving Hooke's law and extension.",
-        "Specific Heat Capacity": "Act as an expert GCSE Physics examiner. Generate a energy calculation question involving specific heat capacity.",
-        "Wave Equation": "Act as an expert GCSE Physics examiner. Generate a wave equation calculation question involving frequency and wavelength."
-    }
-
 # --- Configuration ---
 st.set_page_config(page_title="Physics Question Generator", layout="wide")
 
@@ -145,8 +19,14 @@ def clean_latex(text):
     return text.replace('\\\\', '\\')
 
 def load_prompt_library():
-    # Load prompts from embedded list instead of prompts.csv
-    return {f"{i+1}: {p[:40]}...": p for i, p in enumerate(EMBEDDED_DEFAULT_PROMPTS)}
+    if os.path.exists("prompts.csv"):
+        try:
+            df = pd.read_csv("prompts.csv", header=None, quotechar='"')
+            prompts = df.iloc[:, 0].dropna().tolist()
+            return {f"{i+1}: {p[:40]}...": p for i, p in enumerate(prompts)}
+        except Exception as e:
+            st.error(f"Error loading CSV: {e}")
+    return {"Default Prompt": "Act as an expert GCSE Physics examiner. Generate a calculation question..."}
 
 def push_to_github(filename, content, subdir="Q", is_image=False, image_data=None):
     path = f"{subdir}/{filename}"
@@ -341,7 +221,7 @@ PROMPT_LIBRARY = load_prompt_library()
 selected_key = st.sidebar.selectbox("Select a Prompt Type", list(PROMPT_LIBRARY.keys()))
 
 st.title("Physics Question Generator")
-prompt = st.text_area("Question Prompt", value=PROMPT_LIBRARY.get(selected_key, ""))
+prompt = st.text_area("Question Prompt", value=PROMPT_LIBRARY[selected_key])
 
 col_t1, col_t2, col_t3 = st.columns(3)
 with col_t1:
@@ -466,8 +346,11 @@ if st.session_state.get('pushed_graph_id'):
             
             st.divider()
             st.markdown("### Scientific Graph Keys & Syntax Reference")
-            # Render complete embedded reference documentation directly
-            st.markdown(EMBEDDED_GRAPH_REFERENCE)
+            if os.path.exists("graph_keys_reference.md"):
+                with open("graph_keys_reference.md", "r") as ref_file:
+                    st.markdown(ref_file.read())
+            else:
+                st.warning("Reference guide file `graph_keys_reference.md` not found.")
             
     except Exception as e:
         st.warning(f"Could not load `G/{pushed_id}.yaml` from GitHub yet: {e}")
