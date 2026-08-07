@@ -1,0 +1,31 @@
+id: Test1
+metadata:
+  topic: Radioactivity
+  marks: 1
+  difficulty_level: 2.0
+question:
+  text: An isotope has an initial activity of $80 \text{ Bq}$. After exactly one half-life
+    has passed, what will be its remaining activity?
+  variables:
+  - initial_activity
+  - half_life_periods
+solution:
+  final_answer: 40.0
+  marks_available: 1
+  steps:
+  - step_number: 1
+    text: 'To find the remaining activity after one half-life, divide the initial
+      activity by 2: $80 \text{ Bq} \div 2 = 40 \text{ Bq}$.'
+    marks_assigned: 1
+    check_type: numerical
+    milestone_value: 40.0
+    tolerance: 0.0
+media:
+  diagram_url: I/Test1.png
+  video_explainer_url: null
+tags:
+- Physics
+- Radioactivity
+- Half-life
+- GCSE
+- Maths
