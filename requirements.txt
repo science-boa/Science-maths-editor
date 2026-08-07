@@ -4,3 +4,5 @@ PyGithub
 pandas
 Pillow
 google-genai
+matplotlib
+numpy
