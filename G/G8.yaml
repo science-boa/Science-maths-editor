@@ -29,6 +29,9 @@ axes:
     opacity: 1.0
     style: dashed
     divisions: 5
+  xmin: 0
+  xmax: 100
+  xtick_distance: 20
 datasets:
 - label: Temperature vs Time
   values:
