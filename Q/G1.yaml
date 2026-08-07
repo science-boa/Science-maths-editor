@@ -41,16 +41,18 @@ graph:
     - 82
     - 67
     - 54
-  pgfplots: "\begin{tikzpicture}\n\begin{axis}[                                        ymajorgrids=true,
+  pgfplots: "\begin{tikzpicture}\n\begin{axis}[                                                                                        ymajorgrids=true,
     xmajorgrids=false,
     yminorgrids=true,
     xminorgrids=false,
-    grid style={solid, black},
+    grid style={solid, gray!50},
+    ytick distance=10,
+    xtick distance=1,
     minor grid style={solid, gray!50},
     minor y tick num=4,
     minor x tick num=1
 
-]\n\\addplot coordinates {(Country A, 43) (Country B, 82) (Country C, 67) (Country D, 54)};\n\end{axis}\n\end{tikzpicture}\n"
+]\n\\addplot[fill=black!85, draw=black] coordinates {(Country A, 43) (Country B, 82) (Country C, 67) (Country D, 54)};\n\end{axis}\n\end{tikzpicture}\n"
 tags:
 - data-interpretation
 - gcse-physics
