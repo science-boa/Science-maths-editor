@@ -1,22 +1,32 @@
 id: TG1
 metadata:
-  topic: Radioactive Decay
+  topic: Data Interpretation
   marks: 1
   difficulty_level: 0.2
 question:
-  text: The graph shows the radioactive decay of a sample of isotope $^{131}\text{I}$.
-    Using the graph, state the initial activity of the sample at $t = 0 \text{ hours}$.
+  text: The bar chart displays the incidence of a specific disease across four different
+    countries. Based on the information presented in the graph, what was the incidence
+    of the disease in Country B?
   variables: []
 solution:
-  final_answer: 800.0
+  final_answer: 50.0
   marks_available: 1
   steps:
   - step_number: 1
-    text: Identify the y-intercept of the curve where $t=0$, which corresponds to
-      the initial activity of $800 \text{ Bq}$.
+    text: Locate 'Country B' on the x-axis of the bar chart. Read the corresponding
+      value from the y-axis, which represents the disease incidence. The bar for Country
+      B extends to a value of $50$ cases per $100,000$ population.
     marks_assigned: 1
-    check_type: numeric
-    milestone_value: 800.0
-    tolerance: 40.0
+    check_type: exact_match
+    milestone_value: 50.0
+    tolerance: 0.0
 media:
   diagram_url: I/TG1.png
+  video_explainer_url: null
+tags:
+- GCSE
+- Physics
+- Data Interpretation
+- Graphs
+- Bar Chart
+- 1 Mark
