@@ -1,42 +1,45 @@
-type: line
-title: Radioactive Decay of an Isotope
-xlabel: Number of Half-Lives
-ylabel: Activity (Bq)
+type: bar
+title: Reported Cases of Disease X in Four Countries
+xlabel: Country
+ylabel: Number of Reported Cases
 axes:
   xmin: 0.0
-  xmax: 3.0
+  xmax: 4.0
   xtick_distance: 1.0
   ymin: 0.0
-  ymax: 85.0
-  ytick_distance: 20.0
+  ymax: 500.0
+  ytick_distance: 50.0
   x_major_grid:
     present: true
-    color: '#cccccc'
-    opacity: 0.8
+    color: '#000000'
+    opacity: 1.0
     style: solid
-    divisions: null
   y_major_grid:
     present: true
-    color: '#cccccc'
-    opacity: 0.8
+    color: '#000000'
+    opacity: 1.0
     style: solid
-    divisions: null
-  x_minor_grid: null
-  y_minor_grid: null
-data: null
-datasets:
-- name: Activity
-  label: Activity (Bq)
-  type: line
-  color: blue
-  point_size: 4
-  coordinates:
-  - x: 0.0
-    y: 80.0
-  - x: 1.0
-    y: 40.0
-  - x: 2.0
-    y: 20.0
-  - x: 3.0
-    y: 10.0
-  points: null
+  x_minor_grid:
+    present: true
+    color: '#000000'
+    opacity: 1.0
+    style: dotted
+    divisions: 5
+  y_minor_grid:
+    present: true
+    color: '#000000'
+    opacity: 1.0
+    style: dashed
+    divisions: 5
+data:
+  labels:
+  - Country A
+  - Country B
+  - Country C
+  - Country D
+  values:
+  - 200.0
+  - 350.0
+  - 150.0
+  - 420.0
+datasets: null
