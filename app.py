@@ -291,6 +291,52 @@ def ensure_schema_integrity(data_dict):
         
     return data_dict
 
+def check_and_patch_minor_grids(data_dict):
+    """Ensures major and minor grid settings conform to standard requirements."""
+    if isinstance(data_dict, dict) and data_dict.get('graph') and isinstance(data_dict['graph'], dict):
+        graph = data_dict['graph']
+        if 'axes' not in graph or not isinstance(graph['axes'], dict):
+            graph['axes'] = {}
+            
+        axes = graph['axes']
+        
+        # Enforce x_major_grid settings
+        axes['x_major_grid'] = {
+            "present": True,
+            "color": "#000000",
+            "opacity": 1.0,
+            "style": "solid"
+        }
+        
+        # Enforce y_major_grid settings
+        axes['y_major_grid'] = {
+            "present": True,
+            "color": "#000000",
+            "opacity": 1.0,
+            "style": "solid"
+        }
+        
+        # Check and patch y_minor_grid if missing or null
+        if axes.get('y_minor_grid') is None:
+            axes['y_minor_grid'] = {
+                "present": True,
+                "color": "#000000",
+                "opacity": 1.0,
+                "style": "dashed",
+                "divisions": 5
+            }
+            
+        # Check and patch x_minor_grid if missing or null
+        if axes.get('x_minor_grid') is None:
+            axes['x_minor_grid'] = {
+                "present": True,
+                "color": "#000000",
+                "opacity": 1.0,
+                "style": "dotted",
+                "divisions": 5
+            }
+    return data_dict
+
 # Safely initialize session state data
 if 'data' not in st.session_state or not isinstance(st.session_state.data, dict):
     st.session_state.data = get_empty_schema_dict()
@@ -327,7 +373,13 @@ def generate_question(prompt_text, force_image=False, force_graph=False, unit_co
                 import json
                 parsed_data = json.loads(response.text)
                 
-            st.session_state.data = ensure_schema_integrity(parsed_data)
+            parsed_data = ensure_schema_integrity(parsed_data)
+            
+            # Apply minor grid and major grid check if graph generation was requested or included
+            if force_graph or parsed_data.get('graph'):
+                parsed_data = check_and_patch_minor_grids(parsed_data)
+                
+            st.session_state.data = parsed_data
             st.session_state.image_prompt = None
             st.session_state.pushed_graph_id = None
             st.success("Generation complete!")
