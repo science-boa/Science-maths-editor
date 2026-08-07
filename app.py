@@ -3,11 +3,14 @@ import yaml
 import os
 import pandas as pd
 import time
+import io
+import matplotlib.pyplot as plt
+import numpy as np
 from github import Github
 from google import genai
 
 # --- Configuration ---
-st.set_page_config(page_title="Physics Question Generator v0.1", layout="wide")
+st.set_page_config(page_title="Physics Question Generator v0.2", layout="wide")
 
 # Initialize the Interactions API client
 client = genai.Client(api_key=st.secrets.get("GEMINI_API_KEY", ""))
@@ -42,6 +45,102 @@ def push_to_github(filename, content, subdir="Q", is_image=False, image_data=Non
             st.toast(f"Created {path} on GitHub!", icon="✅")
     except Exception as e:
         st.error(f"GitHub push failed for {path}: {e}")
+
+def render_yaml_graph_to_image(graph_data):
+    """
+    Parses scientific graph YAML schema and renders it as a matplotlib figure,
+    returning bytes of the PNG image.
+    """
+    fig, ax = plt.subplots(figsize=(8, 5), dpi=150)
+    
+    g_type = graph_data.get('type', 'bar')
+    title = graph_data.get('title', '')
+    xlabel = graph_data.get('xlabel', '')
+    ylabel = graph_data.get('ylabel', '')
+    
+    axes_cfg = graph_data.get('axes', {})
+    ymin = axes_cfg.get('ymin')
+    ymax = axes_cfg.get('ymax')
+    xmin = axes_cfg.get('xmin')
+    xmax = axes_cfg.get('xmax')
+    
+    grid_cfg = axes_cfg.get('grid', {})
+    show_major_grid = grid_cfg.get('major', True)
+    grid_color = grid_cfg.get('color', '#d1d5db')
+    
+    if title:
+        ax.set_title(title, fontsize=12, fontweight='bold', pad=12)
+    if xlabel:
+        ax.set_xlabel(xlabel, fontsize=10, fontweight='semibold')
+    if ylabel:
+        ax.set_ylabel(ylabel, fontsize=10, fontweight='semibold')
+        
+    if g_type == 'bar':
+        data_block = graph_data.get('data', {})
+        labels = data_block.get('labels', [])
+        values = data_block.get('values', [])
+        styling = data_block.get('styling', {})
+        fill_color = styling.get('fill', '#374151')
+        border_color = styling.get('border', '#111827')
+        
+        ax.bar(labels, values, color=fill_color, edgecolor=border_color, width=0.6)
+        
+    elif g_type in ['scatter', 'line', 'mixed']:
+        datasets = graph_data.get('datasets', [])
+        if not datasets and 'data' in graph_data:
+            datasets = [{'name': 'Data', 'type': 'scatter', 'coordinates': graph_data.get('data', {}).get('coordinates', [])}]
+            
+        for ds in datasets:
+            ds_name = ds.get('name', '')
+            ds_type = ds.get('type', 'scatter')
+            ds_color = ds.get('color', '#2563eb')
+            coords = ds.get('coordinates', [])
+            
+            if not coords and 'x' in ds and 'y' in ds:
+                coords = list(zip(ds['x'], ds['y']))
+                
+            if coords:
+                xs = [pt[0] for pt in coords]
+                ys = [pt[1] for pt in coords]
+                
+                if ds_type == 'scatter':
+                    pt_radius = ds.get('point_radius', 6)
+                    ax.scatter(xs, ys, label=ds_name, color=ds_color, s=pt_radius*10, zorder=3)
+                elif ds_type == 'line':
+                    lw = ds.get('border_width', 2)
+                    ls = '--' if ds.get('border_dash') else '-'
+                    ax.plot(xs, ys, label=ds_name, color=ds_color, linewidth=lw, linestyle=ls, zorder=2)
+                    
+        if len(datasets) > 1 or (datasets and datasets[0].get('name')):
+            ax.legend(frameon=True, facecolor='white', edgecolor='#e5e7eb', fontsize=9)
+
+    if ymin is not None or ymax is not None:
+        ax.set_ylim(bottom=ymin, top=ymax)
+    if xmin is not None or xmax is not None:
+        ax.set_xlim(left=xmin, right=xmax)
+        
+    if show_major_grid:
+        ax.grid(True, which='major', color=grid_color, linestyle='-', linewidth=0.7, alpha=0.7)
+    
+    ytick_dist = axes_cfg.get('ytick_distance')
+    if ytick_dist and ymin is not None and ymax is not None:
+        ax.set_yticks(np.arange(ymin, ymax + ytick_dist * 0.1, ytick_dist))
+        
+    xtick_dist = axes_cfg.get('xtick_distance')
+    if xtick_dist and xmin is not None and xmax is not None:
+        ax.set_xticks(np.arange(xmin, xmax + xtick_dist * 0.1, xtick_dist))
+        
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.spines['left'].set_color('#9ca3af')
+    ax.spines['bottom'].set_color('#9ca3af')
+    
+    fig.tight_layout()
+    buf = io.BytesIO()
+    fig.savefig(buf, format='png', bbox_inches='tight')
+    buf.seek(0)
+    plt.close(fig)
+    return buf.getvalue()
 
 def get_empty_schema():
     return {
@@ -85,6 +184,7 @@ def generate_question(prompt_text, force_image=False, force_graph=False, unit_co
             raw_text = response.text.replace('```yaml', '').replace('```', '')
             st.session_state.data = yaml.safe_load(clean_latex(raw_text))
             st.session_state.image_prompt = None
+            st.session_state.pushed_graph_id = None
             st.success("Generation complete!")
         except Exception as e:
             st.error(f"Generation failed: {e}")
@@ -162,11 +262,40 @@ with col2:
         payload_to_push = dict(st.session_state.data)
         graph_data = payload_to_push.pop('graph', None)
         
-        if graph_data:
+        has_graph = graph_data is not None
+        if has_graph:
             graph_yaml_str = yaml.dump(graph_data, sort_keys=False)
             push_to_github(f"{q_id}.yaml", graph_yaml_str, subdir="G")
+            st.session_state.pushed_graph_id = q_id
             time.sleep(1)
+        else:
+            st.session_state.pushed_graph_id = None
         
         question_yaml_str = yaml.dump(payload_to_push, sort_keys=False)
         push_to_github(f"{q_id}.yaml", question_yaml_str, subdir="Q")
-        st.rerun()
+        st.success("Successfully pushed question and graph to GitHub!")
+
+if st.session_state.get('pushed_graph_id'):
+    pushed_id = st.session_state.pushed_graph_id
+    st.divider()
+    st.subheader(f"Graph Rendering & Image Export for {pushed_id}")
+    
+    try:
+        g_client = Github(st.secrets["GITHUB_TOKEN"])
+        g_repo = g_client.get_repo(st.secrets["GITHUB_REPO"])
+        file_contents = g_repo.get_contents(f"G/{pushed_id}.yaml")
+        yaml_content = file_contents.decoded_content.decode("utf-8")
+        parsed_graph = yaml.safe_load(yaml_content)
+        
+        st.info(f"Loaded `G/{pushed_id}.yaml` successfully from GitHub.")
+        
+        # Render graph as image bytes
+        image_bytes = render_yaml_graph_to_image(parsed_graph)
+        st.image(image_bytes, caption=f"Rendered Graph for {pushed_id}", use_column_width=True)
+        
+        if st.button("Push image to GitHub"):
+            push_to_github(f"{pushed_id}.png", None, subdir="I", is_image=True, image_data=image_bytes)
+            st.success(f"Graph image successfully pushed to `I/{pushed_id}.png`!")
+            
+    except Exception as e:
+        st.warning(f"Could not load `G/{pushed_id}.yaml` from GitHub yet: {e}")
