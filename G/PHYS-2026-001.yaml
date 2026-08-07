@@ -51,3 +51,4 @@ datasets:
     - 15
   - - 100
     - 12
+  point_size: 5
