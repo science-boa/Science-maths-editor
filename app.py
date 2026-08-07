@@ -24,6 +24,10 @@ def load_prompt_library():
             df = pd.read_csv("prompts.csv", header=None, quotechar='"')
             prompts = df.iloc[:, 0].dropna().tolist()
             return {f"{i+1}: {p[:40]}...": p for i, p in enumerate(prompts)}
+        except Exception:
+            pass
+    return {"1: Default Physics Question...": "Calculate the force required to accelerate a 1200 kg car at 3.5 m/s^2."}
+
 def render_yaml_graph_to_image(graph_data, x_minor_toggle=None, x_minor_num=None, y_minor_toggle=None, y_minor_num=None):
     """
     Parses scientific graph YAML schema and renders it as an 800x600 matplotlib figure,
