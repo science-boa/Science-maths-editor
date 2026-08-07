@@ -1,52 +1,27 @@
 id: T1
 metadata:
-  topic: Thermal Physics
-  marks: 4
-  difficulty_level: 0.5
+  topic: Data Analysis and Disease Incidence
+  marks: 1
+  difficulty_level: 0.2
 question:
-  text: A block of aluminum with a volume of $0.05 \, \text{m}^3$ and a density of
-    $2700 \, \text{kg/m}^3$ is heated. The block is initially at $20^\circ\text{C}$.
-    If $5,000,000 \, \text{J}$ of energy is transferred to the block, calculate the
-    final temperature of the block. The specific heat capacity of aluminum is $900
-    \, \text{J/kg}^\circ\text{C}$.
-  variables:
-  - substance: Aluminum
-  - initial_temperature_celsius: 20
-  - energy_change_joules: 5000000
-  - density_kg_m3: 2700
-  - volume_m3: 0.05
-  - specific_heat_capacity_j_kg_c: 900
+  text: Using the provided bar graph, determine the number of reported cases of the
+    disease in Country C.
+  variables: []
 solution:
-  final_answer: 60.96
-  marks_available: 4
+  final_answer: 400.0
+  marks_available: 1
   steps:
   - step_number: 1
-    text: 'Calculate mass using $m = \rho V$: $m = 2700 \, \text{kg/m}^3 \times 0.05
-      \, \text{m}^3 = 135 \, \text{kg}$'
+    text: Identify the bar labeled "Country C" on the x-axis and read the corresponding
+      value on the y-axis, which is $400$.
     marks_assigned: 1
-    milestone_value: 135.0
+    check_type: numeric
+    milestone_value: 400.0
     tolerance: 0.0
-  - step_number: 2
-    text: 'Rearrange $\Delta E = mc\Delta\theta$ to $\Delta\theta = \frac{\Delta E}{mc}$
-      and substitute values: $\Delta\theta = \frac{5,000,000}{135 \times 900}$'
-    marks_assigned: 1
-    milestone_value: 41.152
-    tolerance: 0.01
-  - step_number: 3
-    text: 'Calculate the change in temperature: $\Delta\theta \approx 41.15^\circ\text{C}$'
-    marks_assigned: 1
-    milestone_value: 41.152
-    tolerance: 0.01
-  - step_number: 4
-    text: 'Determine final temperature: $T_{final} = T_{initial} + \Delta\theta =
-      20 + 41.15 = 61.15^\circ\text{C}$'
-    marks_assigned: 1
-    milestone_value: 61.15
-    tolerance: 0.1
 media:
-  diagram_url: I/T1.jpg
+  diagram_url: I/T1.png
   video_explainer_url: null
 tags:
-- thermal
-- density
-- specific heat
+- data-interpretation
+- graph-reading
+- GCSE-science
