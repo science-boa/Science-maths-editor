@@ -6,13 +6,13 @@ import time
 import io
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.ticker import MultipleLocator
 from github import Github
 from google import genai
 
 # --- Configuration ---
 st.set_page_config(page_title="Physics Question Generator", layout="wide")
 
-# Initialize the Interactions API client
 client = genai.Client(api_key=st.secrets.get("GEMINI_API_KEY", ""))
 
 def clean_latex(text):
@@ -46,7 +46,7 @@ def push_to_github(filename, content, subdir="Q", is_image=False, image_data=Non
     except Exception as e:
         st.error(f"GitHub push failed for {path}: {e}")
 
-def render_yaml_graph_to_image(graph_data):
+def render_yaml_graph_to_image(graph_data, x_minor_on=False, x_minor_count=4, y_minor_on=False, y_minor_count=4):
     """
     Parses scientific graph YAML schema and renders it as a matplotlib figure,
     returning bytes of the PNG image restricted to 800x600 pixels.
@@ -146,6 +146,18 @@ def render_yaml_graph_to_image(graph_data):
     xtick_dist = axes_cfg.get('xtick_distance')
     if xtick_dist and xmin is not None and xmax is not None:
         ax.set_xticks(np.arange(xmin, xmax + xtick_dist * 0.1, xtick_dist))
+        
+    if x_minor_on:
+        ax.minorticks_on()
+        if xtick_dist and x_minor_count > 0:
+            ax.xaxis.set_minor_locator(MultipleLocator(xtick_dist / (x_minor_count + 1)))
+        ax.grid(True, which='minor', color='#e5e7eb', linestyle=':', linewidth=0.5, alpha=0.5)
+
+    if y_minor_on:
+        ax.minorticks_on()
+        if ytick_dist and y_minor_count > 0:
+            ax.yaxis.set_minor_locator(MultipleLocator(ytick_dist / (y_minor_count + 1)))
+        ax.grid(True, which='minor', color='#e5e7eb', linestyle=':', linewidth=0.5, alpha=0.5)
         
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
@@ -309,13 +321,40 @@ if st.session_state.get('pushed_graph_id'):
         else:
             st.info(f"Loaded `G/{pushed_id}.yaml` successfully from GitHub.")
             
-            # Render graph as image bytes
-            image_bytes = render_yaml_graph_to_image(parsed_graph)
-            st.image(image_bytes, caption=f"Rendered Graph for {pushed_id}", use_container_width=True)
+            col_img, col_controls = st.columns([2, 1])
             
-            if st.button("Push image to GitHub"):
-                push_to_github(f"{pushed_id}.png", None, subdir="I", is_image=True, image_data=image_bytes)
-                st.success(f"Graph image successfully pushed to `I/{pushed_id}.png`!")
+            with col_controls:
+                st.markdown("### Grid Customization")
+                x_minor_toggle = st.toggle("X Minor Gridline", value=False, key=f"x_minor_{pushed_id}")
+                x_minor_val = st.text_input("X Minor Gridlines Count", value="4", key=f"x_minor_val_{pushed_id}")
+                
+                y_minor_toggle = st.toggle("Y Minor Gridline", value=False, key=f"y_minor_{pushed_id}")
+                y_minor_val = st.text_input("Y Minor Gridlines Count", value="4", key=f"y_minor_val_{pushed_id}")
+                
+                try:
+                    x_count = int(x_minor_val) if x_minor_val.strip() else 4
+                except:
+                    x_count = 4
+                    
+                try:
+                    y_count = int(y_minor_val) if y_minor_val.strip() else 4
+                except:
+                    y_count = 4
+
+            with col_img:
+                # Render graph as image bytes with dynamic minor grid options
+                image_bytes = render_yaml_graph_to_image(
+                    parsed_graph,
+                    x_minor_on=x_minor_toggle,
+                    x_minor_count=x_count,
+                    y_minor_on=y_minor_toggle,
+                    y_minor_count=y_count
+                )
+                st.image(image_bytes, caption=f"Rendered Graph for {pushed_id}", use_container_width=True)
+                
+                if st.button("Push image to GitHub"):
+                    push_to_github(f"{pushed_id}.png", None, subdir="I", is_image=True, image_data=image_bytes)
+                    st.success(f"Graph image successfully pushed to `I/{pushed_id}.png`!")
             
     except Exception as e:
         st.warning(f"Could not load `G/{pushed_id}.yaml` from GitHub yet: {e}")
