@@ -79,7 +79,7 @@ def render_yaml_graph_to_image(graph_data):
     if ylabel:
         ax.set_ylabel(ylabel, fontsize=10, fontweight='semibold')
         
-    if g_type == 'bar':
+if g_type == 'bar':
         labels, values = [], []
         fill_color, border_color = '#000000', '#000000'
         
@@ -103,17 +103,16 @@ def render_yaml_graph_to_image(graph_data):
             fill_color = ds.get('color', '#000000')
             border_color = '#000000'
             
-        x_indexes = np.arange(len(labels))
+        # Give bars an offset so the first bar doesn't touch the y-axis
+        x_indexes = np.arange(len(labels)) + 0.5
         ax.bar(x_indexes, values, color=fill_color, edgecolor=border_color, width=0.6)
         
-        # Align ticks and limits properly for categorical bars
+        # Align ticks to the center of the shifted bars
         ax.set_xticks(x_indexes)
         ax.set_xticklabels(labels)
-        if xmin is None:
-            xmin = -0.5
-        if xmax is None:
-            xmax = len(labels) - 0.5
-        ax.set_xlim(xmin, xmax)
+        
+        # Set proper graph limits so padding exists on both ends
+        ax.set_xlim(0, len(labels) + 1.0)
         
     elif g_type in ['scatter', 'line', 'mixed']:
         datasets = graph_data.get('datasets', [])
