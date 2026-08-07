@@ -1,0 +1,27 @@
+id: G8
+metadata:
+  topic: Thermal Physics - Cooling Curves
+  marks: 4
+  difficulty_level: 0.5
+question:
+  text: The graph shows the temperature of a cooling liquid over time. Using the graph,
+    determine the time $t$ in seconds at which the temperature of the liquid is $40\text{
+    }^\circ\text{C}$.
+  variables: []
+solution:
+  final_answer: 30.0
+  marks_available: 4
+  steps:
+  - step_number: 1
+    text: Identify the value $40\text{ }^\circ\text{C}$ on the y-axis, draw a horizontal
+      line to the curve, and drop a vertical line to the x-axis to find the time.
+    marks_assigned: 1
+    check_type: numeric
+    milestone_value: 30.0
+    tolerance: 2.0
+tags:
+- GCSE
+- Thermal Physics
+- Graph Analysis
+media:
+  diagram_url: I/G8.png
