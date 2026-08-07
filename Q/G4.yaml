@@ -1,29 +1,26 @@
 id: G4
 metadata:
-  topic: Thermal Physics - Cooling Curves
+  topic: Electricity and Capacitance
   marks: 4
   difficulty_level: 0.5
 question:
-  text: The graph shows the temperature $T$ in $^\circ\text{C}$ of a cooling liquid
-    over time $t$ in minutes. Using the graph, determine the time at which the temperature
-    of the liquid reaches $40^\circ\text{C}$.
-  variables:
-  - $T$
-  - $t$
+  text: The graph shows the discharge of a capacitor over time. Determine the time
+    $t$ in seconds at which the potential difference $V$ drops to $4.0\text{ V}$.
+  variables: []
 solution:
-  final_answer: 5.0
+  final_answer: 2.5
   marks_available: 4
   steps:
   - step_number: 1
-    text: Identify $40^\circ\text{C}$ on the y-axis, move horizontally to the curve,
-      and read the corresponding time on the x-axis.
+    text: Identify the time $t$ on the x-axis corresponding to $V = 4.0\text{ V}$
+      on the y-axis.
     marks_assigned: 1
     check_type: numeric
-    milestone_value: 5.0
-    tolerance: 0.5
+    milestone_value: 2.5
+    tolerance: 0.2
 tags:
-- graph-interpretation
-- thermal-physics
-- cooling-curve
+- capacitors
+- data-interpretation
+- graph-analysis
 media:
   diagram_url: I/G4.png
