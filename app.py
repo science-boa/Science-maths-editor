@@ -92,12 +92,12 @@ def render_yaml_graph_to_image(graph_data):
     elif g_type in ['scatter', 'line', 'mixed']:
         datasets = graph_data.get('datasets', [])
         if not datasets and 'data' in graph_data:
-            datasets = [{'name': 'Data', 'type': g_type, 'color': '#000000', 'point_radius': 2, 'coordinates': graph_data.get('data', {}).get('coordinates', graph_data.get('data', {}).get('values', []))}]
+            datasets = [{'name': 'Data', 'type': g_type, 'coordinates': graph_data.get('data', {}).get('coordinates', graph_data.get('data', {}).get('values', []))}]
             
         for ds in datasets:
             ds_name = ds.get('name', ds.get('label', ''))
             ds_type = ds.get('type', g_type)
-            ds_color = ds.get('color', '#000000')
+            ds_color = ds.get('color', '#2563eb')
             
             coords = ds.get('coordinates', ds.get('points', ds.get('values', [])))
             
@@ -115,7 +115,7 @@ def render_yaml_graph_to_image(graph_data):
                 
             if xs and ys:
                 if ds_type == 'scatter':
-                    pt_radius = ds.get('point_radius', 2)
+                    pt_radius = ds.get('point_radius', 6)
                     ax.scatter(xs, ys, label=ds_name, color=ds_color, s=pt_radius*10, zorder=3)
                 else:
                     lw = ds.get('border_width', 2)
@@ -194,8 +194,8 @@ def generate_question(prompt_text, force_image=False, force_graph=False, unit_co
         extra_instr = " You MUST include a detailed descriptive text for a diagram in the 'diagram_url' field." if force_image else ""
         graph_instr = (
             " You MUST include a structured graph object under the top-level 'graph' key conforming to the Scientific Graph YAML Schema. "
-            "It must include graph 'type' (e.g., 'bar' or 'scatter'), 'title', 'xlabel', 'ylabel', 'axes' configuration, "
-            "and 'datasets' where each dataset explicitly includes 'color' (defaulting to '#000000') and 'point_radius' (defaulting to 2)."
+            "It must include graph 'type' (e.g., 'bar' or 'scatter'), 'title', 'xlabel', 'ylabel', 'axes' configuration (xmin, xmax, xtick_distance, ymin, ymax, ytick_distance, grid), "
+            "and 'data' (labels and values) or 'datasets' (for scatter/lines)."
         ) if force_graph else ""
         
         latex_instr = " All mathematical expressions and scientific notation MUST be formatted in LaTeX (e.g., $E=mc^2$)."
@@ -216,7 +216,7 @@ def generate_question(prompt_text, force_image=False, force_graph=False, unit_co
             raw_text = response.text.replace('```yaml', '').replace('```', '')
             parsed_data = yaml.safe_load(clean_latex(raw_text))
             
-            # Ensure generated graph defaults to explicit X and Y major & minor gridlines, axis boundaries, and dataset color/point_radius
+            # Ensure generated graph defaults to explicit X and Y major & minor gridlines with divisions and axis boundaries
             if isinstance(parsed_data, dict) and parsed_data.get('graph'):
                 if 'axes' not in parsed_data['graph'] or not isinstance(parsed_data['graph']['axes'], dict):
                     parsed_data['graph']['axes'] = {}
@@ -233,14 +233,6 @@ def generate_question(prompt_text, force_image=False, force_graph=False, unit_co
                 parsed_data['graph']['axes']['y_major_grid'] = {'present': True, 'color': '#000000', 'opacity': 1.0, 'style': 'solid'}
                 parsed_data['graph']['axes']['x_minor_grid'] = {'present': True, 'color': '#000000', 'opacity': 1.0, 'style': 'dashed', 'divisions': 5}
                 parsed_data['graph']['axes']['y_minor_grid'] = {'present': True, 'color': '#000000', 'opacity': 1.0, 'style': 'dashed', 'divisions': 5}
-
-                # Ensure all datasets have color and point_radius defaulted
-                if 'datasets' in parsed_data['graph'] and isinstance(parsed_data['graph']['datasets'], list):
-                    for ds in parsed_data['graph']['datasets']:
-                        if 'color' not in ds:
-                            ds['color'] = '#000000'
-                        if 'point_radius' not in ds:
-                            ds['point_radius'] = 2
             
             st.session_state.data = parsed_data
             st.session_state.image_prompt = None
@@ -363,14 +355,6 @@ with col2:
                 'style': 'dashed',
                 'divisions': 5
             }
-
-            # Ensure dataset blocks include color and point_radius defaults
-            if 'datasets' in graph_data and isinstance(graph_data['datasets'], list):
-                for ds in graph_data['datasets']:
-                    if 'color' not in ds:
-                        ds['color'] = '#000000'
-                    if 'point_radius' not in ds:
-                        ds['point_radius'] = 2
             
             graph_yaml_str = yaml.dump(graph_data, sort_keys=False)
             push_to_github(f"{q_id}.yaml", graph_yaml_str, subdir="G")
@@ -403,12 +387,6 @@ if st.session_state.get('pushed_graph_id'):
         # Parse YAML live from the text area so edits instantly update the rendered preview
         try:
             parsed_graph = yaml.safe_load(updated_graph_yaml)
-            if isinstance(parsed_graph, dict) and 'datasets' in parsed_graph and isinstance(parsed_graph['datasets'], list):
-                for ds in parsed_graph['datasets']:
-                    if 'color' not in ds:
-                        ds['color'] = '#000000'
-                    if 'point_radius' not in ds:
-                        ds['point_radius'] = 2
         except Exception as parse_err:
             parsed_graph = None
             st.error(f"YAML Syntax Error: {parse_err}")
@@ -434,4 +412,4 @@ if st.session_state.get('pushed_graph_id'):
             st.warning("Reference guide file `graph_keys_reference.md` not found.")
             
     except Exception as e:
-        exp_msg = f"Could not load `G/{pushed_id}.yaml` from GitHub yet: {e}"
+        st.warning(f"Could not load `G/{pushed_id}.yaml` from GitHub yet: {e}")
