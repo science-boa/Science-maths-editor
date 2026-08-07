@@ -1,0 +1,30 @@
+id: GCSE-SCI-DI-001
+metadata:
+  topic: Data Interpretation
+  marks: 1
+  difficulty_level: 0.6
+question:
+  text: The bar graph below displays the incidence of a particular disease across
+    four distinct countries. From the provided graph, state the incidence of the disease
+    in Country B.
+  variables: []
+solution:
+  final_answer: 75.0
+  marks_available: 1
+  steps:
+  - step_number: 1
+    text: Identify the bar corresponding to Country B and read its height against
+      the y-axis to find the disease incidence.
+    marks_assigned: 1
+    check_type: exact
+    milestone_value: 75.0
+    tolerance: 0.0
+media:
+  diagram_url: I/GCSE-SCI-DI-001.png
+  video_explainer_url: null
+tags:
+- GCSE
+- Science
+- Graph Reading
+- Data Interpretation
+- Bar Chart
