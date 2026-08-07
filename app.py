@@ -139,13 +139,17 @@ def render_yaml_graph_to_image(graph_data, x_minor_on=False, x_minor_count=4, y_
     xtick_dist = axes_cfg.get('xtick_distance')
     if xtick_dist is None and xmin is not None and xmax is not None:
         xtick_dist = (xmax - xmin) / 5.0
+    if g_type == 'bar' and xtick_dist is None:
+        xtick_dist = 1.0
+        
     if xtick_dist and xmin is not None and xmax is not None:
         ax.set_xticks(np.arange(xmin, xmax + xtick_dist * 0.1, xtick_dist))
         
     if x_minor_on:
         ax.minorticks_on()
-        if xtick_dist and x_minor_count > 0:
-            ax.xaxis.set_minor_locator(MultipleLocator(xtick_dist / (x_minor_count + 1)))
+        effective_xtick_dist = xtick_dist if xtick_dist is not None else 1.0
+        if x_minor_count > 0:
+            ax.xaxis.set_minor_locator(MultipleLocator(effective_xtick_dist / (x_minor_count + 1)))
         else:
             ax.xaxis.set_minor_locator(AutoMinorLocator(x_minor_count + 1 if x_minor_count > 0 else 4))
         ax.xaxis.grid(True, which='minor', color=x_minor_grid.get('color', '#000000'), alpha=x_minor_grid.get('opacity', 0.5), linestyle=':', linewidth=0.5)
