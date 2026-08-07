@@ -1,26 +1,25 @@
 id: PHYS-2026-001
 metadata:
-  topic: Radioactive Decay
+  topic: Thermal Physics
   marks: 4
   difficulty_level: 0.5
 question:
-  text: The graph shows the activity of a radioactive isotope over time. Determine
-    the time, in seconds ($s$), at which the activity ($A$) of the sample falls to
-    $200$ $Bq$.
+  text: The graph shows the cooling curve of a liquid. Use the graph to determine
+    the time $t$ at which the temperature $\theta$ reaches $40 \, ^\circ\text{C}$.
   variables: []
 solution:
-  final_answer: 40.0
+  final_answer: 30.0
   marks_available: 4
   steps:
   - step_number: 1
-    text: Identify the value of $200$ $Bq$ on the y-axis, draw a horizontal line to
-      the curve, and read the corresponding value on the x-axis.
+    text: Identify the point on the y-axis at $40 \, ^\circ\text{C}$ and read the
+      corresponding x-axis value.
     marks_assigned: 1
     check_type: numeric
-    milestone_value: 40.0
+    milestone_value: 30.0
     tolerance: 2.0
 tags:
-- radioactivity
 - graph-interpretation
+- thermal-physics
 media:
   diagram_url: I/PHYS-2026-001.png
