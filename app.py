@@ -49,13 +49,12 @@ def push_to_github(filename, content, subdir="Q", is_image=False, image_data=Non
 def render_yaml_graph_to_image(graph_data):
     """
     Parses scientific graph YAML schema and renders it as a matplotlib figure,
-    returning bytes of the PNG image. Handles standard schemas as well as shorthand
-    variants (e.g. grid: true, label, points, values).
+    returning bytes of the PNG image restricted to 800x600 pixels.
     """
     if not isinstance(graph_data, dict):
         raise ValueError(f"Invalid graph YAML content: expected dictionary schema, got {type(graph_data).__name__}.")
         
-    fig, ax = plt.subplots(figsize=(8, 5), dpi=150)
+    fig, ax = plt.subplots(figsize=(8, 6), dpi=100)
     
     g_type = graph_data.get('type', 'bar')
     title = graph_data.get('title', '')
@@ -106,7 +105,6 @@ def render_yaml_graph_to_image(graph_data):
             ds_type = ds.get('type', g_type)
             ds_color = ds.get('color', '#2563eb')
             
-            # Support coordinates, points, or values (list of dicts with x, y or tuples)
             coords = ds.get('coordinates', ds.get('points', ds.get('values', [])))
             
             xs, ys = [], []
