@@ -10,7 +10,7 @@ from github import Github
 from google import genai
 
 # --- Configuration ---
-st.set_page_config(page_title="Physics Question Generator v0.2", layout="wide")
+st.set_page_config(page_title="Physics Question Generator 0.3", layout="wide")
 
 # Initialize the Interactions API client
 client = genai.Client(api_key=st.secrets.get("GEMINI_API_KEY", ""))
@@ -49,8 +49,12 @@ def push_to_github(filename, content, subdir="Q", is_image=False, image_data=Non
 def render_yaml_graph_to_image(graph_data):
     """
     Parses scientific graph YAML schema and renders it as a matplotlib figure,
-    returning bytes of the PNG image.
+    returning bytes of the PNG image. Handles standard schemas as well as shorthand
+    variants (e.g. grid: true, label, points).
     """
+    if not isinstance(graph_data, dict):
+        raise ValueError(f"Invalid graph YAML content: expected dictionary schema, got {type(graph_data).__name__}.")
+        
     fig, ax = plt.subplots(figsize=(8, 5), dpi=150)
     
     g_type = graph_data.get('type', 'bar')
@@ -64,9 +68,16 @@ def render_yaml_graph_to_image(graph_data):
     xmin = axes_cfg.get('xmin')
     xmax = axes_cfg.get('xmax')
     
-    grid_cfg = axes_cfg.get('grid', {})
-    show_major_grid = grid_cfg.get('major', True)
-    grid_color = grid_cfg.get('color', '#d1d5db')
+    grid_cfg = axes_cfg.get('grid', True)
+    if isinstance(grid_cfg, bool):
+        show_major_grid = grid_cfg
+        grid_color = '#d1d5db'
+    elif isinstance(grid_cfg, dict):
+        show_major_grid = grid_cfg.get('major', True)
+        grid_color = grid_cfg.get('color', '#d1d5db')
+    else:
+        show_major_grid = True
+        grid_color = '#d1d5db'
     
     if title:
         ax.set_title(title, fontsize=12, fontweight='bold', pad=12)
@@ -91,10 +102,10 @@ def render_yaml_graph_to_image(graph_data):
             datasets = [{'name': 'Data', 'type': 'scatter', 'coordinates': graph_data.get('data', {}).get('coordinates', [])}]
             
         for ds in datasets:
-            ds_name = ds.get('name', '')
+            ds_name = ds.get('name', ds.get('label', ''))
             ds_type = ds.get('type', 'scatter')
             ds_color = ds.get('color', '#2563eb')
-            coords = ds.get('coordinates', [])
+            coords = ds.get('coordinates', ds.get('points', []))
             
             if not coords and 'x' in ds and 'y' in ds:
                 coords = list(zip(ds['x'], ds['y']))
@@ -106,12 +117,12 @@ def render_yaml_graph_to_image(graph_data):
                 if ds_type == 'scatter':
                     pt_radius = ds.get('point_radius', 6)
                     ax.scatter(xs, ys, label=ds_name, color=ds_color, s=pt_radius*10, zorder=3)
-                elif ds_type == 'line':
+                else:
                     lw = ds.get('border_width', 2)
                     ls = '--' if ds.get('border_dash') else '-'
                     ax.plot(xs, ys, label=ds_name, color=ds_color, linewidth=lw, linestyle=ls, zorder=2)
                     
-        if len(datasets) > 1 or (datasets and datasets[0].get('name')):
+        if len(datasets) > 1 or (datasets and (datasets[0].get('name') or datasets[0].get('label'))):
             ax.legend(frameon=True, facecolor='white', edgecolor='#e5e7eb', fontsize=9)
 
     if ymin is not None or ymax is not None:
@@ -287,15 +298,18 @@ if st.session_state.get('pushed_graph_id'):
         yaml_content = file_contents.decoded_content.decode("utf-8")
         parsed_graph = yaml.safe_load(yaml_content)
         
-        st.info(f"Loaded `G/{pushed_id}.yaml` successfully from GitHub.")
-        
-        # Render graph as image bytes
-        image_bytes = render_yaml_graph_to_image(parsed_graph)
-        st.image(image_bytes, caption=f"Rendered Graph for {pushed_id}", use_column_width=True)
-        
-        if st.button("Push image to GitHub"):
-            push_to_github(f"{pushed_id}.png", None, subdir="I", is_image=True, image_data=image_bytes)
-            st.success(f"Graph image successfully pushed to `I/{pushed_id}.png`!")
+        if not isinstance(parsed_graph, dict):
+            st.error(f"Error: `G/{pushed_id}.yaml` loaded from GitHub is not a valid graph dictionary schema (found `{type(parsed_graph).__name__}`). Please check that the question YAML generated a proper structured graph object.")
+        else:
+            st.info(f"Loaded `G/{pushed_id}.yaml` successfully from GitHub.")
+            
+            # Render graph as image bytes
+            image_bytes = render_yaml_graph_to_image(parsed_graph)
+            st.image(image_bytes, caption=f"Rendered Graph for {pushed_id}", use_column_width=True)
+            
+            if st.button("Push image to GitHub"):
+                push_to_github(f"{pushed_id}.png", None, subdir="I", is_image=True, image_data=image_bytes)
+                st.success(f"Graph image successfully pushed to `I/{pushed_id}.png`!")
             
     except Exception as e:
         st.warning(f"Could not load `G/{pushed_id}.yaml` from GitHub yet: {e}")
