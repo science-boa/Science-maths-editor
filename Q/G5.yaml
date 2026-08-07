@@ -1,7 +1,7 @@
 id: G5
 metadata:
   topic: Thermal Physics - Cooling Curves
-  marks: 4
+  marks: 1
   difficulty_level: 0.5
 question:
   text: The graph shows the temperature of a cooling liquid over time. Using the graph,
@@ -9,7 +9,7 @@ question:
   variables: []
 solution:
   final_answer: 30.0
-  marks_available: 4
+  marks_available: 1
   steps:
   - step_number: 1
     text: Identify $40 \, ^\circ\text{C}$ on the y-axis, draw a horizontal line to
