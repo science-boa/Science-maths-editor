@@ -165,8 +165,8 @@ def render_yaml_graph_to_image(graph_data):
         
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
-    ax.spines['left'].set_color('#9ca3af')
-    ax.spines['bottom'].set_color('#9ca3af')
+    ax.spines['left'].set_color('#000000')
+    ax.spines['bottom'].set_color('#000000')
     
     fig.tight_layout()
     buf = io.BytesIO()
