@@ -70,7 +70,7 @@ def render_yaml_graph_to_image(graph_data):
     x_major_grid = axes_cfg.get('x_major_grid', {'present': True, 'color': '#000000', 'opacity': 1.0})
     y_major_grid = axes_cfg.get('y_major_grid', {'present': True, 'color': '#000000', 'opacity': 1.0})
     x_minor_grid = axes_cfg.get('x_minor_grid', {'present': True, 'color': '#000000', 'opacity': 1.0, 'style': 'dashed', 'divisions': 5})
-    y_minor_grid = axes_cfg.get('y_minor_grid', {'present': True, 'color': '#000000', 'opacity': 1/0, 'style': 'dashed', 'divisions': 5})
+    y_minor_grid = axes_cfg.get('y_minor_grid', {'present': True, 'color': '#000000', 'opacity': 1.0, 'style': 'dashed', 'divisions': 5})
     
     if title:
         ax.set_title(title, fontsize=12, fontweight='bold', pad=12)
