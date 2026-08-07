@@ -46,7 +46,7 @@ def push_to_github(filename, content, subdir="Q", is_image=False, image_data=Non
     except Exception as e:
         st.error(f"GitHub push failed for {path}: {e}")
 
-def render_yaml_graph_to_image(graph_data, x_minor_on=False, x_minor_count=4, y_minor_on=False, y_minor_count=4):
+def render_yaml_graph_to_image(graph_data):
     """
     Parses scientific graph YAML schema and renders it as a matplotlib figure,
     returning bytes of the PNG image restricted to 800x600 pixels.
@@ -68,9 +68,9 @@ def render_yaml_graph_to_image(graph_data, x_minor_on=False, x_minor_count=4, y_
     xmax = axes_cfg.get('xmax')
     
     x_major_grid = axes_cfg.get('x_major_grid', {'present': True, 'color': '#000000', 'opacity': 1.0})
-    x_minor_grid = axes_cfg.get('x_minor_grid', {'present': True, 'color': '#000000', 'opacity': 0.5})
     y_major_grid = axes_cfg.get('y_major_grid', {'present': True, 'color': '#000000', 'opacity': 1.0})
-    y_minor_grid = axes_cfg.get('y_minor_grid', {'present': True, 'color': '#000000', 'opacity': 0.5})
+    x_minor_grid = axes_cfg.get('x_minor_grid', {'present': True, 'color': '#000000', 'opacity': 1.0, 'style': 'dashed', 'divisions': 5})
+    y_minor_grid = axes_cfg.get('y_minor_grid', {'present': True, 'color': '#000000', 'opacity': 1/0, 'style': 'dashed', 'divisions': 5})
     
     if title:
         ax.set_title(title, fontsize=12, fontweight='bold', pad=12)
@@ -139,32 +139,28 @@ def render_yaml_graph_to_image(graph_data, x_minor_on=False, x_minor_count=4, y_
     xtick_dist = axes_cfg.get('xtick_distance')
     if xtick_dist is None and xmin is not None and xmax is not None:
         xtick_dist = (xmax - xmin) / 5.0
+    if g_type == 'bar' and xtick_dist is None:
+        xtick_dist = 1.0
+        
     if xtick_dist and xmin is not None and xmax is not None:
         ax.set_xticks(np.arange(xmin, xmax + xtick_dist * 0.1, xtick_dist))
-        
-    if x_minor_on or x_minor_grid.get('present', False):
-        ax.minorticks_on()
-        if xtick_dist and x_minor_count > 0:
-            ax.xaxis.set_minor_locator(MultipleLocator(xtick_dist / (x_minor_count + 1)))
-        else:
-            ax.xaxis.set_minor_locator(AutoMinorLocator(x_minor_count + 1 if x_minor_count > 0 else 4))
 
-    if y_minor_on or y_minor_grid.get('present', False):
-        ax.minorticks_on()
-        if ytick_dist and y_minor_count > 0:
-            ax.yaxis.set_minor_locator(MultipleLocator(ytick_dist / (y_minor_count + 1)))
-        else:
-            ax.yaxis.set_minor_locator(AutoMinorLocator(y_minor_count + 1 if y_minor_count > 0 else 4))
-
+    # Major and Minor Gridlines configuration using explicit divisions
     if x_major_grid.get('present', True):
-        ax.xaxis.grid(True, which='major', color=x_major_grid.get('color', '#000000'), alpha=x_major_grid.get('opacity', 1.0), linestyle='-', linewidth=0.7)
-    if x_minor_grid.get('present', False) or x_minor_on:
-        ax.xaxis.grid(True, which='minor', color=x_minor_grid.get('color', '#000000'), alpha=x_minor_grid.get('opacity', 0.5), linestyle=':', linewidth=0.5)
+        ax.xaxis.grid(True, which='major', color=x_major_grid.get('color', '#000000'), alpha=x_major_grid.get('opacity', 1.0), linestyle=x_major_grid.get('style', 'solid'), linewidth=0.7)
 
     if y_major_grid.get('present', True):
-        ax.yaxis.grid(True, which='major', color=y_major_grid.get('color', '#000000'), alpha=y_major_grid.get('opacity', 1.0), linestyle='-', linewidth=0.7)
-    if y_minor_grid.get('present', False) or y_minor_on:
-        ax.yaxis.grid(True, which='minor', color=y_minor_grid.get('color', '#000000'), alpha=y_minor_grid.get('opacity', 0.5), linestyle=':', linewidth=0.5)
+        ax.yaxis.grid(True, which='major', color=y_major_grid.get('color', '#000000'), alpha=y_major_grid.get('opacity', 1.0), linestyle=y_major_grid.get('style', 'solid'), linewidth=0.7)
+
+    if x_minor_grid.get('present', True):
+        x_divs = int(x_minor_grid.get('divisions', 5))
+        ax.xaxis.set_minor_locator(AutoMinorLocator(x_divs))
+        ax.xaxis.grid(True, which='minor', color=x_minor_grid.get('color', '#9ca3af'), alpha=x_minor_grid.get('opacity', 0.5), linestyle=x_minor_grid.get('style', 'dashed'), linewidth=0.5)
+
+    if y_minor_grid.get('present', True):
+        y_divs = int(y_minor_grid.get('divisions', 5))
+        ax.yaxis.set_minor_locator(AutoMinorLocator(y_divs))
+        ax.yaxis.grid(True, which='minor', color=y_minor_grid.get('color', '#9ca3af'), alpha=y_minor_grid.get('opacity', 0.5), linestyle=y_minor_grid.get('style', 'dashed'), linewidth=0.5)
         
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
@@ -218,7 +214,18 @@ def generate_question(prompt_text, force_image=False, force_graph=False, unit_co
                 contents=query
             )
             raw_text = response.text.replace('```yaml', '').replace('```', '')
-            st.session_state.data = yaml.safe_load(clean_latex(raw_text))
+            parsed_data = yaml.safe_load(clean_latex(raw_text))
+            
+            # Ensure generated graph defaults to explicit X and Y major & minor gridlines with divisions
+            if isinstance(parsed_data, dict) and parsed_data.get('graph'):
+                if 'axes' not in parsed_data['graph'] or not isinstance(parsed_data['graph']['axes'], dict):
+                    parsed_data['graph']['axes'] = {}
+                parsed_data['graph']['axes']['x_major_grid'] = {'present': True, 'color': '#000000', 'opacity': 1.0, 'style': 'solid'}
+                parsed_data['graph']['axes']['y_major_grid'] = {'present': True, 'color': '#000000', 'opacity': 1.0, 'style': 'solid'}
+                parsed_data['graph']['axes']['x_minor_grid'] = {'present': True, 'color': '#9ca3af', 'opacity': 0.5, 'style': 'dashed', 'divisions': 5}
+                parsed_data['graph']['axes']['y_minor_grid'] = {'present': True, 'color': '#9ca3af', 'opacity': 0.5, 'style': 'dashed', 'divisions': 5}
+            
+            st.session_state.data = parsed_data
             st.session_state.image_prompt = None
             st.session_state.pushed_graph_id = None
             st.success("Generation complete!")
@@ -305,19 +312,11 @@ with col2:
             if 'axes' not in graph_data or not isinstance(graph_data['axes'], dict):
                 graph_data['axes'] = {}
             
-            # Explicitly define X and Y major and minor grid lines individually
-            # Major lines: 100% black (#000000, opacity 1.0)
-            # Minor lines: 50% black (#000000, opacity 0.5)
+            # Default to explicit X and Y major & minor gridlines with divisions
             graph_data['axes']['x_major_grid'] = {
                 'present': True,
                 'color': '#000000',
                 'opacity': 1.0,
-                'style': 'solid'
-            }
-            graph_data['axes']['x_minor_grid'] = {
-                'present': True,
-                'color': '#000000',
-                'opacity': 0.5,
                 'style': 'solid'
             }
             graph_data['axes']['y_major_grid'] = {
@@ -326,11 +325,19 @@ with col2:
                 'opacity': 1.0,
                 'style': 'solid'
             }
+            graph_data['axes']['x_minor_grid'] = {
+                'present': True,
+                'color': '#9ca3af',
+                'opacity': 0.5,
+                'style': 'dashed',
+                'divisions': 5
+            }
             graph_data['axes']['y_minor_grid'] = {
                 'present': True,
-                'color': '#000000',
+                'color': '#9ca3af',
                 'opacity': 0.5,
-                'style': 'solid'
+                'style': 'dashed',
+                'divisions': 5
             }
             
             graph_yaml_str = yaml.dump(graph_data, sort_keys=False)
@@ -357,43 +364,32 @@ if st.session_state.get('pushed_graph_id'):
         parsed_graph = yaml.safe_load(yaml_content)
         
         if not isinstance(parsed_graph, dict):
-            st.error(f"Error: `G/{pushed_id}.yaml` loaded from GitHub is not a valid graph dictionary schema (found `{type(parsed_graph).__name__}`). Please check that the question YAML generated a proper structured graph object.")
+            st.error(f"Error: `G/{pushed_id}.yaml` loaded from GitHub is not a valid graph dictionary schema...")
         else:
             st.info(f"Loaded `G/{pushed_id}.yaml` successfully from GitHub.")
             
             col_img, col_controls = st.columns([2, 1])
             
-            with col_controls:
-                st.markdown("### Grid Customization")
-                x_minor_toggle = st.toggle("X Minor Gridline", value=False, key=f"x_minor_{pushed_id}")
-                x_minor_val = st.text_input("X Minor Gridlines Count", value="4", key=f"x_minor_val_{pushed_id}")
-                
-                y_minor_toggle = st.toggle("Y Minor Gridline", value=False, key=f"y_minor_{pushed_id}")
-                y_minor_val = st.text_input("Y Minor Gridlines Count", value="4", key=f"y_minor_val_{pushed_id}")
-                
-                try:
-                    x_count = int(x_minor_val) if x_minor_val.strip() else 4
-                except:
-                    x_count = 4
-                    
-                try:
-                    y_count = int(y_minor_val) if y_minor_val.strip() else 4
-                except:
-                    y_count = 4
-
             with col_img:
-                image_bytes = render_yaml_graph_to_image(
-                    parsed_graph,
-                    x_minor_on=x_minor_toggle,
-                    x_minor_count=x_count,
-                    y_minor_on=y_minor_toggle,
-                    y_minor_count=y_count
-                )
+                image_bytes = render_yaml_graph_to_image(parsed_graph)
                 st.image(image_bytes, caption=f"Rendered Graph for {pushed_id}", use_container_width=True)
                 
                 if st.button("Push image to GitHub"):
                     push_to_github(f"{pushed_id}.png", None, subdir="I", is_image=True, image_data=image_bytes)
                     st.success(f"Graph image successfully pushed to `I/{pushed_id}.png`!")
+
+            with col_controls:
+                st.markdown("### Graph YAML Content")
+                updated_graph_yaml = yaml.dump(parsed_graph, sort_keys=False)
+                st.text_area("YAML Code", value=updated_graph_yaml, height=300, key=f"yaml_view_{pushed_id}")
+            
+            st.divider()
+            st.markdown("### Scientific Graph Keys & Syntax Reference")
+            if os.path.exists("graph_keys_reference.md"):
+                with open("graph_keys_reference.md", "r") as ref_file:
+                    st.markdown(ref_file.read())
+            else:
+                st.warning("Reference guide file `graph_keys_reference.md` not found.")
             
     except Exception as e:
         st.warning(f"Could not load `G/{pushed_id}.yaml` from GitHub yet: {e}")
