@@ -103,7 +103,17 @@ def render_yaml_graph_to_image(graph_data):
             fill_color = ds.get('color', '#000000')
             border_color = '#000000'
             
+        x_indexes = np.arange(len(labels))    
         ax.bar(labels, values, color=fill_color, edgecolor=border_color, width=0.6)
+
+        # Align ticks and limits properly for categorical bars
+        ax.set_xticks(x_indexes)
+        ax.set_xticklabels(labels)
+        if xmin is None:
+            xmin = -0.5
+        if xmax is None:
+            xmax = len(labels) - 0.5
+        ax.set_xlim(xmin, xmax)
         
     elif g_type in ['scatter', 'line', 'mixed']:
         datasets = graph_data.get('datasets', [])
