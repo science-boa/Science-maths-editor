@@ -17,6 +17,18 @@ axes:
     color: '#000000'
     opacity: 1.0
     style: solid
+  x_minor_grid:
+    present: true
+    color: '#9ca3af'
+    opacity: 0.5
+    style: dashed
+    divisions: 5
+  y_minor_grid:
+    present: true
+    color: '#9ca3af'
+    opacity: 0.5
+    style: dashed
+    divisions: 5
 datasets:
 - label: Temperature vs Time
   values:
