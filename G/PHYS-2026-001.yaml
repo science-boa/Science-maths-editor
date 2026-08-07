@@ -1,14 +1,14 @@
-type: line
-title: Cooling curve of a liquid over time
-xlabel: Time ($s$)
-ylabel: Temperature ($^\circ C$)
+type: bar
+title: Reported Disease Incidence by Country
+xlabel: Country
+ylabel: Number of Cases
 axes:
   xmin: 0
-  xmax: 100
-  xtick_distance: 10
+  xmax: 5
+  xtick_distance: 1
   ymin: 0
-  ymax: 100
-  ytick_distance: 10
+  ymax: 600
+  ytick_distance: 100
   grid: true
   x_major_grid:
     present: true
@@ -32,23 +32,14 @@ axes:
     opacity: 1.0
     style: dashed
     divisions: 5
-datasets:
-- label: Cooling Curve
+data:
+  labels:
+  - Country A
+  - Country B
+  - Country C
+  - Country D
   values:
-  - - 0
-    - 100
-  - - 10
-    - 75
-  - - 20
-    - 55
-  - - 30
-    - 40
-  - - 40
-    - 30
-  - - 60
-    - 20
-  - - 80
-    - 15
-  - - 100
-    - 12
-  point_size: 5
+  - 250
+  - 550
+  - 400
+  - 150
