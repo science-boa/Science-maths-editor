@@ -9,11 +9,95 @@ import numpy as np
 from matplotlib.ticker import MultipleLocator, AutoMinorLocator
 from github import Github
 from google import genai
+from pydantic import BaseModel, Field
+from typing import List, Optional, Union
 
 # --- Configuration ---
 st.set_page_config(page_title="Physics Question Generator", layout="wide")
 
 client = genai.Client(api_key=st.secrets.get("GEMINI_API_KEY", ""))
+
+# --- Pydantic Schemas for Strict JSON Structured Outputs ---
+class MetadataSchema(BaseModel):
+    topic: str
+    marks: int
+    difficulty_level: float
+
+class QuestionSchema(BaseModel):
+    text: str
+    variables: List[str] = []
+
+class SolutionStepSchema(BaseModel):
+    step_number: int
+    text: str
+    marks_assigned: int
+    check_type: str
+    milestone_value: float
+    tolerance: float
+
+class SolutionSchema(BaseModel):
+    final_answer: float
+    marks_available: int
+    steps: List[SolutionStepSchema]
+
+class MediaSchema(BaseModel):
+    diagram_url: Optional[str] = None
+    video_explainer_url: Optional[str] = None
+
+class BarDataSchema(BaseModel):
+    labels: List[str] = Field(description="List of category labels for the X-axis")
+    values: List[float] = Field(description="Numeric values corresponding to each category")
+
+class GraphDatasetPoint(BaseModel):
+    x: Union[float, str]
+    y: float
+
+class GraphDatasetSchema(BaseModel):
+    name: Optional[str] = None
+    label: Optional[str] = None
+    type: Optional[str] = None
+    color: Optional[str] = None
+    point_size: Optional[int] = 5
+    coordinates: Optional[List[GraphDatasetPoint]] = None
+    points: Optional[List[GraphDatasetPoint]] = None
+
+class AxesGridConfig(BaseModel):
+    present: bool = True
+    color: str = "#000000"
+    opacity: float = 1.0
+    style: Optional[str] = "solid"
+    divisions: Optional[int] = 5
+
+class AxesConfig(BaseModel):
+    xmin: Optional[float] = 0
+    xmax: Optional[float] = 100
+    xtick_distance: Optional[float] = 20
+    ymin: Optional[float] = None
+    ymax: Optional[float] = None
+    ytick_distance: Optional[float] = None
+    x_major_grid: Optional[AxesGridConfig] = None
+    y_major_grid: Optional[AxesGridConfig] = None
+    x_minor_grid: Optional[AxesGridConfig] = None
+    y_minor_grid: Optional[AxesGridConfig] = None
+
+class GraphSchema(BaseModel):
+    type: str = Field(description="Must be 'bar', 'scatter', or 'line'")
+    title: str
+    xlabel: str
+    ylabel: str
+    axes: Optional[AxesConfig] = None
+    data: Optional[BarDataSchema] = None
+    datasets: Optional[List[GraphDatasetSchema]] = None
+
+class PhysicsQuestionSchema(BaseModel):
+    id: str
+    metadata: MetadataSchema
+    question: QuestionSchema
+    solution: SolutionSchema
+    media: Optional[MediaSchema] = None
+    graph: Optional[GraphSchema] = None
+    tags: List[str] = []
+
 
 def clean_latex(text):
     return text.replace('\\\\', '\\')
@@ -48,11 +132,11 @@ def push_to_github(filename, content, subdir="Q", is_image=False, image_data=Non
 
 def render_yaml_graph_to_image(graph_data):
     """
-    Parses scientific graph YAML schema and renders it as a matplotlib figure,
+    Parses scientific graph dictionary and renders it as a matplotlib figure,
     returning bytes of the PNG image restricted to 800x600 pixels.
     """
     if not isinstance(graph_data, dict):
-        raise ValueError(f"Invalid graph YAML content: expected dictionary schema, got {type(graph_data).__name__}.")
+        raise ValueError(f"Invalid graph content: expected dictionary schema, got {type(graph_data).__name__}.")
         
     fig, ax = plt.subplots(figsize=(8, 6), dpi=100)
     
@@ -61,16 +145,11 @@ def render_yaml_graph_to_image(graph_data):
     xlabel = graph_data.get('xlabel', '')
     ylabel = graph_data.get('ylabel', '')
     
-    axes_cfg = graph_data.get('axes', {})
+    axes_cfg = graph_data.get('axes', {}) or {}
     ymin = axes_cfg.get('ymin')
     ymax = axes_cfg.get('ymax')
     xmin = axes_cfg.get('xmin')
     xmax = axes_cfg.get('xmax')
-    
-    x_major_grid = axes_cfg.get('x_major_grid', {'present': True, 'color': '#000000', 'opacity': 1.0})
-    y_major_grid = axes_cfg.get('y_major_grid', {'present': True, 'color': '#000000', 'opacity': 1.0})
-    x_minor_grid = axes_cfg.get('x_minor_grid', {'present': True, 'color': '#000000', 'opacity': 1.0, 'style': 'dashed', 'divisions': 5})
-    y_minor_grid = axes_cfg.get('y_minor_grid', {'present': True, 'color': '#000000', 'opacity': 1.0, 'style': 'dashed', 'divisions': 5})
     
     if title:
         ax.set_title(title, fontsize=12, fontweight='bold', pad=12)
@@ -83,47 +162,39 @@ def render_yaml_graph_to_image(graph_data):
         labels, values = [], []
         fill_color, border_color = '#000000', '#000000'
         
-        if 'data' in graph_data:
+        if graph_data.get('data'):
             data_block = graph_data.get('data', {})
             labels = data_block.get('labels', [])
             values = data_block.get('values', [])
-            styling = data_block.get('styling', {})
-            fill_color = styling.get('fill', '#000000')
-            border_color = styling.get('border', '#000000')
-        elif 'datasets' in graph_data and graph_data['datasets']:
+        elif graph_data.get('datasets'):
             ds = graph_data['datasets'][0]
-            raw_vals = ds.get('values', ds.get('coordinates', []))
+            raw_vals = ds.get('values', ds.get('coordinates', ds.get('points', [])))
             if raw_vals:
                 if isinstance(raw_vals[0], (list, tuple)):
-                    labels = [item[0] for item in raw_vals]
+                    labels = [str(item[0]) for item in raw_vals]
                     values = [item[1] for item in raw_vals]
                 elif isinstance(raw_vals[0], dict):
-                    labels = [item.get('x', item.get('label', '')) for item in raw_vals]
+                    labels = [str(item.get('x', item.get('label', ''))) for item in raw_vals]
                     values = [item.get('y', item.get('value', 0)) for item in raw_vals]
             fill_color = ds.get('color', '#000000')
-            border_color = '#000000'
             
-        # Give bars an offset so the first bar doesn't touch the y-axis
         x_indexes = np.arange(len(labels)) + 0.5
         ax.bar(x_indexes, values, color=fill_color, edgecolor=border_color, width=0.6)
         
-        # Align ticks to the center of the shifted bars
         ax.set_xticks(x_indexes)
         ax.set_xticklabels(labels)
-        
-        # Set proper graph limits so padding exists on both ends
         ax.set_xlim(0, len(labels) + 1.0)
         
     elif g_type in ['scatter', 'line', 'mixed']:
         datasets = graph_data.get('datasets', [])
-        if not datasets and 'data' in graph_data:
+        if not datasets and graph_data.get('data'):
             datasets = [{'name': 'Data', 'type': g_type, 'coordinates': graph_data.get('data', {}).get('coordinates', graph_data.get('data', {}).get('values', []))}]
             
         for ds in datasets:
             ds_name = ds.get('name', ds.get('label', ''))
             ds_type = ds.get('type', g_type)
             ds_color = ds.get('color', '#000000')
-            pt_size = ds.get('point_size', ds.get('size', 5))
+            pt_size = ds.get('point_size', 5)
             
             coords = ds.get('coordinates', ds.get('points', ds.get('values', [])))
             
@@ -143,9 +214,7 @@ def render_yaml_graph_to_image(graph_data):
                 if ds_type == 'scatter':
                     ax.scatter(xs, ys, label=ds_name, color=ds_color, s=pt_size*10, zorder=3)
                 else:
-                    lw = ds.get('border_width', 2)
-                    ls = '--' if ds.get('border_dash') else '-'
-                    ax.plot(xs, ys, label=ds_name, color=ds_color, linewidth=lw, linestyle=ls, marker='o' if g_type=='line' else None, markersize=(pt_size**0.5)*1.5, zorder=2)
+                    ax.plot(xs, ys, label=ds_name, color=ds_color, linewidth=2, linestyle='-', marker='o' if g_type=='line' else None, markersize=(pt_size**0.5)*1.5, zorder=2)
                     
         if len(datasets) > 1 or (datasets and (datasets[0].get('name') or datasets[0].get('label'))):
             ax.legend(frameon=True, facecolor='white', edgecolor='#e5e7eb', fontsize=9)
@@ -170,22 +239,13 @@ def render_yaml_graph_to_image(graph_data):
     if g_type != 'bar' and xtick_dist and xmin is not None and xmax is not None:
         ax.set_xticks(np.arange(xmin, xmax + xtick_dist * 0.1, xtick_dist))
 
-    # Major and Minor Gridlines configuration using explicit divisions
-    if x_major_grid.get('present', True):
-        ax.xaxis.grid(True, which='major', color=x_major_grid.get('color', '#000000'), alpha=x_major_grid.get('opacity', 1.0), linestyle=x_major_grid.get('style', 'solid'), linewidth=0.7)
-
-    if y_major_grid.get('present', True):
-        ax.yaxis.grid(True, which='major', color=y_major_grid.get('color', '#000000'), alpha=y_major_grid.get('opacity', 1.0), linestyle=y_major_grid.get('style', 'solid'), linewidth=0.7)
-
-    if x_minor_grid.get('present', True):
-        x_divs = int(x_minor_grid.get('divisions', 5))
-        ax.xaxis.set_minor_locator(AutoMinorLocator(x_divs))
-        ax.xaxis.grid(True, which='minor', color=x_minor_grid.get('color', '#000000'), alpha=x_minor_grid.get('opacity', 1.0), linestyle=x_minor_grid.get('style', 'dashed'), linewidth=0.5)
-
-    if y_minor_grid.get('present', True):
-        y_divs = int(y_minor_grid.get('divisions', 5))
-        ax.yaxis.set_minor_locator(AutoMinorLocator(y_divs))
-        ax.yaxis.grid(True, which='minor', color=y_minor_grid.get('color', '#000000'), alpha=y_minor_grid.get('opacity', 1.0), linestyle=y_minor_grid.get('style', 'dashed'), linewidth=0.5)
+    # Gridlines configuration
+    ax.xaxis.grid(True, which='major', color='#000000', alpha=1.0, linestyle='solid', linewidth=0.7)
+    ax.yaxis.grid(True, which='major', color='#000000', alpha=1.0, linestyle='solid', linewidth=0.7)
+    ax.xaxis.set_minor_locator(AutoMinorLocator(5))
+    ax.xaxis.grid(True, which='minor', color='#000000', alpha=1.0, linestyle='dashed', linewidth=0.5)
+    ax.yaxis.set_minor_locator(AutoMinorLocator(5))
+    ax.yaxis.grid(True, which='minor', color='#000000', alpha=1.0, linestyle='dashed', linewidth=0.5)
         
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
@@ -199,7 +259,7 @@ def render_yaml_graph_to_image(graph_data):
     plt.close(fig)
     return buf.getvalue()
 
-def get_empty_schema():
+def get_empty_schema_dict():
     return {
         "id": "PHYS-2026-001",
         "metadata": {"topic": "", "marks": 4, "difficulty_level": 0.5},
@@ -215,13 +275,9 @@ def get_empty_schema():
     }
 
 def generate_question(prompt_text, force_image=False, force_graph=False, unit_conv=False, std_form=False, inc_eq=False):
-    with st.spinner("Generating..."):
+    with st.spinner("Generating structured output..."):
         extra_instr = " You MUST include a detailed descriptive text for a diagram in the 'diagram_url' field." if force_image else ""
-        graph_instr = (
-            " You MUST include a structured graph object under the top-level 'graph' key conforming to the Scientific Graph YAML Schema. "
-            "It must include graph 'type' (e.g., 'bar' or 'scatter'), 'title', 'xlabel', 'ylabel', 'axes' configuration (xmin, xmax, xtick_distance, ymin, ymax, ytick_distance, grid), "
-            "and 'data' (labels and values) or 'datasets' (for scatter/lines)."
-        ) if force_graph else ""
+        graph_instr = " You MUST include a structured graph object under the top-level 'graph' key following the schema requirements." if force_graph else ""
         
         latex_instr = " All mathematical expressions and scientific notation MUST be formatted in LaTeX (e.g., $E=mc^2$)."
         conv_instr = " include one unit that must be converted to its base unit in the question." if unit_conv else " do not use unit conversions."
@@ -229,42 +285,27 @@ def generate_question(prompt_text, force_image=False, force_graph=False, unit_co
         eq_instr = " include the equations needed in the question text." if inc_eq else ""
         
         query = (f"Generate a physics question based on: {prompt_text}.{latex_instr} "
-                 f"{conv_instr} {std_form_instr} {eq_instr} "
-                 f"Output strictly in valid YAML matching this schema: {st.session_state.data}.{extra_instr}{graph_instr} "
-                 "Return ONLY the YAML.")
+                 f"{conv_instr} {std_form_instr} {eq_instr}{extra_instr}{graph_instr}")
         
         try:
+            # Enforce structured output constraint via Pydantic model and JSON mime type
             response = client.models.generate_content(
-                model='gemini-3.1-flash-lite',
-                contents=query
+                model='gemini-2.5-flash',
+                contents=query,
+                config={
+                    'response_mime_type': 'application/json',
+                    'response_schema': PhysicsQuestionSchema,
+                }
             )
-            raw_text = response.text.replace('```yaml', '').replace('```', '')
-            parsed_data = yaml.safe_load(clean_latex(raw_text))
             
-            # Ensure generated graph defaults to explicit X and Y major & minor gridlines with divisions and axis boundaries
-            if isinstance(parsed_data, dict) and parsed_data.get('graph'):
-                if 'axes' not in parsed_data['graph'] or not isinstance(parsed_data['graph']['axes'], dict):
-                    parsed_data['graph']['axes'] = {}
-
-                # Add default point_size to datasets if missing
-                if 'datasets' in parsed_data['graph']:
-                    for ds in parsed_data['graph']['datasets']:
-                        if 'point_size' not in ds:
-                            ds['point_size'] = 5
+            # response.parsed gives back a validated Pydantic object, which we convert to dict
+            parsed_obj = response.parsed
+            if isinstance(parsed_obj, PhysicsQuestionSchema):
+                parsed_data = parsed_obj.model_dump()
+            else:
+                import json
+                parsed_data = json.loads(response.text)
                 
-                # Default X axis limits and tick distances if missing
-                if 'xmin' not in parsed_data['graph']['axes']:
-                    parsed_data['graph']['axes']['xmin'] = 0
-                if 'xmax' not in parsed_data['graph']['axes']:
-                    parsed_data['graph']['axes']['xmax'] = 100
-                if 'xtick_distance' not in parsed_data['graph']['axes']:
-                    parsed_data['graph']['axes']['xtick_distance'] = 20
-
-                parsed_data['graph']['axes']['x_major_grid'] = {'present': True, 'color': '#000000', 'opacity': 1.0, 'style': 'solid'}
-                parsed_data['graph']['axes']['y_major_grid'] = {'present': True, 'color': '#000000', 'opacity': 1.0, 'style': 'solid'}
-                parsed_data['graph']['axes']['x_minor_grid'] = {'present': True, 'color': '#000000', 'opacity': 1.0, 'style': 'dashed', 'divisions': 5}
-                parsed_data['graph']['axes']['y_minor_grid'] = {'present': True, 'color': '#000000', 'opacity': 1.0, 'style': 'dashed', 'divisions': 5}
-            
             st.session_state.data = parsed_data
             st.session_state.image_prompt = None
             st.session_state.pushed_graph_id = None
@@ -273,7 +314,7 @@ def generate_question(prompt_text, force_image=False, force_graph=False, unit_co
             st.error(f"Generation failed: {e}")
 
 if 'data' not in st.session_state:
-    st.session_state.data = get_empty_schema()
+    st.session_state.data = get_empty_schema_dict()
 
 st.sidebar.title("Data Management")
 uploaded_file = st.sidebar.file_uploader("Load Schema YAML", type=["yaml"])
@@ -349,48 +390,6 @@ with col2:
         if has_graph:
             if not isinstance(graph_data, dict):
                 graph_data = {}
-            if 'axes' not in graph_data or not isinstance(graph_data['axes'], dict):
-                graph_data['axes'] = {}
-            
-            if 'datasets' in graph_data:
-                for ds in graph_data['datasets']:
-                    if 'point_size' not in ds:
-                        ds['point_size'] = 5
-            
-            # Default to explicit X and Y major & minor gridlines with divisions and X-axis limits/ticks
-            if 'xmin' not in graph_data['axes']:
-                graph_data['axes']['xmin'] = 0
-            if 'xmax' not in graph_data['axes']:
-                graph_data['axes']['xmax'] = 100
-            if 'xtick_distance' not in graph_data['axes']:
-                graph_data['axes']['xtick_distance'] = 20
-
-            graph_data['axes']['x_major_grid'] = {
-                'present': True,
-                'color': '#000000',
-                'opacity': 1.0,
-                'style': 'solid'
-            }
-            graph_data['axes']['y_major_grid'] = {
-                'present': True,
-                'color': '#000000',
-                'opacity': 1.0,
-                'style': 'solid'
-            }
-            graph_data['axes']['x_minor_grid'] = {
-                'present': True,
-                'color': '#000000',
-                'opacity': 1.0,
-                'style': 'dashed',
-                'divisions': 5
-            }
-            graph_data['axes']['y_minor_grid'] = {
-                'present': True,
-                'color': '#000000',
-                'opacity': 1.0,
-                'style': 'dashed',
-                'divisions': 5
-            }
             
             graph_yaml_str = yaml.dump(graph_data, sort_keys=False)
             push_to_github(f"{q_id}.yaml", graph_yaml_str, subdir="G")
@@ -420,7 +419,6 @@ if st.session_state.get('pushed_graph_id'):
             st.markdown("### Graph YAML Content")
             updated_graph_yaml = st.text_area("YAML Code", value=yaml_content, height=300, key=f"yaml_view_{pushed_id}")
         
-        # Parse YAML live from the text area so edits instantly update the rendered preview
         try:
             parsed_graph = yaml.safe_load(updated_graph_yaml)
         except Exception as parse_err:
