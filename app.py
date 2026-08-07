@@ -274,6 +274,20 @@ def get_empty_schema_dict():
         "tags": []
     }
 
+# Safely initialize session state data
+if 'data' not in st.session_state or not isinstance(st.session_state.data, dict):
+    st.session_state.data = get_empty_schema_dict()
+
+# Ensure nested keys are never None if loaded from an incomplete YAML file
+if st.session_state.data.get('media') is None:
+    st.session_state.data['media'] = {"diagram_url": None, "video_explainer_url": None}
+if st.session_state.data.get('metadata') is None:
+    st.session_state.data['metadata'] = {"topic": "", "marks": 4, "difficulty_level": 0.5}
+if st.session_state.data.get('question') is None:
+    st.session_state.data['question'] = {"text": "", "variables": []}
+if st.session_state.data.get('solution') is None:
+    st.session_state.data['solution'] = {"final_answer": 0.0, "marks_available": 4, "steps": []}
+
 def generate_question(prompt_text, force_image=False, force_graph=False, unit_conv=False, std_form=False, inc_eq=False):
     with st.spinner("Generating structured output..."):
         extra_instr = " You MUST include a detailed descriptive text for a diagram in the 'diagram_url' field." if force_image else ""
@@ -313,13 +327,20 @@ def generate_question(prompt_text, force_image=False, force_graph=False, unit_co
         except Exception as e:
             st.error(f"Generation failed: {e}")
 
-if 'data' not in st.session_state:
-    st.session_state.data = get_empty_schema_dict()
-
 st.sidebar.title("Data Management")
 uploaded_file = st.sidebar.file_uploader("Load Schema YAML", type=["yaml"])
 if uploaded_file:
-    st.session_state.data = yaml.safe_load(uploaded_file)
+    loaded_data = yaml.safe_load(uploaded_file)
+    if isinstance(loaded_data, dict):
+        st.session_state.data = loaded_data
+        if st.session_state.data.get('media') is None:
+            st.session_state.data['media'] = {"diagram_url": None, "video_explainer_url": None}
+        if st.session_state.data.get('metadata') is None:
+            st.session_state.data['metadata'] = {"topic": "", "marks": 4, "difficulty_level": 0.5}
+        if st.session_state.data.get('question') is None:
+            st.session_state.data['question'] = {"text": "", "variables": []}
+        if st.session_state.data.get('solution') is None:
+            st.session_state.data['solution'] = {"final_answer": 0.0, "marks_available": 4, "steps": []}
 
 st.sidebar.title("Prompt Library")
 PROMPT_LIBRARY = load_prompt_library()
