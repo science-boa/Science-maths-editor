@@ -10,7 +10,7 @@ from github import Github
 from google import genai
 
 # --- Configuration ---
-st.set_page_config(page_title="Physics Question Generator 0.3", layout="wide")
+st.set_page_config(page_title="Physics Question Generator", layout="wide")
 
 # Initialize the Interactions API client
 client = genai.Client(api_key=st.secrets.get("GEMINI_API_KEY", ""))
@@ -305,7 +305,7 @@ if st.session_state.get('pushed_graph_id'):
             
             # Render graph as image bytes
             image_bytes = render_yaml_graph_to_image(parsed_graph)
-            st.image(image_bytes, caption=f"Rendered Graph for {pushed_id}", use_column_width=True)
+            st.image(image_bytes, caption=f"Rendered Graph for {pushed_id}", use_container_width=True)
             
             if st.button("Push image to GitHub"):
                 push_to_github(f"{pushed_id}.png", None, subdir="I", is_image=True, image_data=image_bytes)
