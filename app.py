@@ -1,4 +1,3 @@
-# STREAMING_CHUNK:Configuring imports and environment setup...
 import streamlit as st
 import yaml
 import os
@@ -16,7 +15,6 @@ st.set_page_config(page_title="Physics Question Generator", layout="wide")
 
 client = genai.Client(api_key=st.secrets.get("GEMINI_API_KEY", ""))
 
-# STREAMING_CHUNK:Defining helper functions...
 def clean_latex(text):
     return text.replace('\\\\', '\\')
 
@@ -48,7 +46,6 @@ def push_to_github(filename, content, subdir="Q", is_image=False, image_data=Non
     except Exception as e:
         st.error(f"GitHub push failed for {path}: {e}")
 
-# STREAMING_CHUNK:Implementing graph rendering engine...
 def render_yaml_graph_to_image(graph_data, x_minor_on=False, x_minor_count=4, y_minor_on=False, y_minor_count=4):
     """
     Parses scientific graph YAML schema and renders it as a matplotlib figure,
@@ -71,9 +68,9 @@ def render_yaml_graph_to_image(graph_data, x_minor_on=False, x_minor_count=4, y_
     xmax = axes_cfg.get('xmax')
     
     x_major_grid = axes_cfg.get('x_major_grid', {'present': True, 'color': '#000000', 'opacity': 1.0})
-    x_minor_grid = axes_cfg.get('x_minor_grid', {'present': x_minor_on, 'color': '#000000', 'opacity': 0.5})
+    x_minor_grid = axes_cfg.get('x_minor_grid', {'present': False, 'color': '#000000', 'opacity': 0.5})
     y_major_grid = axes_cfg.get('y_major_grid', {'present': True, 'color': '#000000', 'opacity': 1.0})
-    y_minor_grid = axes_cfg.get('y_minor_grid', {'present': y_minor_on, 'color': '#000000', 'opacity': 0.5})
+    y_minor_grid = axes_cfg.get('y_minor_grid', {'present': False, 'color': '#000000', 'opacity': 0.5})
     
     if title:
         ax.set_title(title, fontsize=12, fontweight='bold', pad=12)
@@ -234,7 +231,6 @@ def generate_question(prompt_text, force_image=False, force_graph=False, unit_co
 if 'data' not in st.session_state:
     st.session_state.data = get_empty_schema()
 
-# STREAMING_CHUNK:Setting up sidebar interface...
 st.sidebar.title("Data Management")
 uploaded_file = st.sidebar.file_uploader("Load Schema YAML", type=["yaml"])
 if uploaded_file:
@@ -325,6 +321,7 @@ with col2:
             except:
                 y_count_pushed = 4
 
+            # Explicitly define X and Y major and minor grid lines individually based on toggle and count state
             graph_data['axes']['x_major_grid'] = {
                 'present': True,
                 'color': '#000000',
@@ -363,97 +360,83 @@ with col2:
         push_to_github(f"{q_id}.yaml", question_yaml_str, subdir="Q")
         st.success("Successfully pushed question and graph to GitHub!")
 
-# STREAMING_CHUNK:Handling graph rendering and live editing from GitHub/Session state...
-if st.session_state.get('pushed_graph_id') or st.session_state.data.get('graph'):
-    pushed_id = st.session_state.data.get('id', 'PHYS-2026-001')
+if st.session_state.get('pushed_graph_id'):
+    pushed_id = st.session_state.pushed_graph_id
     st.divider()
     st.subheader(f"Graph Rendering & Image Export for {pushed_id}")
     
-    parsed_graph = None
     try:
         g_client = Github(st.secrets["GITHUB_TOKEN"])
         g_repo = g_client.get_repo(st.secrets["GITHUB_REPO"])
         file_contents = g_repo.get_contents(f"G/{pushed_id}.yaml")
         yaml_content = file_contents.decoded_content.decode("utf-8")
         parsed_graph = yaml.safe_load(yaml_content)
-        if not isinstance(parsed_graph, dict):
-            parsed_graph = None
-    except:
-        pass
-
-    if parsed_graph is None:
-        parsed_graph = st.session_state.data.get('graph')
-
-    if parsed_graph and isinstance(parsed_graph, dict):
-        col_img, col_controls = st.columns([2, 1])
         
-        with col_controls:
-            st.markdown("### Grid Customization")
-            initial_x_minor = parsed_graph.get('axes', {}).get('x_minor_grid', {}).get('present', False)
-            initial_x_count = parsed_graph.get('axes', {}).get('x_minor_grid', {}).get('count', 4)
+        if not isinstance(parsed_graph, dict):
+            st.error(f"Error: `G/{pushed_id}.yaml` loaded from GitHub is not a valid graph dictionary schema (found `{type(parsed_graph).__name__}`). Please check that the question YAML generated a proper structured graph object.")
+        else:
+            st.info(f"Loaded `G/{pushed_id}.yaml` successfully from GitHub.")
             
-            initial_y_minor = parsed_graph.get('axes', {}).get('y_minor_grid', {}).get('present', False)
-            initial_y_count = parsed_graph.get('axes', {}).get('y_minor_grid', {}).get('count', 4)
-
-            x_minor_toggle = st.toggle("X Minor Gridline", value=initial_x_minor, key=f"x_minor_{pushed_id}")
-            x_minor_val = st.text_input("X Minor Gridlines Count", value=str(initial_x_count), key=f"x_minor_val_{pushed_id}")
+            col_img, col_controls = st.columns([2, 1])
             
-            y_minor_toggle = st.toggle("Y Minor Gridline", value=initial_y_minor, key=f"y_minor_{pushed_id}")
-            y_minor_val = st.text_input("Y Minor Gridlines Count", value=str(initial_y_count), key=f"y_minor_val_{pushed_id}")
-            
-            try:
-                x_count = int(x_minor_val) if x_minor_val.strip() else 4
-            except:
-                x_count = 4
+            with col_controls:
+                st.markdown("### Grid Customization")
+                initial_x_minor = parsed_graph.get('axes', {}).get('x_minor_grid', {}).get('present', False)
+                initial_x_count = parsed_graph.get('axes', {}).get('x_minor_grid', {}).get('count', 4)
                 
-            try:
-                y_count = int(y_minor_val) if y_minor_val.strip() else 4
-            except:
-                y_count = 4
+                initial_y_minor = parsed_graph.get('axes', {}).get('y_minor_grid', {}).get('present', False)
+                initial_y_count = parsed_graph.get('axes', {}).get('y_minor_grid', {}).get('count', 4)
 
-        with col_img:
-            # Sync toggles into parsed_graph axes
-            if 'axes' not in parsed_graph or not isinstance(parsed_graph['axes'], dict):
-                parsed_graph['axes'] = {}
-            parsed_graph['axes']['x_minor_grid'] = {
-                'present': x_minor_toggle,
-                'count': x_count,
-                'color': '#000000',
-                'opacity': 0.5,
-                'style': 'solid'
-            }
-            parsed_graph['axes']['y_minor_grid'] = {
-                'present': y_minor_toggle,
-                'count': y_count,
-                'color': '#000000',
-                'opacity': 0.5,
-                'style': 'solid'
-            }
+                x_minor_toggle = st.toggle("X Minor Gridline", value=initial_x_minor, key=f"x_minor_{pushed_id}")
+                x_minor_val = st.text_input("X Minor Gridlines Count", value=str(initial_x_count), key=f"x_minor_val_{pushed_id}")
+                
+                y_minor_toggle = st.toggle("Y Minor Gridline", value=initial_y_minor, key=f"y_minor_{pushed_id}")
+                y_minor_val = st.text_input("Y Minor Gridlines Count", value=str(initial_y_count), key=f"y_minor_val_{pushed_id}")
+                
+                try:
+                    x_count = int(x_minor_val) if x_minor_val.strip() else 4
+                except:
+                    x_count = 4
+                    
+                try:
+                    y_count = int(y_minor_val) if y_minor_val.strip() else 4
+                except:
+                    y_count = 4
 
-            default_yaml_view = yaml.dump(parsed_graph, sort_keys=False)
-            edited_graph_yaml = st.text_area("Graph YAML Code (Editable)", value=default_yaml_view, height=200, key=f"yaml_view_{pushed_id}")
+                st.markdown("### Graph YAML Content")
+                # Update parsed_graph axes with current toggle & count states before displaying
+                if 'axes' not in parsed_graph or not isinstance(parsed_graph['axes'], dict):
+                    parsed_graph['axes'] = {}
+                parsed_graph['axes']['x_minor_grid'] = {
+                    'present': x_minor_toggle,
+                    'count': x_count,
+                    'color': '#000000',
+                    'opacity': 0.5,
+                    'style': 'solid'
+                }
+                parsed_graph['axes']['y_minor_grid'] = {
+                    'present': y_minor_toggle,
+                    'count': y_count,
+                    'color': '#000000',
+                    'opacity': 0.5,
+                    'style': 'solid'
+                }
+                updated_graph_yaml = yaml.dump(parsed_graph, sort_keys=False)
+                st.text_area("YAML Code", value=updated_graph_yaml, height=200, key=f"yaml_view_{pushed_id}")
+
+            with col_img:
+                image_bytes = render_yaml_graph_to_image(
+                    parsed_graph,
+                    x_minor_on=x_minor_toggle,
+                    x_minor_count=x_count,
+                    y_minor_on=y_minor_toggle,
+                    y_minor_count=y_count
+                )
+                st.image(image_bytes, caption=f"Rendered Graph for {pushed_id}", use_container_width=True)
+                
+                if st.button("Push image to GitHub"):
+                    push_to_github(f"{pushed_id}.png", None, subdir="I", is_image=True, image_data=image_bytes)
+                    st.success(f"Graph image successfully pushed to `I/{pushed_id}.png`!")
             
-            # Parse editable YAML box to drive live preview updates
-            active_render_graph = parsed_graph
-            try:
-                user_parsed_graph = yaml.safe_load(edited_graph_yaml)
-                if isinstance(user_parsed_graph, dict):
-                    active_render_graph = user_parsed_graph
-            except Exception as parse_err:
-                st.warning(f"YAML Syntax Warning: {parse_err}")
-
-            image_bytes = render_yaml_graph_to_image(
-                active_render_graph,
-                x_minor_on=x_minor_toggle,
-                x_minor_count=x_count,
-                y_minor_on=y_minor_toggle,
-                y_minor_count=y_count
-            )
-            st.image(image_bytes, caption=f"Rendered Graph for {pushed_id}", use_container_width=True)
-            
-            if st.button("Push image to GitHub"):
-                push_to_github(f"{pushed_id}.png", None, subdir="I", is_image=True, image_data=image_bytes)
-                push_to_github(f"{pushed_id}.yaml", edited_graph_yaml, subdir="G")
-                st.success(f"Graph image and updated YAML successfully pushed to GitHub!")
-    else:
-        st.info("No structured graph data available for this question.")
+    except Exception as e:
+        st.warning(f"Could not load `G/{pushed_id}.yaml` from GitHub yet: {e}")
