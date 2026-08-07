@@ -1,30 +1,24 @@
 id: G7
 metadata:
-  topic: Capacitor Discharging
-  marks: 4
+  topic: Radioactive Decay
+  marks: 1
   difficulty_level: 0.5
 question:
-  text: The graph shows the discharge of a capacitor over time. Determine the time
-    $t$ in seconds at which the potential difference $V$ drops to $4.0\text{ V}$.
-  variables:
-  - name: V
-    unit: V
-  - name: t
-    unit: s
+  text: The graph shows the activity of a radioactive isotope over time. Determine
+    the time, in $s$, at which the activity drops to $400$ $Bq$.
+  variables: []
 solution:
-  final_answer: 2.5
-  marks_available: 4
+  final_answer: 2.0
+  marks_available: 1
   steps:
   - step_number: 1
-    text: Identify the value $4.0\text{ V}$ on the y-axis, move horizontally to the
-      curve, and drop a vertical line to read the time on the x-axis.
+    text: Identify the time on the x-axis corresponding to $y = 400$.
     marks_assigned: 1
     check_type: numeric
-    milestone_value: 2.5
+    milestone_value: 2.0
     tolerance: 0.2
 tags:
-- Electricity
-- Graphs
-- GCSE Physics
+- radioactivity
+- graph-interpretation
 media:
   diagram_url: I/G7.png
