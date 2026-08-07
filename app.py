@@ -12,7 +12,6 @@ st.set_page_config(page_title="Physics Question Generator", layout="wide")
 # Initialize the Interactions API client
 client = genai.Client(api_key=st.secrets.get("GEMINI_API_KEY", ""))
 
-# --- Utilities ---
 def clean_latex(text):
     return text.replace('\\\\', '\\')
 
@@ -26,8 +25,7 @@ def load_prompt_library():
             st.error(f"Error loading CSV: {e}")
     return {"Default Prompt": "Act as an expert GCSE Physics examiner. Generate a calculation question..."}
 
-def push_to_github(filename, content, is_image=False, image_data=None):
-    subdir = "I" if is_image else "Q"
+def push_to_github(filename, content, subdir="Q", is_image=False, image_data=None):
     path = f"{subdir}/{filename}"
     
     try:
@@ -63,9 +61,13 @@ def get_empty_schema():
 def generate_question(prompt_text, force_image=False, force_graph=False, unit_conv=False, std_form=False, inc_eq=False):
     with st.spinner("Generating..."):
         extra_instr = " You MUST include a detailed descriptive text for a diagram in the 'diagram_url' field." if force_image else ""
-        graph_instr = " You MUST include the information needed for a PGFPlots graph to be rendered under the top-level 'graph' key." if force_graph else ""
-        latex_instr = " All mathematical expressions and scientific notation MUST be formatted in LaTeX (e.g., $E=mc^2$)."
+        graph_instr = (
+            " You MUST include a structured graph object under the top-level 'graph' key conforming to the Scientific Graph YAML Schema. "
+            "It must include graph 'type' (e.g., 'bar' or 'scatter'), 'title', 'xlabel', 'ylabel', 'axes' configuration (ymin, ymax, ytick_distance, grid), "
+            "and 'data' (labels and values) or 'datasets' (for scatter/lines)."
+        ) if force_graph else ""
         
+        latex_instr = " All mathematical expressions and scientific notation MUST be formatted in LaTeX (e.g., $E=mc^2$)."
         conv_instr = " include one unit that must be converted to its base unit in the question." if unit_conv else " do not use unit conversions."
         std_form_instr = " give one value as standard form." if std_form else ""
         eq_instr = " include the equations needed in the question text." if inc_eq else ""
@@ -90,7 +92,6 @@ def generate_question(prompt_text, force_image=False, force_graph=False, unit_co
 if 'data' not in st.session_state:
     st.session_state.data = get_empty_schema()
 
-# --- UI ---
 st.sidebar.title("Data Management")
 uploaded_file = st.sidebar.file_uploader("Load Schema YAML", type=["yaml"])
 if uploaded_file:
@@ -101,10 +102,8 @@ PROMPT_LIBRARY = load_prompt_library()
 selected_key = st.sidebar.selectbox("Select a Prompt Type", list(PROMPT_LIBRARY.keys()))
 
 st.title("Physics Question Generator")
-# Dynamic text area height
 prompt = st.text_area("Question Prompt", value=PROMPT_LIBRARY[selected_key])
 
-# Toggle Switches
 col_t1, col_t2, col_t3 = st.columns(3)
 with col_t1:
     unit_conv = st.toggle("Unit Conversions")
@@ -149,11 +148,25 @@ with col1:
 with col2:
     if st.button("Push to GitHub"):
         q_id = st.session_state.data['id']
+        
+        if 'media' not in st.session_state.data or st.session_state.data['media'] is None:
+            st.session_state.data['media'] = {}
+        
+        st.session_state.data['media']['diagram_url'] = f"I/{q_id}.png"
+        
         if uploaded_image:
             ext = uploaded_image.name.split('.')[-1]
-            st.session_state.data['media']['diagram_url'] = f"I/{q_id}.{ext}"
-            push_to_github(f"{q_id}.{ext}", None, is_image=True, image_data=uploaded_image.getvalue())
+            push_to_github(f"{q_id}.{ext}", None, subdir="I", is_image=True, image_data=uploaded_image.getvalue())
             time.sleep(1)
         
-        push_to_github(f"{q_id}.yaml", yaml.dump(st.session_state.data, sort_keys=False))
+        payload_to_push = dict(st.session_state.data)
+        graph_data = payload_to_push.pop('graph', None)
+        
+        if graph_data:
+            graph_yaml_str = yaml.dump(graph_data, sort_keys=False)
+            push_to_github(f"{q_id}.yaml", graph_yaml_str, subdir="G")
+            time.sleep(1)
+        
+        question_yaml_str = yaml.dump(payload_to_push, sort_keys=False)
+        push_to_github(f"{q_id}.yaml", question_yaml_str, subdir="Q")
         st.rerun()
