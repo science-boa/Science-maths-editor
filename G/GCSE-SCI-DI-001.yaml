@@ -1,0 +1,37 @@
+type: bar
+title: Disease Incidence in Four Countries
+xlabel: Country
+ylabel: Incidence (cases per $100,000$ people)
+axes:
+  xmin: null
+  xmax: null
+  xtick_distance: null
+  ymin: 0.0
+  ymax: 100.0
+  ytick_distance: 10.0
+  x_major_grid:
+    present: false
+    color: gray
+    opacity: 0.5
+    style: null
+    divisions: null
+  y_major_grid:
+    present: true
+    color: lightgray
+    opacity: 0.7
+    style: solid
+    divisions: null
+  x_minor_grid: null
+  y_minor_grid: null
+data:
+  labels:
+  - Country A
+  - Country B
+  - Country C
+  - Country D
+  values:
+  - 40.0
+  - 75.0
+  - 20.0
+  - 55.0
+datasets: null
