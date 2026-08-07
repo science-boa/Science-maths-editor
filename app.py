@@ -389,7 +389,20 @@ st.divider()
 st.subheader("Upload Diagram")
 uploaded_image = st.file_uploader("Upload generated diagram", type=["png", "jpg", "jpeg"])
 
-st.code(yaml.dump(st.session_state.data, sort_keys=False), language='yaml')
+# --- Editable YAML Area ---
+st.subheader("YAML Data Editor")
+current_yaml_str = yaml.dump(st.session_state.data, sort_keys=False)
+edited_yaml_str = st.text_area("Edit YAML Content Here", value=current_yaml_str, height=400)
+
+# Safely parse edits back into session state in real-time
+try:
+    parsed_yaml_data = yaml.safe_load(edited_yaml_str)
+    if isinstance(parsed_yaml_data, dict):
+        st.session_state.data = ensure_schema_integrity(parsed_yaml_data)
+    else:
+        st.warning("YAML root must be a dictionary/mapping.")
+except Exception as yaml_err:
+    st.error(f"YAML Syntax Error: {yaml_err}")
 
 col1, col2 = st.columns(2)
 with col1:
