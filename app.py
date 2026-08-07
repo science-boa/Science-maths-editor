@@ -84,8 +84,8 @@ def render_yaml_graph_to_image(graph_data):
         labels = data_block.get('labels', [])
         values = data_block.get('values', [])
         styling = data_block.get('styling', {})
-        fill_color = styling.get('fill', '#374151')
-        border_color = styling.get('border', '#111827')
+        fill_color = styling.get('fill', '#000000')
+        border_color = styling.get('border', '#000000')
         
         ax.bar(labels, values, color=fill_color, edgecolor=border_color, width=0.6)
         
@@ -97,7 +97,7 @@ def render_yaml_graph_to_image(graph_data):
         for ds in datasets:
             ds_name = ds.get('name', ds.get('label', ''))
             ds_type = ds.get('type', g_type)
-            ds_color = ds.get('color', '#2563eb')
+            ds_color = ds.get('color', '#000000')
             
             coords = ds.get('coordinates', ds.get('points', ds.get('values', [])))
             
