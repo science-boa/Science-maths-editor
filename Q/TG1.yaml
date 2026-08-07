@@ -1,0 +1,22 @@
+id: TG1
+metadata:
+  topic: Radioactive Decay
+  marks: 1
+  difficulty_level: 0.2
+question:
+  text: The graph shows the radioactive decay of a sample of isotope $^{131}\text{I}$.
+    Using the graph, state the initial activity of the sample at $t = 0 \text{ hours}$.
+  variables: []
+solution:
+  final_answer: 800.0
+  marks_available: 1
+  steps:
+  - step_number: 1
+    text: Identify the y-intercept of the curve where $t=0$, which corresponds to
+      the initial activity of $800 \text{ Bq}$.
+    marks_assigned: 1
+    check_type: numeric
+    milestone_value: 800.0
+    tolerance: 40.0
+media:
+  diagram_url: I/TG1.png
