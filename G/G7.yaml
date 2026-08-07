@@ -1,25 +1,19 @@
 type: line
-title: Capacitor Potential Difference over Time
+title: Capacitor Discharge Curve
 xlabel: Time (s)
 ylabel: Potential Difference (V)
 axes:
   ymin: 0
   ymax: 10
   ytick_distance: 1
-  grid:
-    major: true
-    minor: true
-    color: '#000000'
-    minor_color: rgba(0, 0, 0, 0.5)
-  minor_y_tick_num: 4
-  minor_x_tick_num: 4
+  grid: true
   x_major_grid:
     present: true
     color: '#000000'
     opacity: 1.0
     style: solid
   x_minor_grid:
-    present: true
+    present: false
     color: '#000000'
     opacity: 0.5
     style: solid
@@ -29,28 +23,24 @@ axes:
     opacity: 1.0
     style: solid
   y_minor_grid:
-    present: true
+    present: false
     color: '#000000'
     opacity: 0.5
     style: solid
 datasets:
-- label: Discharge Curve
+- label: Voltage vs Time
   values:
   - x: 0
-    y: 10
+    y: 10.0
   - x: 1
-    y: 7.8
+    y: 7.2
   - x: 2
-    y: 6.1
+    y: 5.2
   - x: 3
-    y: 4.7
+    y: 3.6
   - x: 4
-    y: 3.0
+    y: 2.6
   - x: 5
-    y: 2.2
+    y: 1.8
   - x: 6
-    y: 1.5
-  - x: 7
-    y: 1.0
-  - x: 8
-    y: 0.6
+    y: 1.3
