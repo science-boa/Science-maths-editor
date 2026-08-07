@@ -98,6 +98,7 @@ def render_yaml_graph_to_image(graph_data):
             ds_name = ds.get('name', ds.get('label', ''))
             ds_type = ds.get('type', g_type)
             ds_color = ds.get('color', '#000000')
+            pt_size = ds.get('point_size', ds.get('size', 30))
             
             coords = ds.get('coordinates', ds.get('points', ds.get('values', [])))
             
@@ -116,11 +117,11 @@ def render_yaml_graph_to_image(graph_data):
             if xs and ys:
                 if ds_type == 'scatter':
                     pt_radius = ds.get('point_radius', 6)
-                    ax.scatter(xs, ys, label=ds_name, color=ds_color, s=pt_radius*10, zorder=3)
+                    ax.scatter(xs, ys, label=ds_name, color=ds_color, s=pt_radius, zorder=3)
                 else:
                     lw = ds.get('border_width', 2)
                     ls = '--' if ds.get('border_dash') else '-'
-                    ax.plot(xs, ys, label=ds_name, color=ds_color, linewidth=lw, linestyle=ls, marker='o' if g_type=='line' else None, zorder=2)
+                    ax.plot(xs, ys, label=ds_name, color=ds_color, linewidth=lw, linestyle=ls, marker='o' if g_type=='line' else None, markersize=(pt_size**0.5)*1.5, zorder=2)
                     
         if len(datasets) > 1 or (datasets and (datasets[0].get('name') or datasets[0].get('label'))):
             ax.legend(frameon=True, facecolor='white', edgecolor='#e5e7eb', fontsize=9)
@@ -220,6 +221,15 @@ def generate_question(prompt_text, force_image=False, force_graph=False, unit_co
             if isinstance(parsed_data, dict) and parsed_data.get('graph'):
                 if 'axes' not in parsed_data['graph'] or not isinstance(parsed_data['graph']['axes'], dict):
                     parsed_data['graph']['axes'] = {}
+
+                # Add default point_size to datasets if missing
+                if 'datasets' in parsed_data['graph']:
+                    for ds in parsed_data['graph']['datasets']:
+                        if 'point_size' not in ds:
+                            ds['point_size'] = 5
+                elif 'data' in parsed_data['graph'] and parsed_data['graph'].get('type') in ['scatter', 'line', 'mixed']:
+                    # Handle single data blocks if converted to dataset format
+                    pass
                 
                 # Default X axis limits and tick distances if missing
                 if 'xmin' not in parsed_data['graph']['axes']:
