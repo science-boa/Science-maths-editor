@@ -79,7 +79,7 @@ def render_yaml_graph_to_image(graph_data):
     if ylabel:
         ax.set_ylabel(ylabel, fontsize=10, fontweight='semibold')
         
-if g_type == 'bar':
+    if g_type == 'bar':
         labels, values = [], []
         fill_color, border_color = '#000000', '#000000'
         
@@ -114,7 +114,7 @@ if g_type == 'bar':
         # Set proper graph limits so padding exists on both ends
         ax.set_xlim(0, len(labels) + 1.0)
         
-elif g_type in ['scatter', 'line', 'mixed']:
+    elif g_type in ['scatter', 'line', 'mixed']:
         datasets = graph_data.get('datasets', [])
         if not datasets and 'data' in graph_data:
             datasets = [{'name': 'Data', 'type': g_type, 'coordinates': graph_data.get('data', {}).get('coordinates', graph_data.get('data', {}).get('values', []))}]
@@ -123,7 +123,7 @@ elif g_type in ['scatter', 'line', 'mixed']:
             ds_name = ds.get('name', ds.get('label', ''))
             ds_type = ds.get('type', g_type)
             ds_color = ds.get('color', '#000000')
-            pt_size = ds.get('point_size', ds.get('size', 30))
+            pt_size = ds.get('point_size', ds.get('size', 5))
             
             coords = ds.get('coordinates', ds.get('points', ds.get('values', [])))
             
@@ -141,8 +141,7 @@ elif g_type in ['scatter', 'line', 'mixed']:
                 
             if xs and ys:
                 if ds_type == 'scatter':
-                    pt_radius = ds.get('point_radius', 6)
-                    ax.scatter(xs, ys, label=ds_name, color=ds_color, s=pt_radius, zorder=3)
+                    ax.scatter(xs, ys, label=ds_name, color=ds_color, s=pt_size*10, zorder=3)
                 else:
                     lw = ds.get('border_width', 2)
                     ls = '--' if ds.get('border_dash') else '-'
@@ -168,7 +167,7 @@ elif g_type in ['scatter', 'line', 'mixed']:
     if g_type == 'bar' and xtick_dist is None:
         xtick_dist = 1.0
         
-    if xtick_dist and xmin is not None and xmax is not None:
+    if g_type != 'bar' and xtick_dist and xmin is not None and xmax is not None:
         ax.set_xticks(np.arange(xmin, xmax + xtick_dist * 0.1, xtick_dist))
 
     # Major and Minor Gridlines configuration using explicit divisions
@@ -252,9 +251,6 @@ def generate_question(prompt_text, force_image=False, force_graph=False, unit_co
                     for ds in parsed_data['graph']['datasets']:
                         if 'point_size' not in ds:
                             ds['point_size'] = 5
-                elif 'data' in parsed_data['graph'] and parsed_data['graph'].get('type') in ['scatter', 'line', 'mixed']:
-                    # Handle single data blocks if converted to dataset format
-                    pass
                 
                 # Default X axis limits and tick distances if missing
                 if 'xmin' not in parsed_data['graph']['axes']:
@@ -355,6 +351,11 @@ with col2:
                 graph_data = {}
             if 'axes' not in graph_data or not isinstance(graph_data['axes'], dict):
                 graph_data['axes'] = {}
+            
+            if 'datasets' in graph_data:
+                for ds in graph_data['datasets']:
+                    if 'point_size' not in ds:
+                        ds['point_size'] = 5
             
             # Default to explicit X and Y major & minor gridlines with divisions and X-axis limits/ticks
             if 'xmin' not in graph_data['axes']:
