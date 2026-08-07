@@ -24,38 +24,19 @@ def load_prompt_library():
             df = pd.read_csv("prompts.csv", header=None, quotechar='"')
             prompts = df.iloc[:, 0].dropna().tolist()
             return {f"{i+1}: {p[:40]}...": p for i, p in enumerate(prompts)}
-        except Exception as e:
-            st.error(f"Error loading CSV: {e}")
-    return {"Default Prompt": "Act as an expert GCSE Physics examiner. Generate a calculation question..."}
-
-def push_to_github(filename, content, subdir="Q", is_image=False, image_data=None):
-    path = f"{subdir}/{filename}"
-    
-    try:
-        g = Github(st.secrets["GITHUB_TOKEN"])
-        repo = g.get_repo(st.secrets["GITHUB_REPO"])
-        push_content = image_data if is_image else content
-        
-        try:
-            contents = repo.get_contents(path)
-            repo.update_file(contents.path, f"Update {path}", push_content, contents.sha)
-            st.toast(f"Updated {path} on GitHub!", icon="✅")
-        except:
-            repo.create_file(path, f"Add {path}", push_content)
-            st.toast(f"Created {path} on GitHub!", icon="✅")
-    except Exception as e:
-        st.error(f"GitHub push failed for {path}: {e}")
-
-def render_yaml_graph_to_image(graph_data):
+def render_yaml_graph_to_image(graph_data, x_minor_toggle=None, x_minor_num=None, y_minor_toggle=None, y_minor_num=None):
     """
-    Parses scientific graph YAML schema and renders it as a matplotlib figure,
+    Parses scientific graph YAML schema and renders it as an 800x600 matplotlib figure,
     returning bytes of the PNG image. Handles standard schemas as well as shorthand
-    variants (e.g. grid: true, label, points, values).
+    variants (e.g. grid: true, label, points, values) and minor grid controls.
     """
     if not isinstance(graph_data, dict):
         raise ValueError(f"Invalid graph YAML content: expected dictionary schema, got {type(graph_data).__name__}.")
         
-    fig, ax = plt.subplots(figsize=(8, 5), dpi=150)
+    import matplotlib.ticker as ticker
+    
+    # Set figure size to 8 inches by 6 inches at 100 DPI (800x600 pixels)
+    fig, ax = plt.subplots(figsize=(8, 6), dpi=100)
     
     g_type = graph_data.get('type', 'bar')
     title = graph_data.get('title', '')
@@ -71,13 +52,25 @@ def render_yaml_graph_to_image(graph_data):
     grid_cfg = axes_cfg.get('grid', True)
     if isinstance(grid_cfg, bool):
         show_major_grid = grid_cfg
+        show_minor_grid = False
         grid_color = '#d1d5db'
+        minor_grid_color = '#f3f4f6'
     elif isinstance(grid_cfg, dict):
         show_major_grid = grid_cfg.get('major', True)
+        show_minor_grid = grid_cfg.get('minor', False)
         grid_color = grid_cfg.get('color', '#d1d5db')
+        minor_grid_color = grid_cfg.get('minor_color', '#f3f4f6')
     else:
         show_major_grid = True
+        show_minor_grid = False
         grid_color = '#d1d5db'
+        minor_grid_color = '#f3f4f6'
+        
+    show_x_minor = x_minor_toggle if x_minor_toggle is not None else show_minor_grid
+    show_y_minor = y_minor_toggle if y_minor_toggle is not None else show_minor_grid
+    
+    x_minor_count = x_minor_num if x_minor_num is not None else axes_cfg.get('minor_x_tick_num', 3)
+    y_minor_count = y_minor_num if y_minor_num is not None else axes_cfg.get('minor_y_tick_num', 3)
     
     if title:
         ax.set_title(title, fontsize=12, fontweight='bold', pad=12)
@@ -106,7 +99,6 @@ def render_yaml_graph_to_image(graph_data):
             ds_type = ds.get('type', g_type)
             ds_color = ds.get('color', '#2563eb')
             
-            # Support coordinates, points, or values (list of dicts with x, y or tuples)
             coords = ds.get('coordinates', ds.get('points', ds.get('values', [])))
             
             xs, ys = [], []
@@ -144,10 +136,18 @@ def render_yaml_graph_to_image(graph_data):
     ytick_dist = axes_cfg.get('ytick_distance')
     if ytick_dist and ymin is not None and ymax is not None:
         ax.set_yticks(np.arange(ymin, ymax + ytick_dist * 0.1, ytick_dist))
+        if show_y_minor and y_minor_count > 0:
+            ax.yaxis.set_minor_locator(ticker.AutoMinorLocator(int(y_minor_count) + 1))
         
     xtick_dist = axes_cfg.get('xtick_distance')
     if xtick_dist and xmin is not None and xmax is not None:
         ax.set_xticks(np.arange(xmin, xmax + xtick_dist * 0.1, xtick_dist))
+        if show_x_minor and x_minor_count > 0:
+            ax.xaxis.set_minor_locator(ticker.AutoMinorLocator(int(x_minor_count) + 1))
+            
+    if show_x_minor or show_y_minor:
+        ax.minorticks_on()
+        ax.grid(True, which='minor', color=minor_grid_color, linestyle='--', linewidth=0.4, alpha=0.5)
         
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
@@ -311,13 +311,39 @@ if st.session_state.get('pushed_graph_id'):
         else:
             st.info(f"Loaded `G/{pushed_id}.yaml` successfully from GitHub.")
             
-            # Render graph as image bytes
-            image_bytes = render_yaml_graph_to_image(parsed_graph)
-            st.image(image_bytes, caption=f"Rendered Graph for {pushed_id}", use_container_width=True)
+            # Layout columns: Image on the left, Grid Controls on the right
+            col_img, col_ctrl = st.columns([2, 1])
             
-            if st.button("Push image to GitHub"):
-                push_to_github(f"{pushed_id}.png", None, subdir="I", is_image=True, image_data=image_bytes)
-                st.success(f"Graph image successfully pushed to `I/{pushed_id}.png`!")
+            with col_ctrl:
+                st.markdown("### Grid Controls")
+                x_minor_toggle = st.toggle("X minor gridline", value=False)
+                x_minor_num_input = st.text_input("Number of X minor gridlines", value="3")
+                y_minor_toggle = st.toggle("Y minor gridline", value=False)
+                y_minor_num_input = st.text_input("Number of Y minor gridlines", value="3")
+            
+            with col_img:
+                try:
+                    x_min_count = int(x_minor_num_input) if x_minor_num_input.strip() else 3
+                except:
+                    x_min_count = 3
+                try:
+                    y_min_count = int(y_minor_num_input) if y_minor_num_input.strip() else 3
+                except:
+                    y_min_count = 3
+                
+                # Render graph as 800x600 image bytes with minor grid options
+                image_bytes = render_yaml_graph_to_image(
+                    parsed_graph,
+                    x_minor_toggle=x_minor_toggle,
+                    x_minor_num=x_min_count,
+                    y_minor_toggle=y_minor_toggle,
+                    y_minor_num=y_min_count
+                )
+                st.image(image_bytes, caption=f"Rendered Graph for {pushed_id} (800x600px)", use_container_width=True)
+                
+                if st.button("Push image to GitHub"):
+                    push_to_github(f"{pushed_id}.png", None, subdir="I", is_image=True, image_data=image_bytes)
+                    st.success(f"Graph image successfully pushed to `I/{pushed_id}.png`!")
             
     except Exception as e:
         st.warning(f"Could not load `G/{pushed_id}.yaml` from GitHub yet: {e}")
