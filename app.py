@@ -457,4 +457,3 @@ if st.session_state.get('pushed_graph_id') or st.session_state.data.get('graph')
                 st.success(f"Graph image and updated YAML successfully pushed to GitHub!")
     else:
         st.info("No structured graph data available for this question.")
-```eof
