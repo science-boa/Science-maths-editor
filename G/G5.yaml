@@ -1,0 +1,26 @@
+type: line
+title: Cooling Curve of a Liquid
+xlabel: Time ($s$)
+ylabel: Temperature ($^\circ\text{C}$)
+axes:
+  ymin: 0
+  ymax: 100
+  ytick_distance: 10
+  grid: true
+datasets:
+- label: Temperature vs Time
+  values:
+  - x: 0
+    y: 100
+  - x: 10
+    y: 70
+  - x: 20
+    y: 52
+  - x: 30
+    y: 40
+  - x: 40
+    y: 32
+  - x: 50
+    y: 26
+  - x: 60
+    y: 22
