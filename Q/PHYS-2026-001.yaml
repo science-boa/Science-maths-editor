@@ -1,27 +1,22 @@
 id: PHYS-2026-001
 metadata:
-  topic: Data Analysis and Disease Incidence
+  topic: Radioactive Decay
   marks: 1
   difficulty_level: 0.2
 question:
-  text: Using the provided bar graph, determine the number of reported cases of the
-    disease in Country C.
+  text: The graph shows the radioactive decay of a sample of isotope $^{131}\text{I}$.
+    Using the graph, state the initial activity of the sample at $t = 0 \text{ hours}$.
   variables: []
 solution:
-  final_answer: 400.0
+  final_answer: 800.0
   marks_available: 1
   steps:
   - step_number: 1
-    text: Identify the bar labeled "Country C" and read the corresponding value on
-      the y-axis, which is $400$.
+    text: Identify the y-intercept of the curve where $t=0$, which corresponds to
+      the initial activity of $800 \text{ Bq}$.
     marks_assigned: 1
     check_type: numeric
-    milestone_value: 400.0
-    tolerance: 0.0
+    milestone_value: 800.0
+    tolerance: 40.0
 media:
   diagram_url: I/PHYS-2026-001.png
-  video_explainer_url: null
-tags:
-- data-interpretation
-- graph-reading
-- GCSE-science
