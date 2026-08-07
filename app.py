@@ -79,7 +79,7 @@ def render_yaml_graph_to_image(graph_data):
     if ylabel:
         ax.set_ylabel(ylabel, fontsize=10, fontweight='semibold')
         
-    if g_type == 'bar':
+if g_type == 'bar':
         labels, values = [], []
         fill_color, border_color = '#000000', '#000000'
         
@@ -103,9 +103,9 @@ def render_yaml_graph_to_image(graph_data):
             fill_color = ds.get('color', '#000000')
             border_color = '#000000'
             
-        x_indexes = np.arange(len(labels))    
-        ax.bar(labels, values, color=fill_color, edgecolor=border_color, width=0.6)
-
+        x_indexes = np.arange(len(labels))
+        ax.bar(x_indexes, values, color=fill_color, edgecolor=border_color, width=0.6)
+        
         # Align ticks and limits properly for categorical bars
         ax.set_xticks(x_indexes)
         ax.set_xticklabels(labels)
