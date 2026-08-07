@@ -50,7 +50,7 @@ def render_yaml_graph_to_image(graph_data):
     """
     Parses scientific graph YAML schema and renders it as a matplotlib figure,
     returning bytes of the PNG image. Handles standard schemas as well as shorthand
-    variants (e.g. grid: true, label, points).
+    variants (e.g. grid: true, label, points, values).
     """
     if not isinstance(graph_data, dict):
         raise ValueError(f"Invalid graph YAML content: expected dictionary schema, got {type(graph_data).__name__}.")
@@ -99,28 +99,36 @@ def render_yaml_graph_to_image(graph_data):
     elif g_type in ['scatter', 'line', 'mixed']:
         datasets = graph_data.get('datasets', [])
         if not datasets and 'data' in graph_data:
-            datasets = [{'name': 'Data', 'type': 'scatter', 'coordinates': graph_data.get('data', {}).get('coordinates', [])}]
+            datasets = [{'name': 'Data', 'type': g_type, 'coordinates': graph_data.get('data', {}).get('coordinates', graph_data.get('data', {}).get('values', []))}]
             
         for ds in datasets:
             ds_name = ds.get('name', ds.get('label', ''))
-            ds_type = ds.get('type', 'scatter')
+            ds_type = ds.get('type', g_type)
             ds_color = ds.get('color', '#2563eb')
-            coords = ds.get('coordinates', ds.get('points', []))
             
-            if not coords and 'x' in ds and 'y' in ds:
-                coords = list(zip(ds['x'], ds['y']))
-                
+            # Support coordinates, points, or values (list of dicts with x, y or tuples)
+            coords = ds.get('coordinates', ds.get('points', ds.get('values', [])))
+            
+            xs, ys = [], []
             if coords:
-                xs = [pt[0] for pt in coords]
-                ys = [pt[1] for pt in coords]
+                if isinstance(coords[0], dict) and 'x' in coords[0] and 'y' in coords[0]:
+                    xs = [pt['x'] for pt in coords]
+                    ys = [pt['y'] for pt in coords]
+                else:
+                    xs = [pt[0] for pt in coords]
+                    ys = [pt[1] for pt in coords]
+            elif 'x' in ds and 'y' in ds:
+                xs = ds['x']
+                ys = ds['y']
                 
+            if xs and ys:
                 if ds_type == 'scatter':
                     pt_radius = ds.get('point_radius', 6)
                     ax.scatter(xs, ys, label=ds_name, color=ds_color, s=pt_radius*10, zorder=3)
                 else:
                     lw = ds.get('border_width', 2)
                     ls = '--' if ds.get('border_dash') else '-'
-                    ax.plot(xs, ys, label=ds_name, color=ds_color, linewidth=lw, linestyle=ls, zorder=2)
+                    ax.plot(xs, ys, label=ds_name, color=ds_color, linewidth=lw, linestyle=ls, marker='o' if g_type=='line' else None, zorder=2)
                     
         if len(datasets) > 1 or (datasets and (datasets[0].get('name') or datasets[0].get('label'))):
             ax.legend(frameon=True, facecolor='white', edgecolor='#e5e7eb', fontsize=9)
