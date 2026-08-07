@@ -1,0 +1,56 @@
+type: line
+title: Radioactive Decay of $^{131}\text{I}$
+xlabel: Time (h)
+ylabel: Activity (Bq)
+axes:
+  xmin: 0
+  xmax: 50
+  xtick_distance: 10
+  ymin: 0
+  ymax: 1000
+  ytick_distance: 200
+  grid: true
+  x_major_grid:
+    present: true
+    color: '#000000'
+    opacity: 1.0
+    style: solid
+  y_major_grid:
+    present: true
+    color: '#000000'
+    opacity: 1.0
+    style: solid
+  x_minor_grid:
+    present: true
+    color: '#000000'
+    opacity: 1.0
+    style: dashed
+    divisions: 5
+  y_minor_grid:
+    present: true
+    color: '#000000'
+    opacity: 1.0
+    style: dashed
+    divisions: 5
+datasets:
+- label: Activity
+  points:
+  - x: 0
+    y: 800
+  - x: 8
+    y: 565
+  - x: 16
+    y: 400
+  - x: 24
+    y: 283
+  - x: 32
+    y: 200
+  - x: 40
+    y: 141
+  - x: 48
+    y: 100
+  point_size: 5
+tags:
+- data-interpretation
+- radioactivity
+- exponential-decay
