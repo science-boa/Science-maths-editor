@@ -282,9 +282,8 @@
         mediaHtml += `<div class="mb-6 border border-gray-200 bg-gray-100 rounded-lg w-full h-48 flex items-center justify-center overflow-hidden"><img src="${BASE_RAW_URL}${q.media.diagram_url}" alt="Question Diagram" class="object-contain h-full w-full" onerror="this.parentElement.innerHTML='<span class=\'text-xs text-gray-400\'>Diagram Image Reference Broken: ${q.media.diagram_url}</span>'"></div>`;
       }
       
-      // Ensure canvas element is properly structured and forced to display without the PGFPlots footer label
-      mediaHtml += `<div id="graph-container-${currentIndex}" class="mb-6 border border-gray-200 bg-white p-4 rounded-lg w-full ${q.graph ? '' : 'hidden'}"><div class="relative h-64 w-full"><canvas id="pgfplot-canvas-${currentIndex}"></canvas></div></div>`;
-
+      mediaHtml += `<div id="graph-container-${currentIndex}" class="mb-6 border border-gray-200 bg-white p-4 rounded-lg w-full ${q.graph ? '' : 'hidden'}"><div class="relative w-full h-72 md:h-96 max-h-[500px]"><canvas id="pgfplot-canvas-${currentIndex}"></canvas></div></div>`;
+      
       questionArea.innerHTML = `<div class="text-xs font-bold text-blue-600 tracking-wider uppercase mb-1">${q.metadata?.topic || 'General Science'}</div><h2 class="text-xl font-bold text-gray-900 mb-4">Question ID: ${q.id}</h2>${mediaHtml}<div id="math-text" class="text-base leading-relaxed text-gray-800 font-normal">${q.question.text}</div>`;
       renderMathInElement(document.getElementById('math-text'), { delimiters: [{ left: "$$", right: "$$", display: true }, { left: "$", right: "$", display: false }] });
       
