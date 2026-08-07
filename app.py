@@ -7,7 +7,7 @@ from github import Github
 from google import genai
 
 # --- Configuration ---
-st.set_page_config(page_title="Physics Question Generator", layout="wide")
+st.set_page_config(page_title="Physics Question Generator v0.1", layout="wide")
 
 # Initialize the Interactions API client
 client = genai.Client(api_key=st.secrets.get("GEMINI_API_KEY", ""))
