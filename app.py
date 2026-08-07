@@ -377,35 +377,39 @@ if st.session_state.get('pushed_graph_id'):
         g_repo = g_client.get_repo(st.secrets["GITHUB_REPO"])
         file_contents = g_repo.get_contents(f"G/{pushed_id}.yaml")
         yaml_content = file_contents.decoded_content.decode("utf-8")
-        parsed_graph = yaml.safe_load(yaml_content)
         
-        if not isinstance(parsed_graph, dict):
-            st.error(f"Error: `G/{pushed_id}.yaml` loaded from GitHub is not a valid graph dictionary schema...")
-        else:
-            st.info(f"Loaded `G/{pushed_id}.yaml` successfully from GitHub.")
-            
-            col_img, col_controls = st.columns([2, 1])
-            
-            with col_img:
+        col_img, col_controls = st.columns([2, 1])
+        
+        with col_controls:
+            st.markdown("### Graph YAML Content")
+            updated_graph_yaml = st.text_area("YAML Code", value=yaml_content, height=300, key=f"yaml_view_{pushed_id}")
+        
+        # Parse YAML live from the text area so edits instantly update the rendered preview
+        try:
+            parsed_graph = yaml.safe_load(updated_graph_yaml)
+        except Exception as parse_err:
+            parsed_graph = None
+            st.error(f"YAML Syntax Error: {parse_err}")
+
+        with col_img:
+            if isinstance(parsed_graph, dict):
                 image_bytes = render_yaml_graph_to_image(parsed_graph)
                 st.image(image_bytes, caption=f"Rendered Graph for {pushed_id}", use_container_width=True)
                 
-                if st.button("Push image to GitHub"):
+                if st.button("Push updated image & YAML to GitHub"):
+                    push_to_github(f"{pushed_id}.yaml", updated_graph_yaml, subdir="G")
                     push_to_github(f"{pushed_id}.png", None, subdir="I", is_image=True, image_data=image_bytes)
-                    st.success(f"Graph image successfully pushed to `I/{pushed_id}.png`!")
-
-            with col_controls:
-                st.markdown("### Graph YAML Content")
-                updated_graph_yaml = yaml.dump(parsed_graph, sort_keys=False)
-                st.text_area("YAML Code", value=updated_graph_yaml, height=300, key=f"yaml_view_{pushed_id}")
-            
-            st.divider()
-            st.markdown("### Scientific Graph Keys & Syntax Reference")
-            if os.path.exists("graph_keys_reference.md"):
-                with open("graph_keys_reference.md", "r") as ref_file:
-                    st.markdown(ref_file.read())
+                    st.success(f"Updated graph successfully pushed to GitHub!")
             else:
-                st.warning("Reference guide file `graph_keys_reference.md` not found.")
+                st.warning("Please enter a valid graph dictionary YAML schema to render the preview.")
+            
+        st.divider()
+        st.markdown("### Scientific Graph Keys & Syntax Reference")
+        if os.path.exists("graph_keys_reference.md"):
+            with open("graph_keys_reference.md", "r") as ref_file:
+                st.markdown(ref_file.read())
+        else:
+            st.warning("Reference guide file `graph_keys_reference.md` not found.")
             
     except Exception as e:
         st.warning(f"Could not load `G/{pushed_id}.yaml` from GitHub yet: {e}")
