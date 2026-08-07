@@ -1,23 +1,31 @@
 id: TG2
 metadata:
-  topic: Disease Incidence
+  topic: Electricity
   marks: 1
-  difficulty_level: 0.1
+  difficulty_level: 2.5
 question:
-  text: The bar graph shows the number of recorded cases of a specific disease in
-    four countries. Using the graph, state the number of cases recorded in Country
-    B.
+  text: The graph shows the voltage across a discharging capacitor over time. Determine
+    the time at which the voltage across the capacitor drops to $5.0\text{ V}$. Show
+    your answer to an appropriate number of significant figures.
   variables: []
 solution:
-  final_answer: 450.0
+  final_answer: 3.47
   marks_available: 1
   steps:
   - step_number: 1
-    text: Identify the bar labeled "Country B" on the x-axis and read the corresponding
-      value on the y-axis, which is $450$ cases.
+    text: Locate $5.0\text{ V}$ on the y-axis, draw a horizontal line to the curve,
+      then drop a vertical line to the x-axis to read the time.
     marks_assigned: 1
-    check_type: numeric
-    milestone_value: 450.0
-    tolerance: 0.0
+    check_type: range_check
+    milestone_value: 3.47
+    tolerance: 0.1
 media:
   diagram_url: I/TG2.png
+  video_explainer_url: null
+tags:
+- GCSE
+- Physics
+- Electricity
+- Capacitor
+- Discharge
+- Graph Interpretation
