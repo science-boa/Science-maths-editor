@@ -46,7 +46,7 @@ def push_to_github(filename, content, subdir="Q", is_image=False, image_data=Non
     except Exception as e:
         st.error(f"GitHub push failed for {path}: {e}")
 
-def render_yaml_graph_to_image(graph_data, x_minor_on=False, x_minor_count=4, y_minor_on=False, y_minor_count=4):
+def render_yaml_graph_to_image(graph_data):
     """
     Parses scientific graph YAML schema and renders it as a matplotlib figure,
     returning bytes of the PNG image restricted to 800x600 pixels.
@@ -68,9 +68,7 @@ def render_yaml_graph_to_image(graph_data, x_minor_on=False, x_minor_count=4, y_
     xmax = axes_cfg.get('xmax')
     
     x_major_grid = axes_cfg.get('x_major_grid', {'present': True, 'color': '#000000', 'opacity': 1.0})
-    x_minor_grid = axes_cfg.get('x_minor_grid', {'present': False, 'color': '#000000', 'opacity': 0.5})
     y_major_grid = axes_cfg.get('y_major_grid', {'present': True, 'color': '#000000', 'opacity': 1.0})
-    y_minor_grid = axes_cfg.get('y_minor_grid', {'present': False, 'color': '#000000', 'opacity': 0.5})
     
     if title:
         ax.set_title(title, fontsize=12, fontweight='bold', pad=12)
@@ -144,24 +142,6 @@ def render_yaml_graph_to_image(graph_data, x_minor_on=False, x_minor_count=4, y_
         
     if xtick_dist and xmin is not None and xmax is not None:
         ax.set_xticks(np.arange(xmin, xmax + xtick_dist * 0.1, xtick_dist))
-        
-    if x_minor_on:
-        ax.minorticks_on()
-        effective_xtick_dist = xtick_dist if xtick_dist is not None else 1.0
-        if x_minor_count > 0:
-            ax.xaxis.set_minor_locator(MultipleLocator(effective_xtick_dist / (x_minor_count + 1)))
-        else:
-            ax.xaxis.set_minor_locator(AutoMinorLocator(x_minor_count + 1 if x_minor_count > 0 else 4))
-        ax.xaxis.grid(True, which='minor', color=x_minor_grid.get('color', '#000000'), alpha=x_minor_grid.get('opacity', 0.5), linestyle=':', linewidth=0.5)
-
-    if y_minor_on:
-        ax.minorticks_on()
-        effective_ytick_dist = ytick_dist if ytick_dist is not None else 1.0
-        if y_minor_count > 0:
-            ax.yaxis.set_minor_locator(MultipleLocator(effective_ytick_dist / (y_minor_count + 1)))
-        else:
-            ax.yaxis.set_minor_locator(AutoMinorLocator(y_minor_count + 1 if y_minor_count > 0 else 4))
-        ax.yaxis.grid(True, which='minor', color=y_minor_grid.get('color', '#000000'), alpha=y_minor_grid.get('opacity', 0.5), linestyle=':', linewidth=0.5)
 
     if x_major_grid.get('present', True):
         ax.xaxis.grid(True, which='major', color=x_major_grid.get('color', '#000000'), alpha=x_major_grid.get('opacity', 1.0), linestyle='-', linewidth=0.7)
@@ -308,31 +288,10 @@ with col2:
             if 'axes' not in graph_data or not isinstance(graph_data['axes'], dict):
                 graph_data['axes'] = {}
             
-            x_minor_pushed_val = st.session_state.get(f"x_minor_{q_id}", False)
-            y_minor_pushed_val = st.session_state.get(f"y_minor_{q_id}", False)
-
-            try:
-                x_count_pushed = int(st.session_state.get(f"x_minor_val_{q_id}", 4))
-            except:
-                x_count_pushed = 4
-
-            try:
-                y_count_pushed = int(st.session_state.get(f"y_minor_val_{q_id}", 4))
-            except:
-                y_count_pushed = 4
-
-            # Explicitly define X and Y major and minor grid lines individually based on toggle and count state
             graph_data['axes']['x_major_grid'] = {
                 'present': True,
                 'color': '#000000',
                 'opacity': 1.0,
-                'style': 'solid'
-            }
-            graph_data['axes']['x_minor_grid'] = {
-                'present': x_minor_pushed_val,
-                'count': x_count_pushed,
-                'color': '#000000',
-                'opacity': 0.5,
                 'style': 'solid'
             }
             graph_data['axes']['y_major_grid'] = {
@@ -341,16 +300,9 @@ with col2:
                 'opacity': 1.0,
                 'style': 'solid'
             }
-            graph_data['axes']['y_minor_grid'] = {
-                'present': y_minor_pushed_val,
-                'count': y_count_pushed,
-                'color': '#000000',
-                'opacity': 0.5,
-                'style': 'solid'
-            }
             
             graph_yaml_str = yaml.dump(graph_data, sort_keys=False)
-            push_to_github(f"{pushed_id}.yaml" if 'pushed_id' in locals() else f"{q_id}.yaml", graph_yaml_str, subdir="G")
+            push_to_github(f"{q_id}.yaml", graph_yaml_str, subdir="G")
             st.session_state.pushed_graph_id = q_id
             time.sleep(1)
         else:
@@ -373,70 +325,32 @@ if st.session_state.get('pushed_graph_id'):
         parsed_graph = yaml.safe_load(yaml_content)
         
         if not isinstance(parsed_graph, dict):
-            st.error(f"Error: `G/{pushed_id}.yaml` loaded from GitHub is not a valid graph dictionary schema (found `{type(parsed_graph).__name__}`). Please check that the question YAML generated a proper structured graph object.")
+            st.error(f"Error: `G/{pushed_id}.yaml` loaded from GitHub is not a valid graph dictionary schema...")
         else:
             st.info(f"Loaded `G/{pushed_id}.yaml` successfully from GitHub.")
             
             col_img, col_controls = st.columns([2, 1])
             
-            with col_controls:
-                st.markdown("### Grid Customization")
-                initial_x_minor = parsed_graph.get('axes', {}).get('x_minor_grid', {}).get('present', False)
-                initial_x_count = parsed_graph.get('axes', {}).get('x_minor_grid', {}).get('count', 4)
-                
-                initial_y_minor = parsed_graph.get('axes', {}).get('y_minor_grid', {}).get('present', False)
-                initial_y_count = parsed_graph.get('axes', {}).get('y_minor_grid', {}).get('count', 4)
-
-                x_minor_toggle = st.toggle("X Minor Gridline", value=initial_x_minor, key=f"x_minor_{pushed_id}")
-                x_minor_val = st.text_input("X Minor Gridlines Count", value=str(initial_x_count), key=f"x_minor_val_{pushed_id}")
-                
-                y_minor_toggle = st.toggle("Y Minor Gridline", value=initial_y_minor, key=f"y_minor_{pushed_id}")
-                y_minor_val = st.text_input("Y Minor Gridlines Count", value=str(initial_y_count), key=f"y_minor_val_{pushed_id}")
-                
-                try:
-                    x_count = int(x_minor_val) if x_minor_val.strip() else 4
-                except:
-                    x_count = 4
-                    
-                try:
-                    y_count = int(y_minor_val) if y_minor_val.strip() else 4
-                except:
-                    y_count = 4
-
-                st.markdown("### Graph YAML Content")
-                # Update parsed_graph axes with current toggle & count states before displaying
-                if 'axes' not in parsed_graph or not isinstance(parsed_graph['axes'], dict):
-                    parsed_graph['axes'] = {}
-                parsed_graph['axes']['x_minor_grid'] = {
-                    'present': x_minor_toggle,
-                    'count': x_count,
-                    'color': '#000000',
-                    'opacity': 0.5,
-                    'style': 'solid'
-                }
-                parsed_graph['axes']['y_minor_grid'] = {
-                    'present': y_minor_toggle,
-                    'count': y_count,
-                    'color': '#000000',
-                    'opacity': 0.5,
-                    'style': 'solid'
-                }
-                updated_graph_yaml = yaml.dump(parsed_graph, sort_keys=False)
-                st.text_area("YAML Code", value=updated_graph_yaml, height=200, key=f"yaml_view_{pushed_id}")
-
             with col_img:
-                image_bytes = render_yaml_graph_to_image(
-                    parsed_graph,
-                    x_minor_on=x_minor_toggle,
-                    x_minor_count=x_count,
-                    y_minor_on=y_minor_toggle,
-                    y_minor_count=y_count
-                )
+                image_bytes = render_yaml_graph_to_image(parsed_graph)
                 st.image(image_bytes, caption=f"Rendered Graph for {pushed_id}", use_container_width=True)
                 
                 if st.button("Push image to GitHub"):
                     push_to_github(f"{pushed_id}.png", None, subdir="I", is_image=True, image_data=image_bytes)
                     st.success(f"Graph image successfully pushed to `I/{pushed_id}.png`!")
+
+            with col_controls:
+                st.markdown("### Graph YAML Content")
+                updated_graph_yaml = yaml.dump(parsed_graph, sort_keys=False)
+                st.text_area("YAML Code", value=updated_graph_yaml, height=300, key=f"yaml_view_{pushed_id}")
+            
+            st.divider()
+            st.markdown("### Scientific Graph Keys & Syntax Reference")
+            if os.path.exists("graph_keys_reference.md"):
+                with open("graph_keys_reference.md", "r") as ref_file:
+                    st.markdown(ref_file.read())
+            else:
+                st.warning("Reference guide file `graph_keys_reference.md` not found.")
             
     except Exception as e:
         st.warning(f"Could not load `G/{pushed_id}.yaml` from GitHub yet: {e}")
