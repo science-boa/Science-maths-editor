@@ -1,0 +1,29 @@
+id: G4
+metadata:
+  topic: Thermal Physics - Cooling Curves
+  marks: 4
+  difficulty_level: 0.5
+question:
+  text: The graph shows the temperature $T$ in $^\circ\text{C}$ of a cooling liquid
+    over time $t$ in minutes. Using the graph, determine the time at which the temperature
+    of the liquid reaches $40^\circ\text{C}$.
+  variables:
+  - $T$
+  - $t$
+solution:
+  final_answer: 5.0
+  marks_available: 4
+  steps:
+  - step_number: 1
+    text: Identify $40^\circ\text{C}$ on the y-axis, move horizontally to the curve,
+      and read the corresponding time on the x-axis.
+    marks_assigned: 1
+    check_type: numeric
+    milestone_value: 5.0
+    tolerance: 0.5
+tags:
+- graph-interpretation
+- thermal-physics
+- cooling-curve
+media:
+  diagram_url: I/G4.png
