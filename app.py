@@ -69,6 +69,8 @@ def render_yaml_graph_to_image(graph_data):
     
     x_major_grid = axes_cfg.get('x_major_grid', {'present': True, 'color': '#000000', 'opacity': 1.0})
     y_major_grid = axes_cfg.get('y_major_grid', {'present': True, 'color': '#000000', 'opacity': 1.0})
+    x_minor_grid = axes_cfg.get('x_minor_grid', {'present': True, 'color': '#9ca3af', 'opacity': 0.5})
+    y_minor_grid = axes_cfg.get('y_minor_grid', {'present': True, 'color': '#9ca3af', 'opacity': 0.5})
     
     if title:
         ax.set_title(title, fontsize=12, fontweight='bold', pad=12)
@@ -143,11 +145,20 @@ def render_yaml_graph_to_image(graph_data):
     if xtick_dist and xmin is not None and xmax is not None:
         ax.set_xticks(np.arange(xmin, xmax + xtick_dist * 0.1, xtick_dist))
 
+    # Major and Minor Gridlines configuration
     if x_major_grid.get('present', True):
         ax.xaxis.grid(True, which='major', color=x_major_grid.get('color', '#000000'), alpha=x_major_grid.get('opacity', 1.0), linestyle='-', linewidth=0.7)
 
     if y_major_grid.get('present', True):
         ax.yaxis.grid(True, which='major', color=y_major_grid.get('color', '#000000'), alpha=y_major_grid.get('opacity', 1.0), linestyle='-', linewidth=0.7)
+
+    if x_minor_grid.get('present', True):
+        ax.xaxis.set_minor_locator(AutoMinorLocator(5))
+        ax.xaxis.grid(True, which='minor', color=x_minor_grid.get('color', '#9ca3af'), alpha=x_minor_grid.get('opacity', 0.5), linestyle='--', linewidth=0.5)
+
+    if y_minor_grid.get('present', True):
+        ax.yaxis.set_minor_locator(AutoMinorLocator(5))
+        ax.yaxis.grid(True, which='minor', color=y_minor_grid.get('color', '#9ca3af'), alpha=y_minor_grid.get('opacity', 0.5), linestyle='--', linewidth=0.5)
         
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
@@ -201,7 +212,18 @@ def generate_question(prompt_text, force_image=False, force_graph=False, unit_co
                 contents=query
             )
             raw_text = response.text.replace('```yaml', '').replace('```', '')
-            st.session_state.data = yaml.safe_load(clean_latex(raw_text))
+            parsed_data = yaml.safe_load(clean_latex(raw_text))
+            
+            # Ensure generated graph defaults to X and Y minor gridlines with 5 divisions
+            if isinstance(parsed_data, dict) and parsed_data.get('graph'):
+                if 'axes' not in parsed_data['graph'] or not isinstance(parsed_data['graph']['axes'], dict):
+                    parsed_data['graph']['axes'] = {}
+                parsed_data['graph']['axes']['x_major_grid'] = {'present': True, 'color': '#000000', 'opacity': 1.0, 'style': 'solid'}
+                parsed_data['graph']['axes']['y_major_grid'] = {'present': True, 'color': '#000000', 'opacity': 1.0, 'style': 'solid'}
+                parsed_data['graph']['axes']['x_minor_grid'] = {'present': True, 'color': '#9ca3af', 'opacity': 0.5, 'style': 'dashed', 'divisions': 5}
+                parsed_data['graph']['axes']['y_minor_grid'] = {'present': True, 'color': '#9ca3af', 'opacity': 0.5, 'style': 'dashed', 'divisions': 5}
+            
+            st.session_state.data = parsed_data
             st.session_state.image_prompt = None
             st.session_state.pushed_graph_id = None
             st.success("Generation complete!")
@@ -288,6 +310,7 @@ with col2:
             if 'axes' not in graph_data or not isinstance(graph_data['axes'], dict):
                 graph_data['axes'] = {}
             
+            # Default to X and Y major & minor gridlines with 5 divisions on each
             graph_data['axes']['x_major_grid'] = {
                 'present': True,
                 'color': '#000000',
@@ -299,6 +322,20 @@ with col2:
                 'color': '#000000',
                 'opacity': 1.0,
                 'style': 'solid'
+            }
+            graph_data['axes']['x_minor_grid'] = {
+                'present': True,
+                'color': '#9ca3af',
+                'opacity': 0.5,
+                'style': 'dashed',
+                'divisions': 5
+            }
+            graph_data['axes']['y_minor_grid'] = {
+                'present': True,
+                'color': '#9ca3af',
+                'opacity': 0.5,
+                'style': 'dashed',
+                'divisions': 5
             }
             
             graph_yaml_str = yaml.dump(graph_data, sort_keys=False)
