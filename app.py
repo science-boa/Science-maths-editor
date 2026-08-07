@@ -131,10 +131,6 @@ def push_to_github(filename, content, subdir="Q", is_image=False, image_data=Non
         st.error(f"GitHub push failed for {path}: {e}")
 
 def render_yaml_graph_to_image(graph_data):
-    """
-    Parses scientific graph dictionary and renders it as a matplotlib figure,
-    returning bytes of the PNG image restricted to 800x600 pixels.
-    """
     if not isinstance(graph_data, dict):
         raise ValueError(f"Invalid graph content: expected dictionary schema, got {type(graph_data).__name__}.")
         
@@ -239,7 +235,6 @@ def render_yaml_graph_to_image(graph_data):
     if g_type != 'bar' and xtick_dist and xmin is not None and xmax is not None:
         ax.set_xticks(np.arange(xmin, xmax + xtick_dist * 0.1, xtick_dist))
 
-    # Gridlines configuration
     ax.xaxis.grid(True, which='major', color='#000000', alpha=1.0, linestyle='solid', linewidth=0.7)
     ax.yaxis.grid(True, which='major', color='#000000', alpha=1.0, linestyle='solid', linewidth=0.7)
     ax.xaxis.set_minor_locator(AutoMinorLocator(5))
@@ -274,19 +269,33 @@ def get_empty_schema_dict():
         "tags": []
     }
 
+def ensure_schema_integrity(data_dict):
+    """Ensures all expected root and nested keys exist to prevent KeyErrors."""
+    if not isinstance(data_dict, dict):
+        return get_empty_schema_dict()
+    
+    defaults = get_empty_schema_dict()
+    for key, default_val in defaults.items():
+        if key not in data_dict or data_dict[key] is None:
+            data_dict[key] = default_val
+            
+    # Check inner structures
+    if not isinstance(data_dict.get('media'), dict):
+        data_dict['media'] = {"diagram_url": None, "video_explainer_url": None}
+    if not isinstance(data_dict.get('metadata'), dict):
+        data_dict['metadata'] = {"topic": "", "marks": 4, "difficulty_level": 0.5}
+    if not isinstance(data_dict.get('question'), dict):
+        data_dict['question'] = {"text": "", "variables": []}
+    if not isinstance(data_dict.get('solution'), dict):
+        data_dict['solution'] = {"final_answer": 0.0, "marks_available": 4, "steps": []}
+        
+    return data_dict
+
 # Safely initialize session state data
 if 'data' not in st.session_state or not isinstance(st.session_state.data, dict):
     st.session_state.data = get_empty_schema_dict()
-
-# Ensure nested keys are never None if loaded from an incomplete YAML file
-if st.session_state.data.get('media') is None:
-    st.session_state.data['media'] = {"diagram_url": None, "video_explainer_url": None}
-if st.session_state.data.get('metadata') is None:
-    st.session_state.data['metadata'] = {"topic": "", "marks": 4, "difficulty_level": 0.5}
-if st.session_state.data.get('question') is None:
-    st.session_state.data['question'] = {"text": "", "variables": []}
-if st.session_state.data.get('solution') is None:
-    st.session_state.data['solution'] = {"final_answer": 0.0, "marks_available": 4, "steps": []}
+else:
+    st.session_state.data = ensure_schema_integrity(st.session_state.data)
 
 def generate_question(prompt_text, force_image=False, force_graph=False, unit_conv=False, std_form=False, inc_eq=False):
     with st.spinner("Generating structured output..."):
@@ -302,7 +311,6 @@ def generate_question(prompt_text, force_image=False, force_graph=False, unit_co
                  f"{conv_instr} {std_form_instr} {eq_instr}{extra_instr}{graph_instr}")
         
         try:
-            # Enforce structured output constraint via Pydantic model and JSON mime type
             response = client.models.generate_content(
                 model='gemini-2.5-flash',
                 contents=query,
@@ -312,7 +320,6 @@ def generate_question(prompt_text, force_image=False, force_graph=False, unit_co
                 }
             )
             
-            # response.parsed gives back a validated Pydantic object, which we convert to dict
             parsed_obj = response.parsed
             if isinstance(parsed_obj, PhysicsQuestionSchema):
                 parsed_data = parsed_obj.model_dump()
@@ -320,7 +327,7 @@ def generate_question(prompt_text, force_image=False, force_graph=False, unit_co
                 import json
                 parsed_data = json.loads(response.text)
                 
-            st.session_state.data = parsed_data
+            st.session_state.data = ensure_schema_integrity(parsed_data)
             st.session_state.image_prompt = None
             st.session_state.pushed_graph_id = None
             st.success("Generation complete!")
@@ -330,17 +337,12 @@ def generate_question(prompt_text, force_image=False, force_graph=False, unit_co
 st.sidebar.title("Data Management")
 uploaded_file = st.sidebar.file_uploader("Load Schema YAML", type=["yaml"])
 if uploaded_file:
-    loaded_data = yaml.safe_load(uploaded_file)
-    if isinstance(loaded_data, dict):
-        st.session_state.data = loaded_data
-        if st.session_state.data.get('media') is None:
-            st.session_state.data['media'] = {"diagram_url": None, "video_explainer_url": None}
-        if st.session_state.data.get('metadata') is None:
-            st.session_state.data['metadata'] = {"topic": "", "marks": 4, "difficulty_level": 0.5}
-        if st.session_state.data.get('question') is None:
-            st.session_state.data['question'] = {"text": "", "variables": []}
-        if st.session_state.data.get('solution') is None:
-            st.session_state.data['solution'] = {"final_answer": 0.0, "marks_available": 4, "steps": []}
+    try:
+        loaded_data = yaml.safe_load(uploaded_file)
+        st.session_state.data = ensure_schema_integrity(loaded_data)
+        st.success("YAML loaded successfully!")
+    except Exception as e:
+        st.error(f"Failed to load YAML file: {e}")
 
 st.sidebar.title("Prompt Library")
 PROMPT_LIBRARY = load_prompt_library()
@@ -369,7 +371,9 @@ with col_gen3:
         generate_question(prompt, force_image=False, force_graph=True, unit_conv=unit_conv, std_form=std_form, inc_eq=inc_eq)
 
 st.subheader("Edit Question Data")
-st.session_state.data['id'] = st.text_input("Question ID", st.session_state.data['id'])
+# Safeguard input value extraction
+current_id = st.session_state.data.get('id', 'PHYS-2026-001')
+st.session_state.data['id'] = st.text_input("Question ID", value=current_id)
 
 if st.session_state.data.get('media', {}).get('diagram_url'):
     if st.button("Generate Image Prompt"):
@@ -389,10 +393,10 @@ st.code(yaml.dump(st.session_state.data, sort_keys=False), language='yaml')
 
 col1, col2 = st.columns(2)
 with col1:
-    st.download_button("Download YAML", yaml.dump(st.session_state.data, sort_keys=False), file_name=f"{st.session_state.data['id']}.yaml", mime="text/yaml")
+    st.download_button("Download YAML", yaml.dump(st.session_state.data, sort_keys=False), file_name=f"{st.session_state.data.get('id', 'question')}.yaml", mime="text/yaml")
 with col2:
     if st.button("Push to GitHub"):
-        q_id = st.session_state.data['id']
+        q_id = st.session_state.data.get('id', 'PHYS-2026-001')
         
         if 'media' not in st.session_state.data or st.session_state.data['media'] is None:
             st.session_state.data['media'] = {}
