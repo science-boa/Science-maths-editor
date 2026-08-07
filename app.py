@@ -194,7 +194,7 @@ def generate_question(prompt_text, force_image=False, force_graph=False, unit_co
         extra_instr = " You MUST include a detailed descriptive text for a diagram in the 'diagram_url' field." if force_image else ""
         graph_instr = (
             " You MUST include a structured graph object under the top-level 'graph' key conforming to the Scientific Graph YAML Schema. "
-            "It must include graph 'type' (e.g., 'bar' or 'scatter'), 'title', 'xlabel', 'ylabel', 'axes' configuration (ymin, ymax, ytick_distance, grid), "
+            "It must include graph 'type' (e.g., 'bar' or 'scatter'), 'title', 'xlabel', 'ylabel', 'axes' configuration (xmin, xmax, xtick_distance, ymin, ymax, ytick_distance, grid), "
             "and 'data' (labels and values) or 'datasets' (for scatter/lines)."
         ) if force_graph else ""
         
@@ -216,10 +216,19 @@ def generate_question(prompt_text, force_image=False, force_graph=False, unit_co
             raw_text = response.text.replace('```yaml', '').replace('```', '')
             parsed_data = yaml.safe_load(clean_latex(raw_text))
             
-            # Ensure generated graph defaults to explicit X and Y major & minor gridlines with divisions
+            # Ensure generated graph defaults to explicit X and Y major & minor gridlines with divisions and axis boundaries
             if isinstance(parsed_data, dict) and parsed_data.get('graph'):
                 if 'axes' not in parsed_data['graph'] or not isinstance(parsed_data['graph']['axes'], dict):
                     parsed_data['graph']['axes'] = {}
+                
+                # Default X axis limits and tick distances if missing
+                if 'xmin' not in parsed_data['graph']['axes']:
+                    parsed_data['graph']['axes']['xmin'] = 0
+                if 'xmax' not in parsed_data['graph']['axes']:
+                    parsed_data['graph']['axes']['xmax'] = 100
+                if 'xtick_distance' not in parsed_data['graph']['axes']:
+                    parsed_data['graph']['axes']['xtick_distance'] = 20
+
                 parsed_data['graph']['axes']['x_major_grid'] = {'present': True, 'color': '#000000', 'opacity': 1.0, 'style': 'solid'}
                 parsed_data['graph']['axes']['y_major_grid'] = {'present': True, 'color': '#000000', 'opacity': 1.0, 'style': 'solid'}
                 parsed_data['graph']['axes']['x_minor_grid'] = {'present': True, 'color': '#000000', 'opacity': 1.0, 'style': 'dashed', 'divisions': 5}
@@ -312,7 +321,14 @@ with col2:
             if 'axes' not in graph_data or not isinstance(graph_data['axes'], dict):
                 graph_data['axes'] = {}
             
-            # Default to explicit X and Y major & minor gridlines with divisions
+            # Default to explicit X and Y major & minor gridlines with divisions and X-axis limits/ticks
+            if 'xmin' not in graph_data['axes']:
+                graph_data['axes']['xmin'] = 0
+            if 'xmax' not in graph_data['axes']:
+                graph_data['axes']['xmax'] = 100
+            if 'xtick_distance' not in graph_data['axes']:
+                graph_data['axes']['xtick_distance'] = 20
+
             graph_data['axes']['x_major_grid'] = {
                 'present': True,
                 'color': '#000000',
