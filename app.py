@@ -156,8 +156,9 @@ def render_yaml_graph_to_image(graph_data, x_minor_on=False, x_minor_count=4, y_
 
     if y_minor_on:
         ax.minorticks_on()
-        if ytick_dist and y_minor_count > 0:
-            ax.yaxis.set_minor_locator(MultipleLocator(ytick_dist / (y_minor_count + 1)))
+        effective_ytick_dist = ytick_dist if ytick_dist is not None else 1.0
+        if y_minor_count > 0:
+            ax.yaxis.set_minor_locator(MultipleLocator(effective_ytick_dist / (y_minor_count + 1)))
         else:
             ax.yaxis.set_minor_locator(AutoMinorLocator(y_minor_count + 1 if y_minor_count > 0 else 4))
         ax.yaxis.grid(True, which='minor', color=y_minor_grid.get('color', '#000000'), alpha=y_minor_grid.get('opacity', 0.5), linestyle=':', linewidth=0.5)
@@ -310,7 +311,17 @@ with col2:
             x_minor_pushed_val = st.session_state.get(f"x_minor_{q_id}", False)
             y_minor_pushed_val = st.session_state.get(f"y_minor_{q_id}", False)
 
-            # Explicitly define X and Y major and minor grid lines individually based on toggle state
+            try:
+                x_count_pushed = int(st.session_state.get(f"x_minor_val_{q_id}", 4))
+            except:
+                x_count_pushed = 4
+
+            try:
+                y_count_pushed = int(st.session_state.get(f"y_minor_val_{q_id}", 4))
+            except:
+                y_count_pushed = 4
+
+            # Explicitly define X and Y major and minor grid lines individually based on toggle and count state
             graph_data['axes']['x_major_grid'] = {
                 'present': True,
                 'color': '#000000',
@@ -319,6 +330,7 @@ with col2:
             }
             graph_data['axes']['x_minor_grid'] = {
                 'present': x_minor_pushed_val,
+                'count': x_count_pushed,
                 'color': '#000000',
                 'opacity': 0.5,
                 'style': 'solid'
@@ -331,6 +343,7 @@ with col2:
             }
             graph_data['axes']['y_minor_grid'] = {
                 'present': y_minor_pushed_val,
+                'count': y_count_pushed,
                 'color': '#000000',
                 'opacity': 0.5,
                 'style': 'solid'
@@ -369,13 +382,16 @@ if st.session_state.get('pushed_graph_id'):
             with col_controls:
                 st.markdown("### Grid Customization")
                 initial_x_minor = parsed_graph.get('axes', {}).get('x_minor_grid', {}).get('present', False)
+                initial_x_count = parsed_graph.get('axes', {}).get('x_minor_grid', {}).get('count', 4)
+                
                 initial_y_minor = parsed_graph.get('axes', {}).get('y_minor_grid', {}).get('present', False)
+                initial_y_count = parsed_graph.get('axes', {}).get('y_minor_grid', {}).get('count', 4)
 
                 x_minor_toggle = st.toggle("X Minor Gridline", value=initial_x_minor, key=f"x_minor_{pushed_id}")
-                x_minor_val = st.text_input("X Minor Gridlines Count", value="4", key=f"x_minor_val_{pushed_id}")
+                x_minor_val = st.text_input("X Minor Gridlines Count", value=str(initial_x_count), key=f"x_minor_val_{pushed_id}")
                 
                 y_minor_toggle = st.toggle("Y Minor Gridline", value=initial_y_minor, key=f"y_minor_{pushed_id}")
-                y_minor_val = st.text_input("Y Minor Gridlines Count", value="4", key=f"y_minor_val_{pushed_id}")
+                y_minor_val = st.text_input("Y Minor Gridlines Count", value=str(initial_y_count), key=f"y_minor_val_{pushed_id}")
                 
                 try:
                     x_count = int(x_minor_val) if x_minor_val.strip() else 4
