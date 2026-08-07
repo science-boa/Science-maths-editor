@@ -6,7 +6,7 @@ import time
 import io
 import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib.ticker import MultipleLocator
+from matplotlib.ticker import MultipleLocator, AutoMinorLocator
 from github import Github
 from google import genai
 
@@ -140,10 +140,14 @@ def render_yaml_graph_to_image(graph_data, x_minor_on=False, x_minor_count=4, y_
         ax.grid(True, which='major', color=grid_color, linestyle='-', linewidth=0.7, alpha=0.7)
     
     ytick_dist = axes_cfg.get('ytick_distance')
+    if ytick_dist is None and ymin is not None and ymax is not None:
+        ytick_dist = (ymax - ymin) / 5.0
     if ytick_dist and ymin is not None and ymax is not None:
         ax.set_yticks(np.arange(ymin, ymax + ytick_dist * 0.1, ytick_dist))
         
     xtick_dist = axes_cfg.get('xtick_distance')
+    if xtick_dist is None and xmin is not None and xmax is not None:
+        xtick_dist = (xmax - xmin) / 5.0
     if xtick_dist and xmin is not None and xmax is not None:
         ax.set_xticks(np.arange(xmin, xmax + xtick_dist * 0.1, xtick_dist))
         
@@ -151,12 +155,16 @@ def render_yaml_graph_to_image(graph_data, x_minor_on=False, x_minor_count=4, y_
         ax.minorticks_on()
         if xtick_dist and x_minor_count > 0:
             ax.xaxis.set_minor_locator(MultipleLocator(xtick_dist / (x_minor_count + 1)))
+        else:
+            ax.xaxis.set_minor_locator(AutoMinorLocator(x_minor_count + 1 if x_minor_count > 0 else 4))
         ax.grid(True, which='minor', color='#e5e7eb', linestyle=':', linewidth=0.5, alpha=0.5)
 
     if y_minor_on:
         ax.minorticks_on()
         if ytick_dist and y_minor_count > 0:
             ax.yaxis.set_minor_locator(MultipleLocator(ytick_dist / (y_minor_count + 1)))
+        else:
+            ax.yaxis.set_minor_locator(AutoMinorLocator(y_minor_count + 1 if y_minor_count > 0 else 4))
         ax.grid(True, which='minor', color='#e5e7eb', linestyle=':', linewidth=0.5, alpha=0.5)
         
     ax.spines['top'].set_visible(False)
@@ -342,7 +350,6 @@ if st.session_state.get('pushed_graph_id'):
                     y_count = 4
 
             with col_img:
-                # Render graph as image bytes with dynamic minor grid options
                 image_bytes = render_yaml_graph_to_image(
                     parsed_graph,
                     x_minor_on=x_minor_toggle,
