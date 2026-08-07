@@ -1,25 +1,30 @@
 id: G7
 metadata:
-  topic: Electricity - Capacitor Discharge
-  marks: 1
+  topic: Capacitor Discharging
+  marks: 4
   difficulty_level: 0.5
 question:
   text: The graph shows the discharge of a capacitor over time. Determine the time
-    $t$ in seconds at which the potential difference $V$ drops to $3.0\text{ V}$.
-  variables: []
+    $t$ in seconds at which the potential difference $V$ drops to $4.0\text{ V}$.
+  variables:
+  - name: V
+    unit: V
+  - name: t
+    unit: s
 solution:
-  final_answer: 4.0
-  marks_available: 1
+  final_answer: 2.5
+  marks_available: 4
   steps:
   - step_number: 1
-    text: Identify $3.0\text{ V}$ on the y-axis, draw a horizontal line to the curve,
-      and drop a vertical line to the x-axis to find $t = 4.0\text{ s}$.
+    text: Identify the value $4.0\text{ V}$ on the y-axis, move horizontally to the
+      curve, and drop a vertical line to read the time on the x-axis.
     marks_assigned: 1
     check_type: numeric
-    milestone_value: 4.0
+    milestone_value: 2.5
     tolerance: 0.2
 tags:
-- electricity
-- graph-interpretation
+- Electricity
+- Graphs
+- GCSE Physics
 media:
   diagram_url: I/G7.png
