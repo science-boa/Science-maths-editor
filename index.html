@@ -279,7 +279,7 @@
       
       let mediaHtml = '';
       if (q.media && q.media.diagram_url) {
-        mediaHtml += `<div class="mb-6 border border-gray-200 bg-gray-100 rounded-lg w-full h-48 flex items-center justify-center overflow-hidden"><img src="${BASE_RAW_URL}${q.media.diagram_url}" alt="Question Diagram" class="object-contain h-full w-full" onerror="this.parentElement.innerHTML='<span class=\'text-xs text-gray-400\'>Diagram Image Reference Broken: ${q.media.diagram_url}</span>'"></div>`;
+        mediaHtml += `<div class="mb-6 border border-gray-200 bg-gray-100 rounded-lg w-full max-h-[500px] h-48 flex items-center justify-center overflow-hidden"><img src="${BASE_RAW_URL}${q.media.diagram_url}" alt="Question Diagram" class="object-contain h-full w-full" onerror="this.parentElement.innerHTML='<span class=\'text-xs text-gray-400\'>Diagram Image Reference Broken: ${q.media.diagram_url}</span>'"></div>`;
       }
       
       mediaHtml += `<div id="graph-container-${currentIndex}" class="mb-6 border border-gray-200 bg-white p-4 rounded-lg w-full ${q.graph ? '' : 'hidden'}"><div class="relative w-full h-72 md:h-96 max-h-[500px]"><canvas id="pgfplot-canvas-${currentIndex}"></canvas></div></div>`;
