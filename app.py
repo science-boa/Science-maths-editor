@@ -413,6 +413,27 @@ if st.session_state.get('pushed_graph_id'):
                 )
                 st.image(image_bytes, caption=f"Rendered Graph for {pushed_id}", use_container_width=True)
                 
+                st.markdown("### Graph YAML Content")
+                # Update parsed_graph axes with current toggle & count states before displaying
+                if 'axes' not in parsed_graph or not isinstance(parsed_graph['axes'], dict):
+                    parsed_graph['axes'] = {}
+                parsed_graph['axes']['x_minor_grid'] = {
+                    'present': x_minor_toggle,
+                    'count': x_count,
+                    'color': '#000000',
+                    'opacity': 0.5,
+                    'style': 'solid'
+                }
+                parsed_graph['axes']['y_minor_grid'] = {
+                    'present': y_minor_toggle,
+                    'count': y_count,
+                    'color': '#000000',
+                    'opacity': 0.5,
+                    'style': 'solid'
+                }
+                updated_graph_yaml = yaml.dump(parsed_graph, sort_keys=False)
+                st.text_area("YAML Code", value=updated_graph_yaml, height=200, key=f"yaml_view_{pushed_id}")
+                
                 if st.button("Push image to GitHub"):
                     push_to_github(f"{pushed_id}.png", None, subdir="I", is_image=True, image_data=image_bytes)
                     st.success(f"Graph image successfully pushed to `I/{pushed_id}.png`!")
