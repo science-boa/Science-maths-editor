@@ -1,56 +1,47 @@
-type: line
-title: Radioactive Decay of $^{131}\text{I}$
-xlabel: Time (h)
-ylabel: Activity (Bq)
+type: bar
+title: Disease Incidence in Four Countries
+xlabel: Country
+ylabel: Disease Incidence (cases per 100,000 population)
 axes:
-  xmin: 0
-  xmax: 50
-  xtick_distance: 10
-  ymin: 0
-  ymax: 1000
-  ytick_distance: 200
-  grid: true
+  xmin: null
+  xmax: null
+  xtick_distance: null
+  ymin: 0.0
+  ymax: 60.0
+  ytick_distance: 10.0
   x_major_grid:
-    present: true
-    color: '#000000'
-    opacity: 1.0
+    present: false
+    color: '#cccccc'
+    opacity: 0.5
     style: solid
+    divisions: null
   y_major_grid:
     present: true
-    color: '#000000'
-    opacity: 1.0
+    color: '#cccccc'
+    opacity: 0.5
     style: solid
+    divisions: null
   x_minor_grid:
-    present: true
-    color: '#000000'
-    opacity: 1.0
-    style: dashed
-    divisions: 5
+    present: false
+    color: '#eeeeee'
+    opacity: 0.2
+    style: dotted
+    divisions: null
   y_minor_grid:
-    present: true
-    color: '#000000'
-    opacity: 1.0
-    style: dashed
-    divisions: 5
-datasets:
-- label: Activity
-  points:
-  - x: 0
-    y: 800
-  - x: 8
-    y: 565
-  - x: 16
-    y: 400
-  - x: 24
-    y: 283
-  - x: 32
-    y: 200
-  - x: 40
-    y: 141
-  - x: 48
-    y: 100
-  point_size: 5
-tags:
-- data-interpretation
-- radioactivity
-- exponential-decay
+    present: false
+    color: '#eeeeee'
+    opacity: 0.2
+    style: dotted
+    divisions: null
+data:
+  labels:
+  - Country A
+  - Country B
+  - Country C
+  - Country D
+  values:
+  - 30.0
+  - 50.0
+  - 25.0
+  - 40.0
+datasets: null
