@@ -5,14 +5,14 @@ metadata:
   difficulty_level: 1.5
 question:
   text: "Using the graph provided, determine the rate of reaction when the temperature\
-    \ is $30^\text{o}\text{C}$."
+    \ is $30^o{C}$."
   variables: []
 solution:
   final_answer: 18.0
   marks_available: 1
   steps:
   - step_number: 1
-    text: "Locate $30^\text{o}\text{C}$ on the x-axis (Temperature). Move vertically\
+    text: "Locate $30^o{C}$ on the x-axis (Temperature). Move vertically\
       \ upwards until you intersect the line graph, then move horizontally to the\
       \ left to read the corresponding value on the y-axis (Rate of reaction)."
     marks_assigned: 1
