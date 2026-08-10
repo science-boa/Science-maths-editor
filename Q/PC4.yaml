@@ -6,7 +6,7 @@ metadata:
 question:
   text: An electric motor has a total energy input of $8.20 \times 10^4 \text{ J}$.
     The motor is $35\%$ efficient at transferring this energy into kinetic energy.
-    Calculate the energy transferred as kinetic energy in $\text{kJ}$.
+    Calculate the energy transferred as kinetic energy in $\text{kJ}$ to 1 decimal place.
   variables:
   - total_energy: 82000
   - efficiency: 0.35
