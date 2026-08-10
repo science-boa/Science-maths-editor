@@ -13,7 +13,7 @@ solution:
   steps:
   - step_number: 1
     text: Locate the bar representing the '18-30 years' age group on the x-axis. Read
-      the corresponding value on the y-axis. The bar reaches the value of $85$ grams.
+      the corresponding value on the y-axis. The bar reaches the value of $87$ grams.
     marks_assigned: 1
     check_type: range
     milestone_value: 87
