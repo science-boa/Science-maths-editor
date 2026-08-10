@@ -1,26 +1,29 @@
 id: G5
 metadata:
-  topic: Thermal Physics - Cooling Curves
+  topic: Biology
   marks: 1
-  difficulty_level: 0.5
+  difficulty_level: 1.0
 question:
-  text: The graph shows the temperature of a cooling liquid over time. Using the graph,
-    determine the time $t$ at which the temperature of the liquid reaches $40 \, ^\circ\text{C}$.
-  variables: []
+  text: The bar chart shows the population of four different types of bacteria in
+    a culture. What is the population of Bacterium C, in thousands?
+  variables:
+  - Bacterium C Population
 solution:
-  final_answer: 30.0
+  final_answer: 35
   marks_available: 1
   steps:
   - step_number: 1
-    text: Identify $40 \, ^\circ\text{C}$ on the y-axis, draw a horizontal line to
-      the curve, and read the corresponding x-value.
+    text: Identify Bacterium C on the x-axis and read the corresponding value from
+      the y-axis making sure you read to a half square accuracy..
     marks_assigned: 1
     check_type: numeric
-    milestone_value: 30.0
-    tolerance: 2.0
-tags:
-- cooling
-- graph-interpretation
-- thermal-physics
+    milestone_value: 35
+    tolerance: 0.5
 media:
   diagram_url: I/G5.png
+  video_explainer_url: null
+tags:
+- Biology
+- Data Analysis
+- Graph Reading
+- GCSE
