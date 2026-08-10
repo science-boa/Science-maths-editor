@@ -1,0 +1,64 @@
+type: line
+title: Bean Plant Height Over Time
+xlabel: Time (days)
+ylabel: Height (cm)
+axes:
+  xmin: 0.0
+  xmax: 10.0
+  xtick_distance: 1.0
+  ymin: 0.0
+  ymax: 70.0
+  ytick_distance: 10.0
+  x_major_grid:
+    present: true
+    color: '#000000'
+    opacity: 1.0
+    style: solid
+  y_major_grid:
+    present: true
+    color: '#000000'
+    opacity: 1.0
+    style: solid
+  x_minor_grid:
+    present: true
+    color: '#000000'
+    opacity: 1.0
+    style: dotted
+    divisions: 5
+  y_minor_grid:
+    present: true
+    color: '#000000'
+    opacity: 1.0
+    style: dashed
+    divisions: 5
+data: null
+datasets:
+- name: Plant Height
+  label: Height
+  type: line
+  color: '#4CAF50'
+  point_size: 4
+  coordinates:
+  - x: 0.0
+    y: 0.0
+  - x: 1.0
+    y: 2.0
+  - x: 2.0
+    y: 5.0
+  - x: 3.0
+    y: 9.0
+  - x: 4.0
+    y: 14.0
+  - x: 5.0
+    y: 20.0
+  - x: 6.0
+    y: 27.0
+  - x: 7.0
+    y: 35.0
+  - x: 8.0
+    y: 44.0
+  - x: 9.0
+    y: 54.0
+  - x: 10.0
+    y: 65.0
+  points: null
