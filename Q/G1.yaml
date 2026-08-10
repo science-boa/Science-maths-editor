@@ -1,27 +1,29 @@
 id: G1
 metadata:
-  topic: Data Analysis and Disease Incidence
+  topic: Interpreting Graphs
   marks: 1
-  difficulty_level: 0.2
+  difficulty_level: 1.0
 question:
-  text: Using the provided bar graph, determine the number of reported cases of the
-    disease in Country C.
+  text: The bar chart below shows the incidence of a particular disease (cases per
+    $100,000$ people) in four different countries. Using the information presented
+    in the graph, what is the disease incidence in Country B?
   variables: []
 solution:
-  final_answer: 400.0
+  final_answer: 225
   marks_available: 1
   steps:
   - step_number: 1
-    text: Identify the bar labeled "Country C" on the x-axis and read the corresponding
-      value on the y-axis, which is $400$.
+    text: Identify Country B on the x-axis and read the corresponding value from the
+      y-axis.
     marks_assigned: 1
-    check_type: numeric
-    milestone_value: 400.0
+    check_type: exact
+    milestone_value: 225
     tolerance: 0.0
 media:
   diagram_url: I/G1.png
   video_explainer_url: null
 tags:
-- data-interpretation
-- graph-reading
-- GCSE-science
+- graph interpretation
+- data analysis
+- bar chart
+- disease incidence
