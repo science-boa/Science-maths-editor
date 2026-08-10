@@ -295,8 +295,24 @@
       questionArea.innerHTML = `<div class="text-xs font-bold text-blue-600 tracking-wider uppercase mb-1">${q.metadata?.topic || 'General Science'}</div><h2 class="text-xl font-bold text-gray-900 mb-4">Question ID: ${q.id}</h2>${mediaHtml}<div id="math-text" class="text-base leading-relaxed text-gray-800 font-normal">${q.question.text}</div>`;
       renderMathInElement(document.getElementById('math-text'), { delimiters: [{ left: "$$", right: "$$", display: true }, { left: "$", right: "$", display: false }] });
 
-      workingArea.classList.remove('hidden');
-      document.getElementById('scratchpad').value = localStorage.getItem(`scratchpad-id-${q.id}`) || '';
+      // Calculate total marks assigned to this question's steps
+      const structuredSteps = (q.solution && Array.isArray(q.solution.steps)) ? q.solution.steps : [];
+      let totalQuestionMarks = 0;
+      structuredSteps.forEach(s => {
+        totalQuestionMarks += parseInt(s.marks_assigned || 1);
+      });
+      if (structuredSteps.length === 0) {
+        totalQuestionMarks = 1;
+      }
+
+      // Hide working area and its title if total marks = 1, otherwise show them
+      if (totalQuestionMarks === 1) {
+        workingArea.classList.add('hidden');
+      } else {
+        workingArea.classList.remove('hidden');
+        document.getElementById('scratchpad').value = localStorage.getItem(`scratchpad-id-${q.id}`) || '';
+      }
+
       answerArea.classList.remove('hidden');
       document.getElementById('answer-input').value = studentAnswers[currentIndex] || '';
 
