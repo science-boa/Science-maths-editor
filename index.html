@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Maths for Science v0.32</title>
+  <title>Maths for Science v0.33</title>
   
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js"></script>
@@ -67,7 +67,7 @@
           <button id="btn-prev" onclick="changeQuestion(-1)" class="px-5 py-2 bg-gray-200 hover:bg-gray-300 disabled:opacity-40 font-medium rounded-lg transition-colors cursor-pointer" disabled>
             ← Previous
           </button>
-          <button id="btn-next" onclick="changeQuestion(1)" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors cursor-pointer">
+          <button id="btn-next" onclick="handleNextButton()" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors cursor-pointer">
             Next →
           </button>
           <button id="btn-submit" onclick="submitQuiz()" class="px-6 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg transition-colors hidden cursor-pointer">
@@ -163,6 +163,8 @@
     let studentAnswers = {};
     let userID = null;
     let startTime = null;
+    let checkModeEnabled = false;
+    let perQuestionEvaluations = {};
     
     let calcExpression = "";
     let lastAnswer = 0;
@@ -172,6 +174,14 @@
       startTime = Date.now();
       const params = new URLSearchParams(window.location.search);
       userID = params.get('user') || params.get('User'); 
+      
+      const cParam = params.get('c');
+      if (cParam !== null && cParam !== undefined && cParam.trim() !== '') {
+        const valLower = cParam.trim().toLowerCase();
+        if (valLower !== 'false' && valLower !== '0' && valLower !== 'no') {
+          checkModeEnabled = true;
+        }
+      }
       
       const qKeys = [];
       
@@ -191,7 +201,6 @@
         }
       }
 
-      // Fallback demo question if none provided in URL so preview is immediately interactive
       if (qKeys.length === 0) {
         questions.push({
           id: "demo-question",
@@ -265,6 +274,10 @@
       const questionArea = document.getElementById('question-area');
       const workingArea = document.getElementById('working-area');
       const answerArea = document.getElementById('answer-area');
+      const btnPrev = document.getElementById('btn-prev');
+      const btnNext = document.getElementById('btn-next');
+      const btnSubmit = document.getElementById('btn-submit');
+
       const q = questions[currentIndex];
       if (!q) return;
       if (q.error) {
@@ -286,14 +299,118 @@
       document.getElementById('scratchpad').value = localStorage.getItem(`scratchpad-id-${q.id}`) || '';
       answerArea.classList.remove('hidden');
       document.getElementById('answer-input').value = studentAnswers[currentIndex] || '';
-      document.getElementById('btn-prev').disabled = (currentIndex === 0);
-      if (currentIndex === questions.length - 1) {
-        document.getElementById('btn-next').classList.add('hidden');
-        document.getElementById('btn-submit').classList.remove('hidden');
+
+      if (checkModeEnabled) {
+        btnPrev.classList.add('hidden');
       } else {
-        document.getElementById('btn-next').classList.remove('hidden');
-        document.getElementById('btn-submit').classList.add('hidden');
+        btnPrev.classList.remove('hidden');
+        btnPrev.disabled = (currentIndex === 0);
       }
+
+      if (currentIndex === questions.length - 1) {
+        btnNext.classList.add('hidden');
+        btnSubmit.classList.remove('hidden');
+      } else {
+        btnNext.classList.remove('hidden');
+        btnSubmit.classList.add('hidden');
+        if (checkModeEnabled) {
+          btnNext.innerText = "Check and Continue";
+        } else {
+          btnNext.innerText = "Next →";
+        }
+      }
+    }
+
+    function evaluateSingleQuestion(idx) {
+      const q = questions[idx];
+      if (!q || q.error) return { earned: 0, max: 1, html: "" };
+
+      let questionEarnedMarks = 0;
+      let questionMaxMarks = 0;
+      const studentRawAnswer = studentAnswers[idx] || "";
+      const correctRawAnswer = q.solution.final_answer;
+      const targetFinalNum = parseFloat(correctRawAnswer.toString().replace(/[^0-9.-]/g, ''));
+      const studentFinalNum = parseFloat(studentRawAnswer);
+      const structuredSteps = (q.solution && Array.isArray(q.solution.steps)) ? q.solution.steps : [];
+      
+      structuredSteps.forEach(s => questionMaxMarks += parseInt(s.marks_assigned || 1));
+      if (structuredSteps.length === 0) questionMaxMarks = 1;
+      
+      let finalAnswerCorrect = false;
+      if (!isNaN(targetFinalNum) && !isNaN(studentFinalNum)) {
+        if (studentFinalNum === targetFinalNum || Math.abs((studentFinalNum - targetFinalNum) / targetFinalNum) <= 0.005) {
+          finalAnswerCorrect = true;
+        }
+      }
+      
+      let dynamicStepsHtml = "";
+      if (finalAnswerCorrect) {
+        questionEarnedMarks = questionMaxMarks;
+        structuredSteps.forEach(step => {
+          dynamicStepsHtml += `<div class="flex items-start gap-3 text-sm border-l-2 border-emerald-500 pl-3 py-1 bg-emerald-50/50 rounded-r"><span class="text-emerald-600 font-bold">Step ${step.step_number}:</span><div class="flex-1 text-gray-700">${step.text}</div><span class="text-xs font-semibold px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-full shrink-0">Earned: ${step.marks_assigned}/${step.marks_assigned}</span></div>`;
+        });
+      } else {
+        const scratchpadText = localStorage.getItem(`scratchpad-id-${q.id}`) || "";
+        const studentNumbersInWorking = (scratchpadText.match(/[+-]?\d+(\.\d+)?/g) || []).map(Number);
+        structuredSteps.forEach((step) => {
+          const stepWeight = parseInt(step.marks_assigned || 1);
+          let milestoneMatched = false;
+          if (step.check_type === "numeric" && step.milestone_value !== undefined) {
+            const targetVal = parseFloat(step.milestone_value);
+            const tolerancePercent = parseFloat(step.tolerance || 0.005);
+            for (let num of studentNumbersInWorking) {
+              if (num === targetVal || Math.abs((num - targetVal) / targetVal) <= tolerancePercent) {
+                milestoneMatched = true;
+                break;
+              }
+            }
+          }
+          if (milestoneMatched) {
+            questionEarnedMarks += stepWeight;
+            dynamicStepsHtml += `<div class="flex items-start gap-3 text-sm border-l-2 border-emerald-500 pl-3 py-1 bg-emerald-50/50 rounded-r"><span class="text-emerald-600 font-bold">Step ${step.step_number}:</span><div class="flex-1 text-gray-700">${step.text}</div><span class="text-xs font-semibold px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-full shrink-0">Earned: ${stepWeight}/${stepWeight}</span></div>`;
+          } else {
+            dynamicStepsHtml += `<div class="flex items-start gap-3 text-sm border-l-2 border-rose-300 pl-3 py-1 bg-rose-50/30 rounded-r"><span class="text-gray-400 font-bold">Step ${step.step_number}:</span><div class="flex-1 text-gray-500 line-through decoration-gray-300">${step.text}</div><span class="text-xs font-semibold px-2 py-0.5 bg-gray-100 text-gray-500 rounded-full shrink-0">Earned: 0/${stepWeight}</span></div>`;
+          }
+        });
+      }
+
+      const cardHtml = `<div class="bg-gray-50 border border-gray-200 rounded-xl overflow-hidden mt-4"><div class="bg-gray-100 border-b border-gray-200 px-4 py-3 flex justify-between items-center"><span class="text-xs font-bold uppercase tracking-wider text-gray-600">Feedback & Evaluation</span><span class="px-3 py-1 rounded-full font-mono font-bold text-xs ${questionEarnedMarks === questionMaxMarks ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}">Marks: ${questionEarnedMarks} / ${questionMaxMarks}</span></div><div class="p-4 space-y-2"><div class="space-y-2">${dynamicStepsHtml}</div></div></div>`;
+      return { earned: questionEarnedMarks, max: questionMaxMarks, html: cardHtml };
+    }
+
+    function handleNextButton() {
+      if (checkModeEnabled && currentIndex < questions.length - 1) {
+        const evaluation = evaluateSingleQuestion(currentIndex);
+        
+        showCheckFeedbackModal(evaluation.earned, evaluation.max, evaluation.html, () => {
+          currentIndex++;
+          renderCurrentQuestion();
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+      } else {
+        changeQuestion(1);
+      }
+    }
+
+    function showCheckFeedbackModal(earned, max, evaluationHtml, onClosedCallback) {
+      const existing = document.getElementById('check-modal');
+      if (existing) existing.remove();
+
+      const modal = document.createElement('div');
+      modal.className = "fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 z-50 overflow-y-auto";
+      modal.id = "check-modal";
+      modal.innerHTML = `<div class="bg-white p-6 rounded-2xl max-w-xl w-full shadow-2xl border border-gray-100 text-left space-y-4 my-8"><div class="flex items-center gap-3"><div class="inline-flex items-center justify-center w-10 h-10 rounded-full ${earned === max ? 'bg-emerald-100 text-emerald-600' : 'bg-blue-100 text-blue-600'} shrink-0"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg></div><div><h3 class="font-bold text-lg text-gray-900">Question Checked</h3><p class="text-sm text-gray-600">You scored <span class="font-mono font-bold text-gray-900">${earned} / ${max}</span> marks for this question.</p></div></div><div class="mt-4 max-h-[60vh] overflow-y-auto pr-1">${evaluationHtml}</div><button id="close-check-modal-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-xl cursor-pointer transition-colors text-sm shadow-md mt-4">Continue to Next Question</button></div>`;
+      document.body.appendChild(modal);
+      
+      renderMathInElement(modal, { delimiters: [{ left: "$$", right: "$$", display: true }, { left: "$", right: "$", display: false }] });
+
+      const closeAction = () => {
+        modal.remove();
+        if (onClosedCallback) onClosedCallback();
+      };
+
+      document.getElementById('close-check-modal-btn').onclick = closeAction;
+      modal.onclick = (e) => { if (e.target === modal) closeAction(); };
     }
 
     function toggleImageFullSize(imgElement) {
@@ -323,59 +440,11 @@
       
       questions.forEach((q, idx) => {
         if (q.error) return;
-        let questionEarnedMarks = 0;
-        let questionMaxMarks = 0;
-        const studentRawAnswer = studentAnswers[idx] || "";
-        const correctRawAnswer = q.solution.final_answer;
-        const targetFinalNum = parseFloat(correctRawAnswer.toString().replace(/[^0-9.-]/g, ''));
-        const studentFinalNum = parseFloat(studentRawAnswer);
-        const structuredSteps = (q.solution && Array.isArray(q.solution.steps)) ? q.solution.steps : [];
-        
-        structuredSteps.forEach(s => questionMaxMarks += parseInt(s.marks_assigned || 1));
-        if (structuredSteps.length === 0) questionMaxMarks = 1;
-        
-        let finalAnswerCorrect = false;
-        if (!isNaN(targetFinalNum) && !isNaN(studentFinalNum)) {
-          if (studentFinalNum === targetFinalNum || Math.abs((studentFinalNum - targetFinalNum) / targetFinalNum) <= 0.005) {
-            finalAnswerCorrect = true;
-          }
-        }
-        
-        let dynamicStepsHtml = "";
-        if (finalAnswerCorrect) {
-          questionEarnedMarks = questionMaxMarks;
-          structuredSteps.forEach(step => {
-            dynamicStepsHtml += `<div class="flex items-start gap-3 text-sm border-l-2 border-emerald-500 pl-3 py-1 bg-emerald-50/50 rounded-r"><span class="text-emerald-600 font-bold">Step ${step.step_number}:</span><div class="flex-1 text-gray-700">${step.text}</div><span class="text-xs font-semibold px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-full shrink-0">Earned: ${step.marks_assigned}/${step.marks_assigned}</span></div>`;
-          });
-        } else {
-          const scratchpadText = localStorage.getItem(`scratchpad-id-${q.id}`) || "";
-          const studentNumbersInWorking = (scratchpadText.match(/[+-]?\d+(\.\d+)?/g) || []).map(Number);
-          structuredSteps.forEach((step) => {
-            const stepWeight = parseInt(step.marks_assigned || 1);
-            let milestoneMatched = false;
-            if (step.check_type === "numeric" && step.milestone_value !== undefined) {
-              const targetVal = parseFloat(step.milestone_value);
-              const tolerancePercent = parseFloat(step.tolerance || 0.005);
-              for (let num of studentNumbersInWorking) {
-                if (num === targetVal || Math.abs((num - targetVal) / targetVal) <= tolerancePercent) {
-                  milestoneMatched = true;
-                  break;
-                }
-              }
-            }
-            if (milestoneMatched) {
-              questionEarnedMarks += stepWeight;
-              dynamicStepsHtml += `<div class="flex items-start gap-3 text-sm border-l-2 border-emerald-500 pl-3 py-1 bg-emerald-50/50 rounded-r"><span class="text-emerald-600 font-bold">Step ${step.step_number}:</span><div class="flex-1 text-gray-700">${step.text}</div><span class="text-xs font-semibold px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-full shrink-0">Earned: ${stepWeight}/${stepWeight}</span></div>`;
-            } else {
-              dynamicStepsHtml += `<div class="flex items-start gap-3 text-sm border-l-2 border-rose-300 pl-3 py-1 bg-rose-50/30 rounded-r"><span class="text-gray-400 font-bold">Step ${step.step_number}:</span><div class="flex-1 text-gray-500 line-through decoration-gray-300">${step.text}</div><span class="text-xs font-semibold px-2 py-0.5 bg-gray-100 text-gray-500 rounded-full shrink-0">Earned: 0/${stepWeight}</span></div>`;
-            }
-          });
-        }
-        
-        grandTotalEarned += questionEarnedMarks;
-        grandTotalPossible += questionMaxMarks;
-        resultsArr.push({ question_id: q.id, score: questionEarnedMarks, max_marks: questionMaxMarks });
-        resultsContainerHtml += `<div class="bg-white rounded-xl shadow-xs border border-gray-200 overflow-hidden mb-6"><div class="bg-gray-50 border-b border-gray-200 px-6 py-4 flex justify-between items-center"><div><h3 class="text-lg font-bold text-gray-900">Q${idx + 1}: ${q.id}</h3></div><div class="px-4 py-1.5 rounded-full font-mono font-bold text-sm ${questionEarnedMarks === questionMaxMarks ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}">Marks: ${questionEarnedMarks} / ${questionMaxMarks}</div></div><div class="p-6 space-y-6"><div class="text-gray-800 text-sm leading-relaxed">${q.question.text}</div><div class="pt-4 border-t border-gray-100 space-y-2"><h4 class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">Evaluation</h4><div class="space-y-2">${dynamicStepsHtml}</div></div></div></div>`;
+        const evalResult = evaluateSingleQuestion(idx);
+        grandTotalEarned += evalResult.earned;
+        grandTotalPossible += evalResult.max;
+        resultsArr.push({ question_id: q.id, score: evalResult.earned, max_marks: evalResult.max });
+        resultsContainerHtml += `<div class="bg-white rounded-xl shadow-xs border border-gray-200 overflow-hidden mb-6"><div class="bg-gray-50 border-b border-gray-200 px-6 py-4 flex justify-between items-center"><div><h3 class="text-lg font-bold text-gray-900">Q${idx + 1}: ${q.id}</h3></div><div class="px-4 py-1.5 rounded-full font-mono font-bold text-sm ${evalResult.earned === evalResult.max ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}">Marks: ${evalResult.earned} / ${evalResult.max}</div></div><div class="p-6 space-y-6"><div class="text-gray-800 text-sm leading-relaxed">${q.question.text}</div><div class="pt-4 border-t border-gray-100 space-y-2"><h4 class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">Evaluation</h4><div class="space-y-2">${evalResult.html}</div></div></div></div>`;
       });
       
       finalResultsSummary = { userID, KEY: "29031977", time_taken, results: resultsArr };
