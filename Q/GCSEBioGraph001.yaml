@@ -8,7 +8,7 @@ question:
     What is the average daily protein intake for individuals aged 18-30 years?
   variables: []
 solution:
-  final_answer: 85.0
+  final_answer: 87
   marks_available: 1
   steps:
   - step_number: 1
