@@ -1,26 +1,45 @@
-type: line
-title: Cooling Curve of a Liquid
-xlabel: Time ($s$)
-ylabel: Temperature ($^\circ\text{C}$)
+type: bar
+title: Bacterial Population in a Culture Sample
+xlabel: Bacterium Type
+ylabel: Population (in thousands)
 axes:
-  ymin: 0
-  ymax: 100
-  ytick_distance: 10
-  grid: true
-datasets:
-- label: Temperature vs Time
+  xmin: 0
+  xmax: 100
+  xtick_distance: 20
+  ymin: 0.0
+  ymax: 80.0
+  ytick_distance: 10.0
+  x_major_grid:
+    present: true
+    color: '#000000'
+    opacity: 1.0
+    style: solid
+  y_major_grid:
+    present: true
+    color: '#000000'
+    opacity: 1.0
+    style: solid
+  x_minor_grid:
+    present: true
+    color: '#000000'
+    opacity: 1.0
+    style: dotted
+    divisions: 5
+  y_minor_grid:
+    present: true
+    color: '#000000'
+    opacity: 1.0
+    style: dashed
+    divisions: 5
+data:
+  labels:
+  - Bacterium A
+  - Bacterium B
+  - Bacterium C
+  - Bacterium D
   values:
-  - x: 0
-    y: 100
-  - x: 10
-    y: 70
-  - x: 20
-    y: 52
-  - x: 30
-    y: 40
-  - x: 40
-    y: 32
-  - x: 50
-    y: 26
-  - x: 60
-    y: 22
+  - 45.0
+  - 70.0
+  - 35.0
+  - 50.0
+datasets: null
