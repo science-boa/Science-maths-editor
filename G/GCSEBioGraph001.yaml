@@ -1,0 +1,45 @@
+type: bar
+title: Average Daily Protein Intake by Age Group
+xlabel: Age Group
+ylabel: Protein Intake (g)
+axes:
+  xmin: null
+  xmax: null
+  xtick_distance: null
+  ymin: 0.0
+  ymax: 120.0
+  ytick_distance: 10.0
+  x_major_grid:
+    present: true
+    color: '#000000'
+    opacity: 1.0
+    style: solid
+  y_major_grid:
+    present: true
+    color: '#000000'
+    opacity: 1.0
+    style: solid
+  x_minor_grid:
+    present: true
+    color: '#000000'
+    opacity: 1.0
+    style: dotted
+    divisions: 5
+  y_minor_grid:
+    present: true
+    color: '#000000'
+    opacity: 1.0
+    style: dashed
+    divisions: 5
+data:
+  labels:
+  - 0-12 years
+  - 13-17 years
+  - 18-30 years
+  - 31-50 years
+  values:
+  - 60.0
+  - 75.0
+  - 85.0
+  - 70.0
+datasets: null
