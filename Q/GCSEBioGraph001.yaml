@@ -1,0 +1,28 @@
+id: GCSEBioGraph001
+metadata:
+  topic: Human Biology
+  marks: 1
+  difficulty_level: 2.0
+question:
+  text: The bar chart shows the average daily protein intake for different age groups.
+    What is the average daily protein intake for individuals aged 18-30 years?
+  variables: []
+solution:
+  final_answer: 85.0
+  marks_available: 1
+  steps:
+  - step_number: 1
+    text: Locate the bar representing the '18-30 years' age group on the x-axis. Read
+      the corresponding value on the y-axis. The bar reaches the value of $85$ grams.
+    marks_assigned: 1
+    check_type: range
+    milestone_value: 85.0
+    tolerance: 1.0
+media:
+  diagram_url: I/GCSEBioGraph001.png
+  video_explainer_url: null
+tags:
+- Biology
+- Graph Reading
+- Data Interpretation
+- Human Biology
