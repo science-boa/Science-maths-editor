@@ -4,10 +4,10 @@ xlabel: Age Group
 ylabel: Protein Intake (g)
 axes:
   xmin: null
-  xmax: null
+  xmax: 4
   xtick_distance: null
   ymin: 0.0
-  ymax: 120.0
+  ymax: 100.0
   ytick_distance: 10.0
   x_major_grid:
     present: true
