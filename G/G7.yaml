@@ -1,6 +1,6 @@
 type: line
 title: Effect of Temperature on Enzyme Reaction Rate
-xlabel: "Temperature / $^\text{o}\text{C}$"
+xlabel: "Temperature / $^O{C}$"
 ylabel: Rate of reaction / arbitrary units
 axes:
   xmin: 0.0
