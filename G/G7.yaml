@@ -1,14 +1,14 @@
 type: line
-title: Effect of Temperature on Enzyme Reaction Rate
-xlabel: "Temperature / $^O{C}$"
-ylabel: Rate of reaction / arbitrary units
+title: Effect of Temperature on Enzyme Activity
+xlabel: "Temperature ($^O{C}$)"
+ylabel: Rate of Reaction (arbitrary units)
 axes:
   xmin: 0.0
-  xmax: 80.0
+  xmax: 70.0
   xtick_distance: 10.0
   ymin: 0.0
-  ymax: 25.0
-  ytick_distance: 5.0
+  ymax: 30.0
+  ytick_distance: 10.0
   x_major_grid:
     present: true
     color: '#000000'
@@ -34,9 +34,9 @@ axes:
 data: null
 datasets:
 - name: Enzyme Activity
-  label: Reaction Rate
+  label: Rate of Reaction
   type: line
-  color: '#3366cc'
+  color: blue
   point_size: 3
   coordinates:
   - x: 0.0
@@ -44,17 +44,17 @@ datasets:
   - x: 10.0
     y: 5.0
   - x: 20.0
-    y: 12.0
-  - x: 30.0
-    y: 18.0
-  - x: 40.0
-    y: 20.0
-  - x: 50.0
     y: 15.0
+  - x: 25.0
+    y: 20.0
+  - x: 30.0
+    y: 25.0
+  - x: 40.0
+    y: 30.0
+  - x: 50.0
+    y: 20.0
   - x: 60.0
-    y: 8.0
+    y: 5.0
   - x: 70.0
-    y: 2.0
-  - x: 80.0
     y: 0.0
   points: null
