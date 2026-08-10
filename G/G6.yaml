@@ -37,7 +37,7 @@ datasets:
   label: Bacterial Population
   type: line
   color: blue
-  point_size: 4
+  point_size: 0
   coordinates:
   - x: 0.0
     y: 1.0
