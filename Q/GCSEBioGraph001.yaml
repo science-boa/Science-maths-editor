@@ -16,7 +16,7 @@ solution:
       the corresponding value on the y-axis. The bar reaches the value of $85$ grams.
     marks_assigned: 1
     check_type: range
-    milestone_value: 85.0
+    milestone_value: 87
     tolerance: 1.0
 media:
   diagram_url: I/GCSEBioGraph001.png
