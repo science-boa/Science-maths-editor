@@ -5,20 +5,20 @@ metadata:
   difficulty_level: 2.0
 question:
   text: The bar chart below displays the average number of different types of blood
-    components found in a sample of human blood. What is the average number of white
-    blood cells (leukocytes) present in this sample, according to the graph?
+    components found in a sample of human blood. What is the average number of platelets
+    present in this sample, according to the graph?
   variables: []
 solution:
-  final_answer: 7.0
+  final_answer: 250
   marks_available: 1
   steps:
   - step_number: 1
-    text: Locate the bar labelled 'White Blood Cells'. Read the value on the y-axis
-      corresponding to the top of this bar. The value is 7.
+    text: Locate the bar labelled 'platelets'. Read the value on the y-axis corresponding
+      to the top of this bar to the nearest half square The value is 250.
     marks_assigned: 1
     check_type: numeric
-    milestone_value: 7.0
-    tolerance: 0.5
+    milestone_value: 250
+    tolerance: 10
 media:
   diagram_url: I/G4.png
   video_explainer_url: null
