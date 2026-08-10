@@ -1,15 +1,14 @@
 type: bar
-title: Reported Disease Incidence by Country
+title: Disease Incidence by Country
 xlabel: Country
-ylabel: Number of Cases
+ylabel: Disease Incidence (cases per $100,000$ people)
 axes:
-  xmin: 0
-  xmax: 5
-  xtick_distance: 1
-  ymin: 0
-  ymax: 600
-  ytick_distance: 100
-  grid: true
+  xmin: null
+  xmax: null
+  xtick_distance: null
+  ymin: 0.0
+  ymax: 250.0
+  ytick_distance: 50.0
   x_major_grid:
     present: true
     color: '#000000'
@@ -24,7 +23,7 @@ axes:
     present: true
     color: '#000000'
     opacity: 1.0
-    style: dashed
+    style: dotted
     divisions: 5
   y_minor_grid:
     present: true
@@ -39,7 +38,8 @@ data:
   - Country C
   - Country D
   values:
-  - 250
-  - 550
-  - 400
-  - 150
+  - 150.0
+  - 225.0
+  - 100.0
+  - 180.0
+datasets: null
