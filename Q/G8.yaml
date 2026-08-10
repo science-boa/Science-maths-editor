@@ -5,14 +5,14 @@ metadata:
   difficulty_level: 1.0
 question:
   text: "Using the graph provided, what is the rate of reaction (in arbitrary units)\
-    \ at a temperature of $25^\text{o}\text{C}$?"
+    \ at a temperature of $25^o{C}$?"
   variables: []
 solution:
   final_answer: 20.0
   marks_available: 1
   steps:
   - step_number: 1
-    text: "Locate $25^\text{o}\text{C}$ on the x-axis, move vertically up to the line,\
+    text: "Locate $25^o{C}$ on the x-axis, move vertically up to the line,\
       \ and then horizontally across to the y-axis to read the corresponding rate\
       \ of reaction. This gives a value of $20$ arbitrary units."
     marks_assigned: 1
