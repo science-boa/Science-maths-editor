@@ -1,59 +1,28 @@
-id: G1
+id: G3
 metadata:
-  topic: Data Analysis and Health Statistics
-  marks: 3
-  difficulty_level: 0.5
+  topic: Human Biology
+  marks: 1
+  difficulty_level: 2.0
 question:
-  text: The bar chart shows the incidence of a specific genetic disease per $100,000$ people across four countries. Calculate the difference in the incidence of the disease between Country B and Country D.
+  text: The bar chart shows the average daily protein intake for different age groups.
+    What is the average daily protein intake for individuals aged 18-30 years?
   variables: []
 solution:
-  final_answer: 28.0
-  marks_available: 3
+  final_answer: 87
+  marks_available: 1
   steps:
   - step_number: 1
-    text: Identify the value for Country B from the graph ($82$ cases per $100,000$).
+    text: Locate the bar representing the '18-30 years' age group on the x-axis. Read
+      the corresponding value on the y-axis. The bar reaches the value of $85$ grams.
     marks_assigned: 1
-    check_type: numeric
-    milestone_value: 82.0
+    check_type: range
+    milestone_value: 87
     tolerance: 1.0
-  - step_number: 2
-    text: Identify the value for Country D from the graph ($54$ cases per $100,000$).
-    marks_assigned: 1
-    check_type: numeric
-    milestone_value: 54.0
-    tolerance: 1.0
-  - step_number: 3
-    text: 'Calculate the difference: $82 - 54 = 28$ cases per $100,000$.'
-    marks_assigned: 1
-    check_type: numeric
-    milestone_value: 28.0
-    tolerance: 2.0
-graph:
-  type: bar
-  data:
-    x:
-    - Country A
-    - Country B
-    - Country C
-    - Country D
-    y:
-    - 43
-    - 82
-    - 67
-    - 54
-  pgfplots: "\begin{tikzpicture}\n\begin{axis}[                                                                                        ymajorgrids=true,
-    xmajorgrids=false,
-    yminorgrids=true,
-    xminorgrids=false,
-    grid style={solid, gray!50},
-    ytick distance=10,
-    xtick distance=1,
-    minor grid style={solid, gray!50},
-    minor y tick num=4,
-    minor x tick num=1
-
-]\n\\addplot[fill=black!85, draw=black] coordinates {(Country A, 43) (Country B, 82) (Country C, 67) (Country D, 54)};\n\end{axis}\n\end{tikzpicture}\n"
+media:
+  diagram_url: I/G3.png
+  video_explainer_url: null
 tags:
-- data-interpretation
-- gcse-physics
-- statistics
+- Biology
+- Graph Reading
+- Data Interpretation
+- Human Biology
