@@ -4,11 +4,11 @@ xlabel: Type of Blood Component
 ylabel: Average Number of Components (${\times}10^6$ per litre)
 axes:
   xmin: -0.5
-  xmax: 3.5
+  xmax: 4
   xtick_distance: null
   ymin: 0.0
   ymax: 6000.0
-  ytick_distance: 1000.0
+  ytick_distance: 500.0
   x_major_grid:
     present: true
     color: '#000000'
