@@ -1,12 +1,14 @@
 type: line
-title: Cooling Curve of a Liquid
-xlabel: Time (s)
-ylabel: Temperature ($^\circ$C)
+title: Effect of Temperature on Enzyme Activity
+xlabel: Temperature ($\degree$C)
+ylabel: Enzyme Activity (arbitrary units)
 axes:
-  ymin: 0
-  ymax: 100
-  ytick_distance: 10
-  grid: true
+  xmin: 0.0
+  xmax: 70.0
+  xtick_distance: 10.0
+  ymin: 0.0
+  ymax: 40.0
+  ytick_distance: 5.0
   x_major_grid:
     present: true
     color: '#000000'
@@ -21,7 +23,7 @@ axes:
     present: true
     color: '#000000'
     opacity: 1.0
-    style: dashed
+    style: dotted
     divisions: 5
   y_minor_grid:
     present: true
@@ -29,23 +31,24 @@ axes:
     opacity: 1.0
     style: dashed
     divisions: 5
-  xmin: 0
-  xmax: 100
-  xtick_distance: 20
+data: null
 datasets:
-- label: Temperature vs Time
-  values:
-  - x: 0
-    y: 100
-  - x: 10
-    y: 75
-  - x: 20
-    y: 55
-  - x: 30
-    y: 40
-  - x: 40
-    y: 30
-  - x: 50
-    y: 24
-  - x: 60
-    y: 20
+- name: Enzyme Activity
+  label: Enzyme Activity
+  type: line
+  color: '#1f77b4'
+  point_size: 4
+  coordinates:
+  - x: 10.0
+    y: 5.0
+  - x: 20.0
+    y: 15.0
+  - x: 30.0
+    y: 28.0
+  - x: 40.0
+    y: 35.0
+  - x: 50.0
+    y: 30.0
+  - x: 60.0
+    y: 10.0
+  points: null
