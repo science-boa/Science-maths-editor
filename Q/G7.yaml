@@ -1,34 +1,30 @@
 id: G7
 metadata:
-  topic: Enzymes
+  topic: Enzyme Activity
   marks: 1
   difficulty_level: 1.5
 question:
-  text: 'The graph shows the effect of temperature on the rate of a specific enzyme-catalysed
-    reaction. Using the graph, determine the rate of reaction (in arbitrary units)
-    when the temperature is $30^
-
-    \circ$C.'
+  text: "Using the graph provided, determine the rate of reaction when the temperature\
+    \ is $30^\text{o}\text{C}$."
   variables: []
 solution:
-  final_answer: 8.0
+  final_answer: 18.0
   marks_available: 1
   steps:
   - step_number: 1
-    text: 'Locate $30^
-
-      \circ$C on the x-axis and draw a vertical line up to the curve. Then, draw a
-      horizontal line from the curve to the y-axis to read the corresponding rate
-      of reaction. The value should be approximately $8.0$ arbitrary units.'
+    text: "Locate $30^\text{o}\text{C}$ on the x-axis (Temperature). Move vertically\
+      \ upwards until you intersect the line graph, then move horizontally to the\
+      \ left to read the corresponding value on the y-axis (Rate of reaction)."
     marks_assigned: 1
-    check_type: numerical_range
-    milestone_value: 8.0
-    tolerance: 0.2
+    check_type: range
+    milestone_value: 18.0
+    tolerance: 0.5
 media:
   diagram_url: I/G7.png
   video_explainer_url: null
 tags:
 - Biology
+- Graphs
+- Data Interpretation
 - Enzymes
-- Graph Reading
-- GCSE 
+- GCSE
