@@ -1,0 +1,43 @@
+id: GCSE_BIO_GRPH_001
+metadata:
+  topic: Plant Growth
+  marks: 3
+  difficulty_level: 2.5
+question:
+  text: The line graph shows the average height of a bean plant measured over a period
+    of 10 days. Using the graph, calculate the difference in the bean plant's height
+    between day $3$ and day $7$. State your answer in centimetres.
+  variables: []
+solution:
+  final_answer: 26.0
+  marks_available: 3
+  steps:
+  - step_number: 1
+    text: Read the height of the plant on day $3$ from the graph. Height on day $3$
+      is $9 \text{ cm}$.
+    marks_assigned: 1
+    check_type: range
+    milestone_value: 9.0
+    tolerance: 0.5
+  - step_number: 2
+    text: Read the height of the plant on day $7$ from the graph. Height on day $7$
+      is $35 \text{ cm}$.
+    marks_assigned: 1
+    check_type: range
+    milestone_value: 35.0
+    tolerance: 0.5
+  - step_number: 3
+    text: 'Calculate the difference in height: $35 \text{ cm} - 9 \text{ cm} = 26
+      \text{ cm}$.'
+    marks_assigned: 1
+    check_type: range
+    milestone_value: 26.0
+    tolerance: 0.5
+media:
+  diagram_url: I/GCSE_BIO_GRPH_001.png
+  video_explainer_url: null
+tags:
+- biology
+- graph reading
+- data analysis
+- plant growth
