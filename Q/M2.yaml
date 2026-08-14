@@ -1,0 +1,44 @@
+id: M2
+metadata:
+  topic: Experimental Skills and Data Analysis
+  marks: 2
+  difficulty_level: 2.0
+question:
+  text: 'A student conducts an experiment to measure the time taken for a trolley
+    to travel a fixed distance. They record the following times for five repeated
+    trials: $12.3 \, \text{s}$, $12.5 \, \text{s}$, $12.1 \, \text{s}$, $12.4 \, \text{s}$,
+    and $12.2 \, \text{s}$. Calculate the mean time taken for the trolley to travel
+    the fixed distance. Express your answer to one decimal place.'
+  variables:
+  - Time Trial 1
+  - Time Trial 2
+  - Time Trial 3
+  - Time Trial 4
+  - Time Trial 5
+solution:
+  final_answer: 12.3
+  marks_available: 2
+  steps:
+  - step_number: 1
+    text: 'Sum the recorded times: $12.3 \, \text{s} + 12.5 \, \text{s} + 12.1 \,
+      \text{s} + 12.4 \, \text{s} + 12.2 \, \text{s} = 61.5 \, \text{s}$'
+    marks_assigned: 1
+    check_type: numerical
+    milestone_value: 61.5
+    tolerance: 0.01
+  - step_number: 2
+    text: 'Divide the sum by the number of trials (5): $61.5 \, \text{s} / 5 = 12.3
+      \, \text{s}$'
+    marks_assigned: 1
+    check_type: numerical
+    milestone_value: 12.3
+    tolerance: 0.01
+media:
+  diagram_url: I/M2.png
+  video_explainer_url: null
+tags:
+- Physics
+- Data Analysis
+- Mean
+- Experimental Skills
+- Measurement
