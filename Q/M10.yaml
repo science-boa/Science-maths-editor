@@ -7,7 +7,7 @@ question:
   text: The table below shows the results from a titration experiment to determine
     the concentration of an unknown acid. Three accurate titrations were carried out,
     and a mean titre was calculated. Calculate the missing volume for Trial 3. Give
-    your answer to two decimal places.
+    your answer to one decimal places.
   variables:
   - Trial 1 volume
   - Trial 2 volume
