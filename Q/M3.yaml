@@ -7,16 +7,14 @@ question:
   text: A student conducted a practical biology experiment to extract DNA from a sample.
     They repeated the experiment four times to improve the reliability of their results.
     The mass of DNA extracted for each trial is shown in the table below. Calculate
-    the mean mass of DNA extracted from these trials, expressing your answer to an
-    appropriate number of decimal places. Refer to the provided results table for
-    the data.
+    the mean mass of DNA extracted from these trials, expressing your answer to one decimal place.
   variables:
   - mass_dna_trial1
   - mass_dna_trial2
   - mass_dna_trial3
   - mass_dna_trial4
 solution:
-  final_answer: 29.375
+  final_answer: 29.4
   marks_available: 2
   steps:
   - step_number: 1
