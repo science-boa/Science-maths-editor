@@ -8,10 +8,10 @@ question:
     counted the number of yeast cells in five different samples. The results table
     below shows the cell counts for four samples and the calculated mean for all five
     samples. Calculate the missing yeast cell count for Sample 4. Give your answer
-    to one decimal place.
+    to the nearest whole number.
   variables: []
 solution:
-  final_answer: 35.0
+  final_answer: 35
   marks_available: 3
   steps:
   - step_number: 1
