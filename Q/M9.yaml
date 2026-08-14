@@ -8,8 +8,7 @@ question:
     \ They recorded five measurements for their reaction time and then calculated\
     \ the mean. The table below shows four of the measurements along with the calculated\
     \ mean reaction time. Calculate the missing reaction time for Trial 4. Give your\
-    \ answer to two decimal places. \n\nReaction Times (s):\nTrial 1: $0.23$\nTrial\
-    \ 2: $0.28$\nTrial 3: $0.25$\nTrial 4: ?\nTrial 5: $0.24$\nMean: $0.26$"
+    \ answer to two decimal places. "
   variables:
   - reaction time
   - mean
