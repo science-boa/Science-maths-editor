@@ -1,0 +1,42 @@
+id: M3
+metadata:
+  topic: Data Analysis
+  marks: 2
+  difficulty_level: 2.5
+question:
+  text: A student conducted a practical biology experiment to extract DNA from a sample.
+    They repeated the experiment four times to improve the reliability of their results.
+    The mass of DNA extracted for each trial is shown in the table below. Calculate
+    the mean mass of DNA extracted from these trials, expressing your answer to an
+    appropriate number of decimal places. Refer to the provided results table for
+    the data.
+  variables:
+  - mass_dna_trial1
+  - mass_dna_trial2
+  - mass_dna_trial3
+  - mass_dna_trial4
+solution:
+  final_answer: 29.375
+  marks_available: 2
+  steps:
+  - step_number: 1
+    text: 'Sum the four trial values and divide by the number of trials: $(23.5 +
+      28.1 + 31.7 + 34.2) / 4 = 117.5 / 4$.'
+    marks_assigned: 1
+    check_type: numeric_comparison
+    milestone_value: 29.375
+    tolerance: 0.001
+  - step_number: 2
+    text: 'State the final calculated mean mass of DNA: $29.375\text{ mg}$.'
+    marks_assigned: 1
+    check_type: numeric_comparison
+    milestone_value: 29.375
+    tolerance: 0.001
+media:
+  diagram_url: I/M3.png
+  video_explainer_url: null
+tags:
+- GCSE Physics
+- Data Handling
+- Mean Calculation
+- Experimental Data
