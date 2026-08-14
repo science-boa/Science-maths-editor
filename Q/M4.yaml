@@ -1,0 +1,38 @@
+id: M4
+metadata:
+  topic: Experimental Skills
+  marks: 2
+  difficulty_level: 2.5
+question:
+  text: A student conducted an experiment to measure the average height of a specific
+    plant species after one week. They recorded four independent measurements. Calculate
+    the mean height of the plants from the data presented in the results table below.
+    Show your working. Express your answer to the nearest whole number.
+  variables:
+  - Height of Plant (cm)
+solution:
+  final_answer: 43.0
+  marks_available: 2
+  steps:
+  - step_number: 1
+    text: 'Sum the four recorded plant heights: $42.5 + 43.1 + 44.8 + 41.6 = 172.0$.'
+    marks_assigned: 1
+    check_type: exact
+    milestone_value: 172.0
+    tolerance: 0.001
+  - step_number: 2
+    text: 'Divide the sum by the number of trials (4) to find the mean: $\frac{172.0}{4}
+      = 43.0$ cm.'
+    marks_assigned: 1
+    check_type: exact
+    milestone_value: 43.0
+    tolerance: 0.001
+media:
+  diagram_url: I/M4.png
+  video_explainer_url: null
+tags:
+- Physics
+- GCSE
+- Data Analysis
+- Mean
+- Experimental Skills
