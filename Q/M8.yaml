@@ -1,0 +1,50 @@
+id: M8
+metadata:
+  topic: Physics - Data Analysis
+  marks: 3
+  difficulty_level: 0.65
+question:
+  text: A student carried out an experiment to investigate the time taken for a species
+    of beetle to cross a 20 cm track. They repeated the experiment five times and
+    calculated the mean time. The results are shown in the table provided in the diagram.
+    Unfortunately, one of the readings was smudged and cannot be read. Calculate the
+    missing time for Trial 4, ensuring your answer is given to one decimal place.
+  variables: []
+solution:
+  final_answer: 7.8
+  marks_available: 3
+  steps:
+  - step_number: 1
+    text: 'Recall that the mean is the sum of all readings divided by the number of
+      readings. Rearrange to find the total sum of all readings: $\text{Total Sum}
+      = \text{Mean} \times \text{Number of Readings}$. Substitute the given mean and
+      number of trials: $\text{Total Sum} = 8.1 \text{ s} \times 5 = 40.5 \text{ s}$.'
+    marks_assigned: 1
+    check_type: exact
+    milestone_value: 40.5
+    tolerance: 0.05
+  - step_number: 2
+    text: 'Calculate the sum of the known readings from the table: $\text{Sum of known
+      readings} = 8.2 + 7.9 + 8.5 + 8.1 = 32.7 \text{ s}$.'
+    marks_assigned: 1
+    check_type: exact
+    milestone_value: 32.7
+    tolerance: 0.05
+  - step_number: 3
+    text: 'Subtract the sum of the known readings from the total sum to find the missing
+      value for Trial 4: $\text{Trial 4} = \text{Total Sum} - \text{Sum of known readings}
+      = 40.5 - 32.7 = 7.8 \text{ s}$. The missing time for Trial 4 is $7.8 \text{
+      s}$.'
+    marks_assigned: 1
+    check_type: exact
+    milestone_value: 7.8
+    tolerance: 0.05
+media:
+  diagram_url: I/M8.png
+  video_explainer_url: null
+tags:
+- GCSE Physics
+- Data Analysis
+- Mean
+- Missing Value
+- Calculation
