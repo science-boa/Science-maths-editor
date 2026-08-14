@@ -7,7 +7,7 @@ question:
   text: A student conducted a biology experiment to investigate the growth of a certain
     type of bacteria over a specific period. They repeated the experiment four times
     and recorded the number of bacterial colonies observed. The results are shown
-    in the table below. Calculate the mean number of bacterial colonies. Give your
+    in the table above. Calculate the mean number of bacterial colonies. Give your
     answer to 1 decimal place.
   variabl1es:
   - 125.5 colonies
