@@ -1,0 +1,43 @@
+id: M5
+metadata:
+  topic: Experimental Data Analysis
+  marks: 2
+  difficulty_level: 0.3
+question:
+  text: A student conducted a biology experiment to investigate the growth of a certain
+    type of bacteria over a specific period. They repeated the experiment four times
+    and recorded the number of bacterial colonies observed. The results are shown
+    in the table below. Calculate the mean number of bacterial colonies. Give your
+    answer to 1 decimal place.
+  variabl1es:
+  - 125.5 colonies
+  - 130.0 colonies
+  - 128.5 colonies
+  - 126.0 colonies
+solution:
+  final_answer: 127.5
+  marks_available: 2
+  steps:
+  - step_number: 1
+    text: 'Sum the number of bacterial colonies from all trials: $125.5 + 130.0 +
+      128.5 + 126.0 = 510.0$.'
+    marks_assigned: 1
+    check_type: exact_match
+    milestone_value: 510.0
+    tolerance: 0.001
+  - step_number: 2
+    text: 'Divide the sum by the number of trials (4) to find the mean: $\frac{510.0}{4}
+      = 127.5$. Therefore, the mean number of bacterial colonies is $127.5$.'
+    marks_assigned: 1
+    check_type: exact_match
+    milestone_value: 127.5
+    tolerance: 0.001
+media:
+  diagram_url: I/M5.png
+  video_explainer_url: null
+tags:
+- GCSE Physics
+- Data Analysis
+- Mean Calculation
+- Experimental Skills
+- Biology Context
