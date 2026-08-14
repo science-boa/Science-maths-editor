@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Maths for Science v0.33</title>
+  <title>Maths for Science v0.34</title>
   
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js"></script>
@@ -63,16 +63,22 @@
 
         </div>
 
-        <div class="flex justify-between items-center pt-2">
+        <div class="flex flex-wrap justify-between items-center pt-2 gap-2">
           <button id="btn-prev" onclick="changeQuestion(-1)" class="px-5 py-2 bg-gray-200 hover:bg-gray-300 disabled:opacity-40 font-medium rounded-lg transition-colors cursor-pointer" disabled>
             ← Previous
           </button>
-          <button id="btn-next" onclick="handleNextButton()" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors cursor-pointer">
-            Next →
-          </button>
-          <button id="btn-submit" onclick="submitQuiz()" class="px-6 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg transition-colors hidden cursor-pointer">
-            Submit Quiz
-          </button>
+          
+          <div class="flex items-center gap-2">
+            <button id="btn-video" onclick="openVideoModal()" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg transition-colors cursor-pointer hidden">
+              🎬 Video Clip
+            </button>
+            <button id="btn-next" onclick="handleNextButton()" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors cursor-pointer">
+              Next →
+            </button>
+            <button id="btn-submit" onclick="submitQuiz()" class="px-6 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg transition-colors hidden cursor-pointer">
+              Submit Quiz
+            </button>
+          </div>
         </div>
       </div>
 
@@ -141,7 +147,6 @@
     </div>
   </div>
 
-  <!-- Equation Sheet Modal -->
   <div id="equation-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl h-[85vh] flex flex-col overflow-hidden">
       <div class="flex justify-between items-center p-4 border-b border-gray-100 bg-gray-50">
@@ -151,6 +156,22 @@
         </button>
       </div>
       <iframe src="https://www.aqa.org.uk/files/resources.science.AQA-8464-8465-FS-INS-2025_PDF/c4fac749855e8fefcd6ff58bd7b9cb701309df9b.pdf" class="flex-1 w-full border-none"></iframe>
+    </div>
+  </div>
+
+  <div id="video-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl flex flex-col overflow-hidden">
+      <div class="flex justify-between items-center p-4 border-b border-gray-100 bg-gray-50">
+        <h3 class="font-bold text-lg text-gray-900">Video Explainer</h3>
+        <button onclick="closeVideoModal()" class="p-2 hover:bg-gray-200 rounded-full cursor-pointer transition-colors">
+          <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+      <div class="p-6">
+        <div id="video-container" class="w-full aspect-video bg-black rounded-xl overflow-hidden flex items-center justify-center">
+          <!-- Dynamically inserted HTML5 video player -->
+        </div>
+      </div>
     </div>
   </div>
 
@@ -206,6 +227,9 @@
           id: "demo-question",
           metadata: { topic: "Physics Mechanics Demo" },
           question: { text: "Calculate the kinetic energy of a car with mass $m = 1200\\text{ kg}$ travelling at a velocity of $v = 25\\text{ m/s}$. Use formula $E_k = \\frac{1}{2}mv^2$." },
+          media: {
+            video_explainer_url: "M1.mp4"
+          },
           solution: {
             final_answer: "375000",
             steps: [
@@ -277,6 +301,7 @@
       const btnPrev = document.getElementById('btn-prev');
       const btnNext = document.getElementById('btn-next');
       const btnSubmit = document.getElementById('btn-submit');
+      const btnVideo = document.getElementById('btn-video');
 
       const q = questions[currentIndex];
       if (!q) return;
@@ -284,7 +309,15 @@
         questionArea.innerHTML = `<div class="text-red-500 font-medium">⚠️ ${q.message} (${q.id})</div>`;
         workingArea.classList.add('hidden');
         answerArea.classList.add('hidden');
+        btnVideo.classList.add('hidden');
         return;
+      }
+      
+      const videoVal = q.media && q.media.video_explainer_url;
+      if (videoVal !== null && videoVal !== undefined && String(videoVal).trim().toLowerCase() !== 'none' && String(videoVal).trim() !== '') {
+        btnVideo.classList.remove('hidden');
+      } else {
+        btnVideo.classList.add('hidden');
       }
       
       let mediaHtml = '';
@@ -295,7 +328,6 @@
       questionArea.innerHTML = `<div class="text-xs font-bold text-blue-600 tracking-wider uppercase mb-1">${q.metadata?.topic || 'General Science'}</div><h2 class="text-xl font-bold text-gray-900 mb-4">Question ID: ${q.id}</h2>${mediaHtml}<div id="math-text" class="text-base leading-relaxed text-gray-800 font-normal">${q.question.text}</div>`;
       renderMathInElement(document.getElementById('math-text'), { delimiters: [{ left: "$$", right: "$$", display: true }, { left: "$", right: "$", display: false }] });
 
-      // Calculate total marks assigned to this question's steps
       const structuredSteps = (q.solution && Array.isArray(q.solution.steps)) ? q.solution.steps : [];
       let totalQuestionMarks = 0;
       structuredSteps.forEach(s => {
@@ -305,7 +337,6 @@
         totalQuestionMarks = 1;
       }
 
-      // Hide working area and its title if total marks = 1, otherwise show them
       if (totalQuestionMarks === 1) {
         workingArea.classList.add('hidden');
       } else {
@@ -335,6 +366,26 @@
           btnNext.innerText = "Next →";
         }
       }
+    }
+
+    function openVideoModal() {
+      const q = questions[currentIndex];
+      if (!q || !q.media || !q.media.video_explainer_url) return;
+      const rawVal = String(q.media.video_explainer_url).trim();
+      
+      let videoSrc = rawVal;
+      if (!rawVal.startsWith('http://') && !rawVal.startsWith('https://')) {
+        videoSrc = `${BASE_RAW_URL}V/${rawVal}`;
+      }
+      
+      const videoContainer = document.getElementById('video-container');
+      videoContainer.innerHTML = `<video controls autoplay class="w-full h-full object-contain"><source src="${videoSrc}" type="video/mp4">Your browser does not support the video tag.</video>`;
+      document.getElementById('video-modal').classList.remove('hidden');
+    }
+
+    function closeVideoModal() {
+      document.getElementById('video-modal').classList.add('hidden');
+      document.getElementById('video-container').innerHTML = '';
     }
 
     function evaluateSingleQuestion(idx) {
