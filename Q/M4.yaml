@@ -29,7 +29,7 @@ solution:
     tolerance: 0.001
 media:
   diagram_url: I/M4.jpg
-  video_explainer_url: null
+  video_explainer_url: V/Mean.mp4
 tags:
 - Physics
 - GCSE
