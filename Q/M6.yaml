@@ -1,58 +1,49 @@
 id: M6
 metadata:
-  topic: 'Biology: Diseases and Practical Skills'
+  topic: Data Analysis
   marks: 3
-  difficulty_level: 0.65
+  difficulty_level: 0.6
 question:
-  text: A student conducted an experiment to investigate the effectiveness of a new
-    disinfectant on bacterial growth. They prepared five identical agar plates, each
-    inoculated with the same type and amount of bacteria. After applying the disinfectant
-    and incubating for 24 hours, they counted the number of bacterial colonies remaining
-    on each plate. The results, along with the mean, are shown in the table below.
-    One of the trial results is missing. Calculate the number of bacterial colonies
-    for Trial 3. Give your answer to 1 decimal place.
-  variables:
-  - Trial 1 colonies
-  - Trial 2 colonies
-  - Trial 4 colonies
-  - Trial 5 colonies
-  - Mean colonies
-  - Number of trials
+  text: During a GCSE Science experiment investigating yeast cell populations, a student
+    counted the number of yeast cells in five different samples. The results table
+    below shows the cell counts for four samples and the calculated mean for all five
+    samples. Calculate the missing yeast cell count for Sample 4. Give your answer
+    to one decimal place.
+  variables: []
 solution:
-  final_answer: 14.5
+  final_answer: 35.0
   marks_available: 3
   steps:
   - step_number: 1
-    text: 'To find the total sum of bacterial colonies for all 5 trials, multiply
-      the given mean by the number of trials: $\text{Total sum} = \text{Mean} \times
-      \text{Number of trials} = 15.0 \times 5$.'
+    text: 'Recall the formula for the mean: $\text{Mean} = \frac{\text{Sum of all
+      values}}{\text{Number of values}}$. Rearrange to find the sum of all values:
+      $\text{Sum of all values} = \text{Mean} \times \text{Number of values}$.'
     marks_assigned: 1
     check_type: exact
-    milestone_value: 75.0
+    milestone_value: 176.0
     tolerance: 0.01
   - step_number: 2
-    text: 'Calculate the sum of the known number of bacterial colonies from Trial
-      1, 2, 4, and 5: $\text{Sum of known values} = 15.2 + 14.8 + 16.0 + 14.5$.'
+    text: 'Calculate the sum of the four known values: $32.0 + 38.5 + 34.0 + 36.5
+      = 141.0$.'
     marks_assigned: 1
     check_type: exact
-    milestone_value: 60.5
+    milestone_value: 141.0
     tolerance: 0.01
   - step_number: 3
-    text: 'Subtract the sum of the known values from the total sum to find the missing
-      value for Trial 3: $\text{Trial 3 colonies} = \text{Total sum} - \text{Sum of
-      known values} = 75.0 - 60.5$.'
+    text: 'Calculate the total sum expected from the mean: $35.2 \times 5 = 176.0$.
+      Subtract the sum of known values from the total sum to find the missing value:
+      $176.0 - 141.0 = 35.0$. The missing value is $35.0$ cells.'
     marks_assigned: 1
     check_type: exact
-    milestone_value: 14.5
+    milestone_value: 35.0
     tolerance: 0.01
 media:
-  diagram_url: I/M6.jpg
+  diagram_url: I/M6.png
   video_explainer_url: null
 tags:
 - GCSE
 - Science
-- Biology
+- Data Analysis
 - Mean
+- Missing Value
 - Calculation
-- Missing Data
-- Practical Skills
