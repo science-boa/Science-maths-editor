@@ -6,7 +6,7 @@ metadata:
 question:
   text: A student conducted an experiment to measure the average height of a specific
     plant species after one week. They recorded four independent measurements. Calculate
-    the mean height of the plants from the data presented in the results table below.
+    the mean height of the plants from the data presented in the results table above.
     Show your working. Express your answer to the nearest whole number.
   variables:
   - Height of Plant (cm)
