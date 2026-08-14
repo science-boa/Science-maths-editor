@@ -8,7 +8,7 @@ question:
     \ They recorded five measurements for their reaction time and then calculated\
     \ the mean. The table below shows four of the measurements along with the calculated\
     \ mean reaction time. Calculate the missing reaction time for Trial 4. Give your\
-    \ answer to two decimal places. "
+    \ answer to one decimal place. "
   variables:
   - reaction time
   - mean
