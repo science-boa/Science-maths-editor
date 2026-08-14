@@ -1,51 +1,58 @@
 id: M6
 metadata:
-  topic: Electricity and Circuits
+  topic: 'Biology: Diseases and Practical Skills'
   marks: 3
-  difficulty_level: 3.5
+  difficulty_level: 0.65
 question:
-  text: In an experiment to measure the current flowing through a series circuit,
-    a student recorded four readings. The results are shown in the table below (refer
-    to the diagram_url). The mean current for the experiment was $0.24 \text{ A}$.
-    Calculate the value of the missing current reading, $I_3$, to two decimal places.
+  text: A student conducted an experiment to investigate the effectiveness of a new
+    disinfectant on bacterial growth. They prepared five identical agar plates, each
+    inoculated with the same type and amount of bacteria. After applying the disinfectant
+    and incubating for 24 hours, they counted the number of bacterial colonies remaining
+    on each plate. The results, along with the mean, are shown in the table below.
+    One of the trial results is missing. Calculate the number of bacterial colonies
+    for Trial 3. Give your answer to 1 decimal place.
   variables:
-  - mean current
-  - current readings
-  - missing current
+  - Trial 1 colonies
+  - Trial 2 colonies
+  - Trial 4 colonies
+  - Trial 5 colonies
+  - Mean colonies
+  - Number of trials
 solution:
-  final_answer: 0.26
+  final_answer: 14.5
   marks_available: 3
   steps:
   - step_number: 1
-    text: 'Calculate the total sum of the current readings using the mean and the
-      number of readings: $\text{Total sum} = \text{Mean} \times \text{Number of readings}$.  $\text{Total
-      sum} = 0.24 \text{ A} \times 4 = 0.96 \text{ A}$.'
+    text: 'To find the total sum of bacterial colonies for all 5 trials, multiply
+      the given mean by the number of trials: $\text{Total sum} = \text{Mean} \times
+      \text{Number of trials} = 15.0 \times 5$.'
     marks_assigned: 1
-    check_type: value
-    milestone_value: 0.96
-    tolerance: 0.005
+    check_type: exact
+    milestone_value: 75.0
+    tolerance: 0.01
   - step_number: 2
-    text: 'Sum the known current readings: $I_1 + I_2 + I_4 = 0.23 \text{ A} + 0.25
-      \text{ A} + 0.22 \text{ A} = 0.70 \text{ A}$.'
+    text: 'Calculate the sum of the known number of bacterial colonies from Trial
+      1, 2, 4, and 5: $\text{Sum of known values} = 15.2 + 14.8 + 16.0 + 14.5$.'
     marks_assigned: 1
-    check_type: value
-    milestone_value: 0.7
-    tolerance: 0.005
+    check_type: exact
+    milestone_value: 60.5
+    tolerance: 0.01
   - step_number: 3
-    text: 'Subtract the sum of known readings from the total sum to find the missing
-      reading: $I_3 = \text{Total sum} - (I_1 + I_2 + I_4) = 0.96 \text{ A} - 0.70
-      \text{ A} = 0.26 \text{ A}$.'
+    text: 'Subtract the sum of the known values from the total sum to find the missing
+      value for Trial 3: $\text{Trial 3 colonies} = \text{Total sum} - \text{Sum of
+      known values} = 75.0 - 60.5$.'
     marks_assigned: 1
-    check_type: value
-    milestone_value: 0.26
-    tolerance: 0.005
+    check_type: exact
+    milestone_value: 14.5
+    tolerance: 0.01
 media:
   diagram_url: I/M6.png
   video_explainer_url: null
 tags:
-- Physics
 - GCSE
-- Data Analysis
+- Science
+- Biology
 - Mean
 - Calculation
-- Electricity
+- Missing Data
+- Practical Skills
