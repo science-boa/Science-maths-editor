@@ -1,0 +1,51 @@
+id: M6
+metadata:
+  topic: Electricity and Circuits
+  marks: 3
+  difficulty_level: 3.5
+question:
+  text: In an experiment to measure the current flowing through a series circuit,
+    a student recorded four readings. The results are shown in the table below (refer
+    to the diagram_url). The mean current for the experiment was $0.24 \text{ A}$.
+    Calculate the value of the missing current reading, $I_3$, to two decimal places.
+  variables:
+  - mean current
+  - current readings
+  - missing current
+solution:
+  final_answer: 0.26
+  marks_available: 3
+  steps:
+  - step_number: 1
+    text: 'Calculate the total sum of the current readings using the mean and the
+      number of readings: $\text{Total sum} = \text{Mean} \times \text{Number of readings}$.  $\text{Total
+      sum} = 0.24 \text{ A} \times 4 = 0.96 \text{ A}$.'
+    marks_assigned: 1
+    check_type: value
+    milestone_value: 0.96
+    tolerance: 0.005
+  - step_number: 2
+    text: 'Sum the known current readings: $I_1 + I_2 + I_4 = 0.23 \text{ A} + 0.25
+      \text{ A} + 0.22 \text{ A} = 0.70 \text{ A}$.'
+    marks_assigned: 1
+    check_type: value
+    milestone_value: 0.7
+    tolerance: 0.005
+  - step_number: 3
+    text: 'Subtract the sum of known readings from the total sum to find the missing
+      reading: $I_3 = \text{Total sum} - (I_1 + I_2 + I_4) = 0.96 \text{ A} - 0.70
+      \text{ A} = 0.26 \text{ A}$.'
+    marks_assigned: 1
+    check_type: value
+    milestone_value: 0.26
+    tolerance: 0.005
+media:
+  diagram_url: I/M6.png
+  video_explainer_url: null
+tags:
+- Physics
+- GCSE
+- Data Analysis
+- Mean
+- Calculation
+- Electricity
