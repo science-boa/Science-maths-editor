@@ -1,0 +1,57 @@
+id: M7
+metadata:
+  topic: Biology - Plant Growth and Data Analysis
+  marks: 3
+  difficulty_level: 2.5
+question:
+  text: The diagram provided shows a results table from an experiment investigating
+    the growth of pea plants. The experiment measured the shoot length of 5 pea plants
+    after one week. Unfortunately, one of the measurements was not recorded. Using
+    the provided mean value for the experiment, calculate the missing shoot length
+    for Plant E. Give your answer to one decimal place.
+  variables:
+  - mean_length
+  - number_of_plants
+solution:
+  final_answer: 12.6
+  marks_available: 3
+  steps:
+  - step_number: 1
+    text: First, calculate the total sum of the shoot lengths if all five plants were
+      measured. This can be found by multiplying the mean length by the total number
+      of plants:$$ \text{Total Sum} = \text{Mean Length} \times \text{Number of Plants}
+      $$$$ \text{Total Sum} = 12.4 \text{ cm} \times 5 = 62.0 \text{ cm} $$
+    marks_assigned: 1
+    check_type: exact_value
+    milestone_value: 62.0
+    tolerance: 0.01
+  - step_number: 2
+    text: Next, calculate the sum of the known shoot lengths from the table:$$ \text{Sum
+      of Known Lengths} = 11.8 \text{ cm} + 12.5 \text{ cm} + 12.1 \text{ cm} + 13.0
+      \text{ cm} = 49.4 \text{ cm} $$
+    marks_assigned: 1
+    check_type: exact_value
+    milestone_value: 49.4
+    tolerance: 0.01
+  - step_number: 3
+    text: Finally, subtract the sum of the known lengths from the total sum to find
+      the missing shoot length for Plant E:$$ \text{Missing Length} = \text{Total
+      Sum} - \text{Sum of Known Lengths} $$$$ \text{Missing Length} = 62.0 \text{
+      cm} - 49.4 \text{ cm} = 12.6 \text{ cm} $$
+    marks_assigned: 1
+    check_type: exact_value
+    milestone_value: 12.6
+    tolerance: 0.01
+media:
+  diagram_url: I/M7.png
+  video_explainer_url: null
+tags:
+- GCSE
+- Science
+- Biology
+- Plant Growth
+- Data Analysis
+- Mean
+- Missing Value
+- Calculation
+- Mathematics
