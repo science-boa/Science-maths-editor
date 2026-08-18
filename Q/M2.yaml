@@ -35,7 +35,7 @@ solution:
     tolerance: 0.01
 media:
   diagram_url: I/M2.jpg
-  video_explainer_url: V/Mean.mp4
+  video_explainer_url: Mean.mp4
 tags:
 - Physics
 - Data Analysis
