@@ -1,0 +1,30 @@
+id: UC1
+metadata:
+  topic: Units and Measurement
+  marks: 1
+  difficulty_level: 2.0
+question:
+  text: Convert $7.8 \text{ km}$ into metres.
+  variables: []
+solution:
+  final_answer: 7800.0
+  marks_available: 1
+  steps:
+  - step_number: 1
+    text: To convert kilometres to metres, multiply the given value by $1000$. $7.8
+      \times 1000 = 7800$.
+    marks_assigned: 1
+    check_type: exact_match
+    milestone_value: 7800.0
+    tolerance: 0.0
+media:
+  diagram_url: I/UC1.png
+  video_explainer_url: null
+tags:
+- Physics
+- GCSE
+- Units
+- Conversion
+- Metres
+- Kilometres
+- Mathematics
