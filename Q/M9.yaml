@@ -42,7 +42,7 @@ solution:
     tolerance: 0.001
 media:
   diagram_url: I/M9.jpg
-  video_explainer_url: V/Revmean.mp4
+  video_explainer_url: Revmean.mp4
 tags:
 - GCSE Physics
 - Reaction Time
