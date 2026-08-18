@@ -22,7 +22,7 @@ solution:
     milestone_value: 12.3
     tolerance: 0.0
 media:
-  diagram_url: I/DP3.png
+  diagram_url: null
   video_explainer_url: null
 tags:
 - Physics
