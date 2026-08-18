@@ -1,0 +1,28 @@
+id: UC3
+metadata:
+  topic: Physics - Units and Measurement
+  marks: 1
+  difficulty_level: 1.5
+question:
+  text: Convert a mass of $500 \text{ g}$ into kilograms.
+  variables: []
+solution:
+  final_answer: 0.5
+  marks_available: 1
+  steps:
+  - step_number: 1
+    text: To convert grams to kilograms, divide the given mass by $1000$. So, $500
+      \text{ g} \div 1000 = 0.5 \text{ kg}$.
+    marks_assigned: 1
+    check_type: numeric_range
+    milestone_value: 0.5
+    tolerance: 0.001
+media:
+  diagram_url: I/UC3.png
+  video_explainer_url: null
+tags:
+- Physics
+- Units
+- Conversion
+- Mass
+- GCSE
