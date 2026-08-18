@@ -4,7 +4,7 @@ metadata:
   marks: 1
   difficulty_level: 1.5
 question:
-  text: A student measures the diameter of a metal rod as $1.23656$ cm. Round this
+  text: A student measures the diameter of a metal rod as $1.23656$ m. Round this
     measurement to two decimal places.
   variables:
   - diameter
@@ -13,9 +13,9 @@ solution:
   marks_available: 1
   steps:
   - step_number: 1
-    text: Identify the third decimal place in the measurement $1.23656$ cm, which
-      is $4$. Since $4$ is less than $5$, the second decimal place remains unchanged.
-      Therefore, the measurement rounded to two decimal places is $1.24$ cm.
+    text: Identify the third decimal place in the measurement $1.23656$ m, which
+      is $6$. Since $6$ is greater than $5$, the second decimal place is rounded up.
+      Therefore, the measurement rounded to two decimal places is $1.24$ m.
     marks_assigned: 1
     check_type: exact_value
     milestone_value: 1.24
