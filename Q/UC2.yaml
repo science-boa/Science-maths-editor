@@ -1,0 +1,29 @@
+id: UC2
+metadata:
+  topic: Units and Measurement
+  marks: 1
+  difficulty_level: 1.5
+question:
+  text: Convert $1500 \text{ m}$ into kilometres.
+  variables: []
+solution:
+  final_answer: 1.5
+  marks_available: 1
+  steps:
+  - step_number: 1
+    text: To convert metres to kilometres, divide the given value by $1000$. Therefore,
+      $1500 \div 1000 = 1.5$.
+    marks_assigned: 1
+    check_type: numeric
+    milestone_value: 1.5
+    tolerance: 0.01
+media:
+  diagram_url: I/UC2.png
+  video_explainer_url: null
+tags:
+- measurement
+- units
+- conversion
+- kilometres
+- metres
+- gcse physics
