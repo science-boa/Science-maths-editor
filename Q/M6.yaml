@@ -38,8 +38,8 @@ solution:
     milestone_value: 35.0
     tolerance: 0.01
 media:
-  diagram_url: I/Revmean6.jpg
-  video_explainer_url: null
+  diagram_url: I/M6.jpg
+  video_explainer_url: Revmean.mp4
 tags:
 - GCSE
 - Science
