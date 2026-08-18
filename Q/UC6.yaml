@@ -1,0 +1,31 @@
+id: UC6
+metadata:
+  topic: Units and Measurement
+  marks: 1
+  difficulty_level: 1.0
+question:
+  text: Convert a mass of $0.005\text{ g}$ into milligrams.
+  variables: []
+solution:
+  final_answer: 5.0
+  marks_available: 1
+  steps:
+  - step_number: 1
+    text: To convert grams to milligrams, multiply the given mass in grams by $1000$.
+      Therefore, the calculation is $0.005 \times 1000 = 5\text{ mg}$.
+    marks_assigned: 1
+    check_type: exact_value
+    milestone_value: 5.0
+    tolerance: 0.0
+media:
+  diagram_url: I/UC6.png
+  video_explainer_url: null
+tags:
+- physics
+- GCSE
+- units
+- conversion
+- mass
+- milligrams
+- grams
+- prefixes
