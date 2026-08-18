@@ -1,0 +1,31 @@
+id: DP6
+metadata:
+  topic: Measurement and Data Handling
+  marks: 1
+  difficulty_level: 1.0
+question:
+  text: A student measures the mass of an object as $45.12384\text{ kg}$. Round this
+    mass to three decimal places.
+  variables: []
+solution:
+  final_answer: 45.124
+  marks_available: 1
+  steps:
+  - step_number: 1
+    text: Identify the digit in the fourth decimal place. In $45.12384$, the fourth
+      decimal place is $8$. Since $8 \ge 5$, round up the third decimal place. The
+      third decimal place is $3$, so rounding up makes it $4$. Therefore, the mass
+      rounded to three decimal places is $45.124\text{ kg}$.
+    marks_assigned: 1
+    check_type: numerical_value
+    milestone_value: 45.124
+    tolerance: 0.0
+media:
+  diagram_url: I/DP6.png
+  video_explainer_url: null
+tags:
+- Physics
+- GCSE
+- Measurement
+- Rounding
+- Significant Figures
