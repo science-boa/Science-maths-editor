@@ -20,7 +20,7 @@ solution:
     milestone_value: 0.75
     tolerance: 0.0
 media:
-  diagram_url: I/UC5.png
+  diagram_url: I/prefix.jpg
   video_explainer_url: null
 tags:
 - physics
