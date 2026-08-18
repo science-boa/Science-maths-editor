@@ -1,0 +1,31 @@
+id: DP5
+metadata:
+  topic: Measurements and Units
+  marks: 1
+  difficulty_level: 1.0
+question:
+  text: A student measures the mass of an object as $4.38 \text{ kg}$. Round this
+    mass to one decimal place.
+  variables:
+  - mass
+solution:
+  final_answer: 4.4
+  marks_available: 1
+  steps:
+  - step_number: 1
+    text: To round $4.38 \text{ kg}$ to one decimal place, look at the second decimal
+      place. The digit is $8$. Since $8$ is $5$ or greater, we round up the first
+      decimal place. So, $4.3$ becomes $4.4$.
+    marks_assigned: 1
+    check_type: exact_match
+    milestone_value: 4.4
+    tolerance: 0.0
+media:
+  diagram_url: I/DP5.png
+  video_explainer_url: null
+tags:
+- Physics
+- GCSE
+- Measurements
+- Rounding
+- Significant Figures
