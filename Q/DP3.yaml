@@ -1,0 +1,31 @@
+id: DP3
+metadata:
+  topic: Measurements and Data Handling
+  marks: 1
+  difficulty_level: 1.0
+question:
+  text: A student measures the mass of an object as $12.3123$ kg. Round this mass
+    to one decimal place.
+  variables:
+  - mass
+solution:
+  final_answer: 12.3
+  marks_available: 1
+  steps:
+  - step_number: 1
+    text: To round $12.3123$ kg to one decimal place, we look at the second decimal
+      place. The digit in the second decimal place is $1$. Since $1$ is less than
+      $5$, we keep the first decimal place as it is. Therefore, the rounded mass is
+      $12.3$ kg.
+    marks_assigned: 1
+    check_type: exact
+    milestone_value: 12.3
+    tolerance: 0.0
+media:
+  diagram_url: I/DP3.png
+  video_explainer_url: null
+tags:
+- Physics
+- Measurements
+- Rounding
+- Data Handling
