@@ -1,0 +1,29 @@
+id: DP4
+metadata:
+  topic: Measurement and Units
+  marks: 1
+  difficulty_level: 2.0
+question:
+  text: A student measures the mass of an object as $45.621$ kg. Round this mass to
+    one decimal place.
+  variables: []
+solution:
+  final_answer: 45.6
+  marks_available: 1
+  steps:
+  - step_number: 1
+    text: Identify the digit in the second decimal place. The mass is $45.621$ kg.
+      The digit in the first decimal place is 6, and the digit in the second decimal
+      place is 2. Since 2 is less than 5, the digit in the first decimal place remains
+      unchanged.
+    marks_assigned: 1
+    check_type: exact
+    milestone_value: 45.6
+    tolerance: 0.001
+media:
+  diagram_url: I/DP4.png
+  video_explainer_url: null
+tags:
+- rounding
+- significant figures
+- measurement
