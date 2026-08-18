@@ -1,0 +1,28 @@
+id: UC4
+metadata:
+  topic: Units and Measurement
+  marks: 1
+  difficulty_level: 2.0
+question:
+  text: Convert $0.5 \text{ kg}$ into grams.
+  variables: []
+solution:
+  final_answer: 500.0
+  marks_available: 1
+  steps:
+  - step_number: 1
+    text: To convert kilograms to grams, multiply the value by $1000$. Therefore,
+      $0.5 \text{ kg} = 0.5 \times 1000 \text{ g} = 500 \text{ g}$.
+    marks_assigned: 1
+    check_type: exact
+    milestone_value: 500.0
+    tolerance: 0.0
+media:
+  diagram_url: I/UC4.png
+  video_explainer_url: null
+tags:
+- Physics
+- GCSE
+- Units
+- Conversion
+- Mass
