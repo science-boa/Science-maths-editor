@@ -1,0 +1,30 @@
+id: UC5
+metadata:
+  topic: Units and Measurement
+  marks: 1
+  difficulty_level: 1.5
+question:
+  text: A laboratory experiment involves measuring the mass of a small amount of powdered
+    chemical. The mass is recorded as $750 \text{ mg}$. Express this mass in grams
+    ($\text{g}$).
+  variables: []
+solution:
+  final_answer: 0.75
+  marks_available: 1
+  steps:
+  - step_number: 1
+    text: To convert milligrams ($\text{mg}$) to grams ($\text{g}$), divide the mass
+      in milligrams by $1000$. So, $750 \text{ mg} \div 1000 = 0.75 \text{ g}$.
+    marks_assigned: 1
+    check_type: numeric_range
+    milestone_value: 0.75
+    tolerance: 0.0
+media:
+  diagram_url: I/UC5.png
+  video_explainer_url: null
+tags:
+- physics
+- GCSE
+- units
+- mass
+- conversion
