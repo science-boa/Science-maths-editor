@@ -34,7 +34,7 @@ solution:
     tolerance: 0.001
 media:
   diagram_url: I/M5.jpg
-  video_explainer_url: V/Mean.mp4
+  video_explainer_url: Mean.mp4
 tags:
 - GCSE Physics
 - Data Analysis
