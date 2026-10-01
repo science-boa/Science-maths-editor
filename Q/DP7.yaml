@@ -1,0 +1,31 @@
+id: DP7
+metadata:
+  topic: Measurement and Units
+  marks: 1
+  difficulty_level: 1.0
+question:
+  text: The measured value of the Planck constant is given as $6.62607015 \times 10^{-34}
+    \text{ Js}$. If a less precise measurement yielded a value of $6.62607 \text{
+    Js}$, round this value to $3$ decimal places.
+  variables: []
+solution:
+  final_answer: 6.626
+  marks_available: 1
+  steps:
+  - step_number: 1
+    text: Identify the third decimal place and the digit immediately following it
+      ($6.62\underline{6}07$). Since the digit in the fourth decimal place ($0$) is
+      less than $5$, the third decimal place remains unchanged. Therefore, $6.62607$
+      rounded to $3$ decimal places is $6.626$.
+    marks_assigned: 1
+    check_type: exact
+    milestone_value: 6.626
+    tolerance: 0.0
+media:
+  diagram_url: I/DP7.png
+  video_explainer_url: null
+tags:
+- GCSE
+- Physics
+- Rounding
+- Measurement
