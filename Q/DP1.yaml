@@ -1,30 +1,30 @@
 id: DP1
 metadata:
-  topic: Measurement and Units
+  topic: Measurement and Data Handling
   marks: 1
-  difficulty_level: 1.5
+  difficulty_level: 0.2
 question:
-  text: A student measures the diameter of a metal rod as $1.23656$ m. Round this
-    measurement to two decimal places.
-  variables:
-  - diameter
+  text: Round the following measured value, $12.34567$ m, to $4$ decimal places. Express
+    your answer in standard form if appropriate. However, for this question, a standard
+    number is sufficient.
+  variables: []
 solution:
-  final_answer: 1.24
+  final_answer: 12.3457
   marks_available: 1
   steps:
   - step_number: 1
-    text: Identify the third decimal place in the measurement $1.23656$ m, which
-      is $6$. Since $6$ is greater than $5$, the second decimal place is rounded up.
-      Therefore, the measurement rounded to two decimal places is $1.24$ m.
+    text: To round $12.34567$ to $4$ decimal places, we look at the fifth decimal
+      place. The digit is $7$, which is $5$ or greater, so we round up the fourth
+      decimal place. Thus, $12.34567$ rounded to $4$ decimal places is $12.3457$.
     marks_assigned: 1
-    check_type: exact_value
-    milestone_value: 1.24
+    check_type: exact
+    milestone_value: 12.3457
     tolerance: 0.0
 media:
-  diagram_url: null
+  diagram_url: I/DP1.png
   video_explainer_url: null
 tags:
-- measurement
-- rounding
-- significant figures
-- mathematics
+- GCSE
+- Physics
+- Rounding
+- Significant Figures
