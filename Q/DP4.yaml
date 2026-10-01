@@ -1,29 +1,30 @@
 id: DP4
 metadata:
-  topic: Measurement and Units
+  topic: Measurement and Data Handling
   marks: 1
-  difficulty_level: 2.0
+  difficulty_level: 1.5
 question:
-  text: A student measures the mass of an object as $45.621$ kg. Round this mass to
-    one decimal place.
+  text: The measured current in a circuit is $0.15732\text{ A}$. Round this value
+    to two decimal places.
   variables: []
 solution:
-  final_answer: 45.6
+  final_answer: 0.16
   marks_available: 1
   steps:
   - step_number: 1
-    text: Identify the digit in the second decimal place. The mass is $45.621$ kg.
-      The digit in the first decimal place is 6, and the digit in the second decimal
-      place is 2. Since 2 is less than 5, the digit in the first decimal place remains
-      unchanged.
+    text: To round $0.15732$ to two decimal places, observe the third decimal place
+      digit, which is $7$. Since $7$ is $5$ or greater, round up the digit in the
+      second decimal place. The digit in the second decimal place is $5$, which rounds
+      up to $6$. Therefore, the value rounded to two decimal places is $0.16\text{
+      A}$.
     marks_assigned: 1
     check_type: exact
-    milestone_value: 45.6
-    tolerance: 0.001
+    milestone_value: 0.16
+    tolerance: 0.0
 media:
-  diagram_url: null
+  diagram_url: I/DP4.png
   video_explainer_url: null
 tags:
 - rounding
-- significant figures
+- decimal places
 - measurement
