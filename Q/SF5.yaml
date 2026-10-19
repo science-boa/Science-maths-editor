@@ -1,0 +1,29 @@
+id: SF5
+metadata:
+  topic: Essential Physics Skills
+  marks: 1
+  difficulty_level: 1.0
+question:
+  text: A student calculates the work done by an electric motor to be $652.843\text{
+    J}$. Round this value to $4$ significant figures.
+  variables: []
+solution:
+  final_answer: 652.8
+  marks_available: 1
+  steps:
+  - step_number: 1
+    text: Identify the first $4$ significant figures of $652.843$, which are $6$,
+      $5$, $2$, and $8$. The fifth figure is $4$ (less than $5$), so round down to
+      give $652.8$.
+    marks_assigned: 1
+    check_type: exact
+    milestone_value: 652.8
+    tolerance: 0.0
+media:
+  diagram_url: I/SF5.png
+  video_explainer_url: null
+tags:
+- physics
+- gcse
+- maths_skills
+- significant_figures
