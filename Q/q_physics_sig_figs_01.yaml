@@ -1,0 +1,29 @@
+id: q_physics_sig_figs_01
+metadata:
+  topic: Physics - Significant Figures
+  marks: 1
+  difficulty_level: 1.5
+question:
+  text: A turbine generates $52384\text{ J}$ of energy during a test run. Round this
+    value to $3$ significant figures.
+  variables: []
+solution:
+  final_answer: 52400.0
+  marks_available: 1
+  steps:
+  - step_number: 1
+    text: Identify the first three significant digits ($5$, $2$, $3$). The fourth
+      digit is $8$, which is $5$ or greater, so round up the third digit from $3$
+      to $4$, giving $52400\text{ J}$.
+    marks_assigned: 1
+    check_type: numeric
+    milestone_value: 52400.0
+    tolerance: 0.0
+media:
+  diagram_url: I/q_physics_sig_figs_01.png
+  video_explainer_url: null
+tags:
+- GCSE
+- Physics
+- Maths Skills
+- Significant Figures
