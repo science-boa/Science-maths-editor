@@ -1,0 +1,40 @@
+id: SF1
+metadata:
+  topic: Physics Skills
+  marks: 1
+  difficulty_level: 2.5
+question:
+  text: Round the value $0.0031852$ to $3$ significant figures.
+  variables: []
+solution:
+  final_answer: 0.00319
+  marks_available: 1
+  steps:
+  - step_number: 1
+    text: Identify the first three significant figures and the digit immediately following
+      the third significant figure. The significant figures start from the first non-zero
+      digit. So, the first three significant figures are $3, 1, 8$. The digit immediately
+      following the third significant figure ($8$) is $5$. The number truncated at
+      three significant figures would be $0.00318$.
+    marks_assigned: 0
+    check_type: exact
+    milestone_value: 0.00318
+    tolerance: 1.0e-07
+  - step_number: 2
+    text: 'Apply the rounding rule: if the digit immediately following the desired
+      number of significant figures is $5$ or greater, round up the last significant
+      figure. Since the fourth significant figure is $5$, the third significant figure
+      ($8$) is rounded up to $9$. Therefore, $0.0031852$ rounded to $3$ significant
+      figures is $0.00319$.'
+    marks_assigned: 1
+    check_type: exact
+    milestone_value: 0.00319
+    tolerance: 1.0e-07
+media:
+  diagram_url: I/SF1.png
+  video_explainer_url: null
+tags:
+- significant figures
+- rounding
+- physics skills
+- gcse
