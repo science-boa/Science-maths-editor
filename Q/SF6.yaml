@@ -1,0 +1,29 @@
+id: SF6
+metadata:
+  topic: Working Scientifically - Significant Figures
+  marks: 1
+  difficulty_level: 1.0
+question:
+  text: A student calculates the work done by an electric motor as $3824.6192\text{
+    J}$. Round this value to $4$ significant figures.
+  variables: []
+solution:
+  final_answer: 3825.0
+  marks_available: 1
+  steps:
+  - step_number: 1
+    text: Identify the first $4$ significant figures in $3824.6192$, which are $3$,
+      $8$, $2$, and $4$. The fifth figure is $6$, which is $5$ or greater, so round
+      up to $3825$.
+    marks_assigned: 1
+    check_type: exact
+    milestone_value: 3825.0
+    tolerance: 0.0
+media:
+  diagram_url: I/SF6.png
+  video_explainer_url: null
+tags:
+- physics
+- gcse
+- working_scientifically
+- significant_figures
