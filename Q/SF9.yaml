@@ -1,0 +1,28 @@
+id: SF9
+metadata:
+  topic: Physics Skills
+  marks: 1
+  difficulty_level: 2.0
+question:
+  text: A student calculates the energy transferred by an electric heater as $4528.3174\text{
+    J}$. Round this value to $6$ significant figures.
+  variables: []
+solution:
+  final_answer: 4528.32
+  marks_available: 1
+  steps:
+  - step_number: 1
+    text: Identify the first 6 significant figures ($4528.31$) and look at the 7th
+      digit ($7$). Since $7 \ge 5$, round up the 6th digit from $1$ to $2$, giving
+      $4528.32\text{ J}$.
+    marks_assigned: 1
+    check_type: exact_value
+    milestone_value: 4528.32
+    tolerance: 0.001
+media:
+  diagram_url: I/SF9.png
+  video_explainer_url: null
+tags:
+- Significant Figures
+- GCSE Physics
+- Rounding
