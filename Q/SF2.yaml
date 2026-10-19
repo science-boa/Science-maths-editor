@@ -20,7 +20,7 @@ solution:
     milestone_value: 52400.0
     tolerance: 0.0
 media:
-  diagram_url: I/SF2.png
+  diagram_url: null
   video_explainer_url: null
 tags:
 - GCSE
