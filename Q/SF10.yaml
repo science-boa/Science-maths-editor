@@ -20,7 +20,7 @@ solution:
     milestone_value: 4512.38
     tolerance: 0.001
 media:
-  diagram_url: I/SF10.png
+  diagram_url: null
   video_explainer_url: null
 tags:
 - Physics
