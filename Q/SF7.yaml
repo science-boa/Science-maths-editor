@@ -1,0 +1,28 @@
+id: SF7
+metadata:
+  topic: Significant Figures
+  marks: 1
+  difficulty_level: 0.2
+question:
+  text: A student calculates the energy transferred by a heater as $4582.6149\text{
+    J}$. Round this value to $4$ significant figures.
+  variables: []
+solution:
+  final_answer: 4583.0
+  marks_available: 1
+  steps:
+  - step_number: 1
+    text: Identify the first $4$ significant figures ($4, 5, 8, 2$). Look at the fifth
+      digit ($6$). Since $6 \ge 5$, round the fourth figure up to give $4583$.
+    marks_assigned: 1
+    check_type: exact
+    milestone_value: 4583.0
+    tolerance: 0.0
+media:
+  diagram_url: I/SF7.png
+  video_explainer_url: null
+tags:
+- GCSE
+- Physics
+- Working Scientifically
+- Significant Figures
