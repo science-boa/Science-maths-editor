@@ -1,0 +1,29 @@
+id: SF4
+metadata:
+  topic: Mathematical Skills in Physics
+  marks: 1
+  difficulty_level: 0.2
+question:
+  text: A student calculates the work done by a force as $527.384\text{ J}$. Round
+    this value to $4$ significant figures.
+  variables: []
+solution:
+  final_answer: 527.4
+  marks_available: 1
+  steps:
+  - step_number: 1
+    text: Identify the first $4$ significant digits in $527.384$, which are $5, 2,
+      7,$ and $3$. Since the fifth digit is $8$ ($8 \ge 5$), round the fourth digit
+      up from $3$ to $4$ to give $527.4$.
+    marks_assigned: 1
+    check_type: exact_match
+    milestone_value: 527.4
+    tolerance: 0.01
+media:
+  diagram_url: I/SF4.png
+  video_explainer_url: null
+tags:
+- physics
+- gcse
+- significant figures
+- maths skills
