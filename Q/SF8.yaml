@@ -1,0 +1,29 @@
+id: SF8
+metadata:
+  topic: Maths Skills in Physics
+  marks: 1
+  difficulty_level: 0.2
+question:
+  text: A student calculates the work done by an electric motor as $3542.8194$ J.
+    Round this value to $5$ significant figures.
+  variables: []
+solution:
+  final_answer: 3542.8
+  marks_available: 1
+  steps:
+  - step_number: 1
+    text: Identify the first five significant figures in $3542.8194$, which are $3,
+      5, 4, 2,$ and $8$. Look at the sixth digit ($1$); since it is less than $5$,
+      round down to keep the fifth digit as $8$, giving $3542.8$.
+    marks_assigned: 1
+    check_type: exact
+    milestone_value: 3542.8
+    tolerance: 0.0
+media:
+  diagram_url: I/SF8.png
+  video_explainer_url: null
+tags:
+- GCSE
+- Physics
+- Rounding
+- Significant Figures
