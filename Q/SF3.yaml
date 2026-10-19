@@ -1,0 +1,29 @@
+id: SF3
+metadata:
+  topic: Working Scientifically
+  marks: 1
+  difficulty_level: 1.5
+question:
+  text: A wind turbine generates $68427\text{ J}$ of electrical energy in one minute.
+    Round this value to $3$ significant figures.
+  variables: []
+solution:
+  final_answer: 68400.0
+  marks_available: 1
+  steps:
+  - step_number: 1
+    text: Identify the first three significant digits in $68427$, which are $6$, $8$,
+      and $4$. Look at the fourth digit ($2$). Since $2 < 5$, round down to obtain
+      $68400\text{ J}$.
+    marks_assigned: 1
+    check_type: exact
+    milestone_value: 68400.0
+    tolerance: 0.0
+media:
+  diagram_url: I/SF3.png
+  video_explainer_url: null
+tags:
+- physics
+- gcse
+- significant_figures
+- maths_skills
