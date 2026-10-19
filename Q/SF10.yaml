@@ -1,0 +1,28 @@
+id: SF10
+metadata:
+  topic: Working Scientifically
+  marks: 1
+  difficulty_level: 1.0
+question:
+  text: A student calculates the energy transferred by a heater to be $4512.3847\text{
+    J}$. Round this value to $6$ significant figures.
+  variables: []
+solution:
+  final_answer: 4512.38
+  marks_available: 1
+  steps:
+  - step_number: 1
+    text: 'Count $6$ significant figures from left to right: $4, 5, 1, 2, 3, 8$. Look
+      at the $7\text{th}$ digit ($4$). Since $4 < 5$, round down to keep the $6\text{th}$
+      figure as $8$, giving $4512.38$.'
+    marks_assigned: 1
+    check_type: numeric
+    milestone_value: 4512.38
+    tolerance: 0.001
+media:
+  diagram_url: I/SF10.png
+  video_explainer_url: null
+tags:
+- Physics
+- Working Scientifically
+- Significant Figures
