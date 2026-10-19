@@ -31,7 +31,7 @@ solution:
     milestone_value: 0.00319
     tolerance: 1.0e-07
 media:
-  diagram_url: I/SF1.png
+  diagram_url: null
   video_explainer_url: null
 tags:
 - significant figures
