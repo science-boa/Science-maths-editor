@@ -1,3 +1,4 @@
+"Act as a GCSE science examiner. Generate a 2 mark question. Students are given a context of a chromatography exeriment. They are told the distance moved by a coloured dot and the solvent from the start line. They must calculate the Rf Value. Include a step by step markscheme"
 "Act as a GCSE science examiner. Generate a 1 mark question. Students are given a value with 5 decimal places. They have to round it to between 1 and 4 decimal places. Include a step by step mark scheme"
 "Act as an expert GCSE Science examiner. Generate a 1-mark question. Students are given a bar graph of disease incidence in four countries. They have to correctly read one of the values from the bars. Include a step-by-step mark scheme."
 "Act as an expert GCSE Science examiner. Generate a 2-mark calculation. Students are given a context suitable for GCSE science, where they must calculate a percentage from information given in the question. Include a step-by-step mark scheme."
