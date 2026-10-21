@@ -402,7 +402,7 @@ def generate_question(prompt_text, force_image=False, force_graph=False, unit_co
         
         try:
             response = client.models.generate_content(
-                model='gemini-3.6-flash',
+                model='gemini-3.5-flash-lite',
                 contents=query,
                 config={
                     'response_mime_type': 'application/json',
