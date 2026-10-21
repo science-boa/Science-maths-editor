@@ -1,0 +1,38 @@
+id: RF1
+metadata:
+  topic: Chemistry
+  marks: 2
+  difficulty_level: 1.5
+question:
+  text: In a paper chromatography experiment, a student measures the distance moved
+    by a dye and the distance moved by the solvent. The dye moved a distance of $4.5\text{
+    cm}$ and the solvent front moved a distance of $6.0\text{ cm}$. Calculate the
+    $R_f$ value of the dye using the equation $\text{R}_f = \frac{\text{distance moved
+    by substance}}{\text{distance moved by solvent}}$.
+  variables:
+  - distance_dye
+  - distance_solvent
+solution:
+  final_answer: 0.75
+  marks_available: 2
+  steps:
+  - step_number: 1
+    text: 'Substitute the correct values into the $R_f$ equation: $4.5 \div 6.0$.'
+    marks_assigned: 1
+    check_type: exact
+    milestone_value: 0.75
+    tolerance: 0.0
+  - step_number: 2
+    text: 'Calculate the final $R_f$ value with no units: $0.75$.'
+    marks_assigned: 1
+    check_type: exact
+    milestone_value: 0.75
+    tolerance: 0.0
+media:
+  diagram_url: I/RF1.png
+  video_explainer_url: null
+tags:
+- GCSE
+- Chemistry
+- Chromatography
+- Rf value
