@@ -4,33 +4,35 @@ metadata:
   marks: 2
   difficulty_level: 1.5
 question:
-  text: In a paper chromatography experiment, a coloured dye moves a distance of $4.5\text{
-    cm}$ from the start line. The solvent front moves a total distance of $9.0\text{
-    cm}$ from the start line. Use the equation $R_f = \frac{\text{distance moved by
-    spot}}{\text{distance moved by solvent}}$ to calculate the $R_f$ value of the
-    coloured dye.
-  variables: []
+  text: 'In a chromatography experiment, a coloured dot moves a distance of $45\,\text{mm}$
+    from the start line, and the solvent front moves a distance of $80\,\text{mm}$
+    from the start line. Calculate the $R_f$ value for the coloured dot using the
+    equation: $R_f = \frac{\text{distance moved by substance}}{\text{distance moved
+    by solvent}}$. Give your answer to 2 decimal places.'
+  variables:
+  - '45'
+  - '80'
 solution:
-  final_answer: 0.5
+  final_answer: 0.56
   marks_available: 2
   steps:
   - step_number: 1
-    text: 'Substitute the correct values into the $R_f$ equation: $R_f = \frac{4.5}{9.0}$'
+    text: 'Substitute the values into the $R_f$ equation: $\frac{45}{80}$'
     marks_assigned: 1
     check_type: exact
-    milestone_value: 0.5
+    milestone_value: 0.5625
     tolerance: 0.01
   - step_number: 2
-    text: 'Calculate the final $R_f$ value with no units: $0.5$'
+    text: 'Calculate the final $R_f$ value: $0.56$'
     marks_assigned: 1
     check_type: exact
-    milestone_value: 0.5
+    milestone_value: 0.56
     tolerance: 0.01
 media:
   diagram_url: I/RF3.png
   video_explainer_url: null
 tags:
 - Chemistry
+- GCSE
 - Chromatography
 - Rf Value
-- GCSE
