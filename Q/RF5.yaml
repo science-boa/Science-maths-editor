@@ -1,0 +1,45 @@
+id: RF5
+metadata:
+  topic: Chromatography
+  marks: 3
+  difficulty_level: 2.5
+question:
+  text: 'In a chromatography experiment, a student records an $R_f$ value of $0.65$
+    for a specific dye. The solvent front moves a distance of $80\text{ mm}$ from
+    the start line. Calculate the distance moved by the coloured spot. Use the equation:
+    $R_f = \frac{\text{distance moved by spot}}{\text{distance moved by solvent}}$'
+  variables:
+  - Rf
+  - solvent_distance
+  - spot_distance
+solution:
+  final_answer: 52.0
+  marks_available: 3
+  steps:
+  - step_number: 1
+    text: 'State the rearranged formula to calculate the distance moved by the spot:
+      $\text{distance moved by spot} = R_f \times \text{distance moved by solvent}$'
+    marks_assigned: 1
+    check_type: formula_recall
+    milestone_value: 0.0
+    tolerance: 0.0
+  - step_number: 2
+    text: 'Substitute the given values into the equation: $0.65 \times 80$'
+    marks_assigned: 1
+    check_type: substitution
+    milestone_value: 0.0
+    tolerance: 0.0
+  - step_number: 3
+    text: 'Calculate the final distance with correct units: $52\text{ mm}$'
+    marks_assigned: 1
+    check_type: exact_value
+    milestone_value: 52.0
+    tolerance: 0.1
+media:
+  diagram_url: I/RF5.png
+  video_explainer_url: null
+tags:
+- GCSE
+- Physics
+- Chromatography
+- Rf value
