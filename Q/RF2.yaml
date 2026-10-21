@@ -20,7 +20,7 @@ solution:
     text: 'Substitute the correct values into the $R_f$ equation: $R_f = \frac{24}{90}$'
     marks_assigned: 1
     check_type: exact
-    milestone_value: 0.2666
+    milestone_value: 0.26
     tolerance: 0.01
   - step_number: 2
     text: 'Calculate the final $R_f$ value to 2 decimal places: $0.27$'
