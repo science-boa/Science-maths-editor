@@ -1,0 +1,37 @@
+id: RF2
+metadata:
+  topic: Chromatography
+  marks: 2
+  difficulty_level: 1.5
+question:
+  text: 'In a paper chromatography experiment, a student measures the distance moved
+    by a coloured spot to be $4.5\text{ cm}$ and the distance moved by the solvent
+    front to be $6.0\text{ cm}$. Calculate the $R_f$ value of the coloured spot. Use
+    the equation: $R_f = \frac{\text{distance moved by spot}}{\text{distance moved
+    by solvent}}$'
+  variables: []
+solution:
+  final_answer: 0.75
+  marks_available: 2
+  steps:
+  - step_number: 1
+    text: State the correct values for the distance moved by the spot and the distance
+      moved by the solvent in the equation $R_f = \frac{4.5}{6.0}$.
+    marks_assigned: 1
+    check_type: exact
+    milestone_value: 0.75
+    tolerance: 0.01
+  - step_number: 2
+    text: Calculate the final $R_f$ value as $0.75$ with no units.
+    marks_assigned: 1
+    check_type: exact
+    milestone_value: 0.75
+    tolerance: 0.01
+media:
+  diagram_url: I/RF2.png
+  video_explainer_url: null
+tags:
+- GCSE Chemistry
+- Chromatography
+- Rf value
+- Calculations
