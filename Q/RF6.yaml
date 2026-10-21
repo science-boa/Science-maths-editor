@@ -1,47 +1,47 @@
 id: RF6
 metadata:
-  topic: Chromatography
+  topic: Chemistry - Chromatography
   marks: 3
   difficulty_level: 2.0
 question:
-  text: In a chromatography experiment, a student measures the $R_f$ value of a coloured
-    spot to be $0.65$. The distance moved by the solvent front from the start line
-    is $80.0\text{ mm}$. Use the equation $R_f = \frac{\text{distance moved by spot}}{\text{distance
-    moved by solvent}}$ to calculate the distance moved by the coloured spot.
+  text: In a chromatography experiment, the $R_f$ value of a coloured spot is $0.75$
+    and the distance moved by the solvent from the start line is $80\,\text{mm}$.
+    Using the equation $\text{R}_f = \frac{\text{distance moved by spot}}{\text{distance
+    moved by solvent}}$, calculate the distance moved by the coloured spot.
   variables:
   - Rf
   - solvent_distance
   - spot_distance
 solution:
-  final_answer: 52.0
+  final_answer: 60.0
   marks_available: 3
   steps:
   - step_number: 1
-    text: 'Rearrange the equation to make the distance moved by the spot the subject:
-      $\text{distance moved by spot} = R_f \times \text{distance moved by solvent}$.'
+    text: 'Recall or identify the correct rearranged equation to find the distance
+      moved by the spot: $\text{distance moved by spot} = R_f \times \text{distance
+      moved by solvent}$'
     marks_assigned: 1
-    check_type: algebra
+    check_type: exact
     milestone_value: 0.0
     tolerance: 0.0
   - step_number: 2
-    text: 'Substitute the given values into the rearranged equation: $0.65 \times
-      80.0$.'
+    text: 'Substitute the given values into the equation: $\text{distance moved by
+      spot} = 0.75 \times 80$'
     marks_assigned: 1
-    check_type: substitution
+    check_type: exact
     milestone_value: 0.0
     tolerance: 0.0
   - step_number: 3
-    text: Calculate the final distance moved by the coloured spot to obtain $52.0\text{
-      mm}$.
+    text: 'Calculate the final distance with correct units: $60\,\text{mm}$'
     marks_assigned: 1
-    check_type: value
-    milestone_value: 52.0
+    check_type: range
+    milestone_value: 60.0
     tolerance: 0.1
 media:
   diagram_url: I/RF6.png
   video_explainer_url: null
 tags:
 - GCSE
-- Physics
+- Chemistry
 - Chromatography
-- Rf value
+- Calculations
